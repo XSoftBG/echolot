@@ -29,7 +29,10 @@
 
 package de.exxcellent.echolot.layout;
 
+import nextapp.echo.app.Alignment;
+import nextapp.echo.app.Color;
 import nextapp.echo.app.Extent;
+import nextapp.echo.app.FillImage;
 import nextapp.echo.app.Insets;
 import nextapp.echo.app.layout.CellLayoutData;
 
@@ -37,7 +40,7 @@ import nextapp.echo.app.layout.CellLayoutData;
  *
  * @author sieskei (XSoft Ltd.)
  */
-public class FlexiCellLayoutData extends CellLayoutData {
+public class FlexiCellLayoutData extends CellLayoutData implements Cloneable {
     
     /** Serial Version UID. */
     private static final long serialVersionUID = 20111010L;    
@@ -45,6 +48,19 @@ public class FlexiCellLayoutData extends CellLayoutData {
     private Extent width = null;
     private Extent height = null;
 
+    public FlexiCellLayoutData() {
+        super();
+    }
+    
+    public FlexiCellLayoutData(Extent width, Extent height, Alignment align, Insets insets, Color bgColor, FillImage bgImage) {
+        this.width = width;
+        this.height = height;
+        setAlignment(align);
+        setInsets(insets);
+        setBackground(bgColor);
+        setBackgroundImage(bgImage);
+    }
+    
     public Extent getHeight() {
         return height;
     }
@@ -57,26 +73,12 @@ public class FlexiCellLayoutData extends CellLayoutData {
         return width;
     }
     
-    public Extent getOuterWidth() {
-        Extent outerWidth = getWidth();
-        
-        Extent leftInset = new Extent(0);
-        Extent righInset = new Extent(0);
-        Insets insets = getInsets();
-        if (insets != null) {
-            leftInset = insets.getLeft();
-            righInset = insets.getRight();
-        }
-        
-        if(outerWidth != null) {
-          outerWidth = Extent.add(outerWidth, leftInset);
-          outerWidth = Extent.add(outerWidth, righInset);
-        }
-        
-        return outerWidth;
-    }
-
     public void setWidth(Extent width) {
         this.width = width;
+    }
+    
+    @Override
+    public FlexiCellLayoutData clone() {
+        return new FlexiCellLayoutData(width, height, getAlignment(), getInsets(), getBackground(), getBackgroundImage());
     }
 }

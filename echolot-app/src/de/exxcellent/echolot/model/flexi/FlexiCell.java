@@ -32,8 +32,10 @@ package de.exxcellent.echolot.model.flexi;
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 import java.io.Serializable;
 import nextapp.echo.app.Alignment;
+import nextapp.echo.app.Color;
 import nextapp.echo.app.Component;
 import nextapp.echo.app.Extent;
+import nextapp.echo.app.FillImage;
 import nextapp.echo.app.Insets;
 import nextapp.echo.app.Label;
 
@@ -47,32 +49,41 @@ public class FlexiCell implements Serializable, Cloneable {
     private final int rowId;
     private final int colId;
     
-    private final FlexiCellLayoutData layoutData = new FlexiCellLayoutData();
     private Component component;
     
     public FlexiCell(final int rowId, final int colId, final Component component) {
         this.rowId = rowId;
         this.colId = colId;
         this.component = component;
-        this.component.setLayoutData(layoutData);
-        layoutData.setInsets(new Insets(new Extent(0), new Extent(0), new Extent(0), new Extent(0)));
-        layoutData.setAlignment(new Alignment(Alignment.CENTER, Alignment.CENTER));
+        this.component.setLayoutData(new FlexiCellLayoutData());
     }
     
     public FlexiCell(final int rowId, final int colId, final String content) {
         this(rowId, colId, new Label(content));
     }
     
+    /**
+     * Row's ID in which the cell is located.
+     * @return row's ID.
+     */
     public int getRowId() {
         return rowId;
     }
 
+    /**
+     * Column's ID in which the cell is located.
+     * @return column's ID.
+     */
     public int getColId() {
         return colId;
     }
     
-    public FlexiCellLayoutData getLayoutData() {
-        return layoutData;
+    FlexiCellLayoutData getLayoutData() {
+        return (FlexiCellLayoutData) component.getLayoutData();
+    }
+
+    void setLayoutData(FlexiCellLayoutData layoutData) {
+      this.component.setLayoutData(layoutData);
     }
 
     public Component getComponent() {
@@ -80,8 +91,190 @@ public class FlexiCell implements Serializable, Cloneable {
     }
 
     public void setComponent(Component component) {
+        FlexiCellLayoutData layoutData = getLayoutData();
         this.component = component;
         this.component.setLayoutData(layoutData);
+    }
+    
+    /**
+     * Get cell width.
+     * @return current cell width.
+     */    
+    public Extent getWidth() {
+        return getLayoutData().getWidth();
+    }
+    
+    /**
+     * Set new cell width.
+     * @param newWidth new width.
+     * @return 
+     */
+    public boolean setWidth(Extent newWidth) {
+        Extent currentWidth = getWidth();        
+        if (currentWidth != null && currentWidth.compareTo(newWidth) == 0) {
+            return false;
+        }
+        
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setWidth(newWidth);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Get cell height.
+     * @return current cell height.
+     */
+    public Extent getHeight() {
+        return getLayoutData().getHeight();
+    }
+    
+    /**
+     * Set new cell height.
+     * @param newHeight new height.
+     * @return 
+     */
+    public boolean setHeight(Extent newHeight) {
+        Extent currentHeight = getHeight();
+        if (currentHeight != null && currentHeight.compareTo(newHeight) == 0) {
+            return false;
+        }
+      
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setHeight(newHeight);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Get cell alignment.
+     * @return current cell alignment.
+     */
+    public Alignment getAlignment() {
+        return getLayoutData().getAlignment();
+    }
+    
+    /**
+     * Set new cell alignment.
+     * @param newAlignment new alignment.
+     * @return success of the operation
+     */
+    public boolean setAlignment(Alignment newAlignment) {
+        Alignment currentAlign = getAlignment();
+        if (currentAlign != null && currentAlign.equals(newAlignment)) {
+            return false;
+        }
+        
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setAlignment(newAlignment);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Get cell insets.
+     * @return current cell insets.
+     */
+    public Insets getInsets() {
+        return getLayoutData().getInsets();
+    }
+        
+    /**
+     * Set new cell insets.
+     * @param newInsets new insets.
+     * @return success of the operation
+     */
+    public boolean setInsets(Insets newInsets) {
+        Insets currentInsets = getInsets();
+        if (currentInsets != null && currentInsets.equals(newInsets)) {
+            return false;
+        }
+        
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setInsets(newInsets);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Get cell background color.
+     * @return current cell background color.
+     */
+    public Color getBackground() {
+        return getLayoutData().getBackground();
+    }
+   
+    /**
+     * Set cell background color.
+     * @param newBackground new background color.
+     * @return success of the operation
+     */
+    public boolean setBackground(Color newBackground) {
+        Color currentColor = getBackground();
+        if (currentColor != null && currentColor.equals(newBackground)) {
+            return false;
+        }
+        
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setBackground(newBackground);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Get cell background image.
+     * @return current cell background image.
+     */
+    public FillImage getBackgroundImage() {
+        return getLayoutData().getBackgroundImage();
+    }
+    
+    /**
+     * Set cell background image.
+     * @param newBackgroundImage new background image.
+     * @return success of the operation
+     */        
+    public boolean setBackgroundImage(FillImage newBackgroundImage) {
+        FillImage currentImage = getBackgroundImage();
+        if (currentImage != null && currentImage.equals(newBackgroundImage)) {
+            return false;
+        }
+        
+        FlexiCellLayoutData cloned = getLayoutData().clone();
+        cloned.setBackgroundImage(newBackgroundImage);
+        setLayoutData(cloned);
+        return true;
+    }
+    
+    /**
+     * Inherits the settings from another cell, if no own.
+     * @param cell
+     */
+    public void equalizeLayoutDataTo(FlexiCell cell) {
+        FlexiCellLayoutData cellLayoutData = cell.getLayoutData();
+        FlexiCellLayoutData oldLayoutData = getLayoutData();
+        FlexiCellLayoutData newLayoutData = getLayoutData().clone();
+        
+        if(oldLayoutData.getAlignment() == null) {
+            newLayoutData.setAlignment(cellLayoutData.getAlignment());
+        }        
+        if(oldLayoutData.getBackground() == null) {
+            newLayoutData.setBackground(cellLayoutData.getBackground());
+        }
+        if(oldLayoutData.getBackgroundImage() == null) {
+            newLayoutData.setBackgroundImage(cellLayoutData.getBackgroundImage());
+        }
+        if(oldLayoutData.getHeight() == null) {
+            newLayoutData.setHeight(cellLayoutData.getHeight());
+        }
+        if(oldLayoutData.getInsets() == null) {
+            newLayoutData.setInsets(cellLayoutData.getInsets());
+        }
+        if(oldLayoutData.getWidth() == null) {
+            newLayoutData.setWidth(cellLayoutData.getWidth());
+        }
+        
+        setLayoutData(newLayoutData);
     }
 
     @Override
@@ -104,18 +297,9 @@ public class FlexiCell implements Serializable, Cloneable {
         if (this.colId != other.colId) {
             return false;
         }
-        if (this.layoutData != other.layoutData && (this.layoutData == null || !this.layoutData.equals(other.layoutData))) {
-            return false;
-        }
         if (this.component != other.component && (this.component == null || !this.component.equals(other.component))) {
             return false;
         }
-        
         return true;
-    }
-
-    @Override
-    public FlexiCell clone() throws CloneNotSupportedException {
-        return new FlexiCell(rowId, colId, component);
     }
 }

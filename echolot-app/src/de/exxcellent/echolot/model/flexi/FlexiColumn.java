@@ -31,13 +31,15 @@ package de.exxcellent.echolot.model.flexi;
 
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 import java.io.Serializable;
-import nextapp.echo.app.Label;
+import nextapp.echo.app.Alignment;
+import nextapp.echo.app.Extent;
+import nextapp.echo.app.Insets;
 
 /**
  *
  * @author sieskei (XSoft Ltd.)
  */
-public class FlexiColumn implements Cloneable, Serializable {    
+public class FlexiColumn implements Serializable {    
     private static final long serialVersionUID = 201110102l;
     
     private final FlexiCell cell;
@@ -51,6 +53,17 @@ public class FlexiColumn implements Cloneable, Serializable {
     public FlexiColumn(int id, String title) {
         this.id = id;
         cell = new FlexiCell(-1, id, title);
+        
+        // set default props for LayoutData ...
+        // ... if necessary, children will inherit
+        // ---------------------------------------
+        FlexiCellLayoutData layoutData = cell.getLayoutData().clone();
+        layoutData.setInsets(new Insets(new Extent(0), new Extent(0), new Extent(0), new Extent(0)));
+        layoutData.setAlignment(new Alignment(Alignment.CENTER, Alignment.CENTER));
+        layoutData.setWidth(new Extent(135));
+        layoutData.setHeight(new Extent(25));
+        
+        cell.setLayoutData(layoutData);
     }
     
     private FlexiColumn(int id, FlexiCell cell, boolean sortable, boolean hided, boolean visible, String tooltip) {
@@ -62,20 +75,12 @@ public class FlexiColumn implements Cloneable, Serializable {
         this.tooltip = tooltip;
     }
 
+    public FlexiCell getCell() {
+        return cell;
+    } 
+    
     public final int getId() {
         return id;
-    }
-    
-    public final FlexiCellLayoutData getLayoutData() {
-        return cell.getLayoutData();
-    }
-
-    public final Label getComponent() {
-        return (Label) cell.getComponent();
-    }
-
-    public void setComponent(Label component) {
-        this.cell.setComponent(component);
     }
 
     public final boolean isSortable() {
@@ -144,10 +149,5 @@ public class FlexiColumn implements Cloneable, Serializable {
           return false;
       }
       return true;
-    }
-
-    @Override
-    public FlexiColumn clone() {
-        return new FlexiColumn(id, cell, sortable, hided, visible, tooltip);
     }
 }
