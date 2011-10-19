@@ -551,8 +551,9 @@ public final class FlexiGrid extends Component implements Pane {
         MutableStyle ms = (MutableStyle) getLocalStyle();
         Object oldValue = ms.get(propertyName);
         ms.set(propertyName, newValue);
-        if(firePropertyChangeEvent)
-          firePropertyChange(propertyName, oldValue, newValue);
+        if (firePropertyChangeEvent) {
+            firePropertyChange(propertyName, oldValue, newValue);
+        }
     }
     
     
