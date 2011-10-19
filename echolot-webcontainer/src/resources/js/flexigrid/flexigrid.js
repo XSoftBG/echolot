@@ -365,6 +365,8 @@
                     //var columnSel = $('th:visible div:eq('+n+')',this.hDiv);
                     var columnSel = $('th:visible:eq('+n+')',this.hDiv);
                     columnSel.css('width', nw);
+                    columnSel.data('isUserSized', true);
+                    
                     //columnSel.parent(':first').css('width', nw);
                     
                     $('tr', this.bDiv).each (
@@ -1037,7 +1039,7 @@
                 // prepeare cell ...
                 // -----------------
                 var qcell = $(cell);
-                cell.id = 'cell' + cellData.rowId + '-' + cellData.colId;
+                cell.id = 'cell-' + cellData.rowId + 'x' + cellData.colId;
                 if (pth != null) {
                     if ($(pth).hasClass('sorted'))
                         qcell.addClass('sorted');
@@ -1382,6 +1384,7 @@
                 if(/^true$/i.test(p.colModel[i].visible)) {
                     var cm = p.colModel[i];
                     var pth = document.createElement('th');
+                    pth.id = 'col' + cm.id;                   
 
                     if (cm.id !== null && cm.sortable) {
                         $(pth).attr('abbr', cm.id);
