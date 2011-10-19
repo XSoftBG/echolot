@@ -51,7 +51,6 @@ import de.exxcellent.echolot.model.flexi.FlexiColumn;
 import de.exxcellent.echolot.model.flexi.FlexiColumnModel;
 import de.exxcellent.echolot.model.flexi.FlexiPage;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -123,7 +122,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.endNode();
             
             w.startNode("componentIdx", Integer.class);
-            w.setValue(Integer.toString(fg.getComonentIdx(-1, column.getComponent())));
+            w.setValue(column.getCell().getComponent().getId());
             w.endNode();
         }
 
@@ -161,7 +160,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.endNode();  
            
             w.startNode("componentIdx", Integer.class);
-            w.setValue(Integer.toString(fg.getComonentIdx(cell.getRowId(), cell.getComponent())));
+            w.setValue(cell.getComponent().getId());
             w.endNode();
         }
 
@@ -176,17 +175,14 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         }        
     }
     
-    private static final class Update {
+    private static final class CellUpdate {
           private Integer[] props = null;
           private int rowId = -1;
           private int columnId = -1;
           private int componentIdx = -1;
     }
     
-    private final class FlexiCellsUpdateConverter implements Converter {
-      
-
-      
+    private final class FlexiCellsUpdateConverter implements Converter {      
         private final FlexiGrid fg;
 
         public FlexiCellsUpdateConverter(FlexiGrid fg) {
@@ -197,7 +193,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         public void marshal(Object o, HierarchicalStreamWriter writer, MarshallingContext mc) {
             PathTrackingWriter w = (PathTrackingWriter) writer;
             final Set<Entry<FlexiCell, Integer[]>> flexiCellsUpdate = ((FlexiCellsUpdate) o).getUpdates();
-            final Update[] updates = new Update[flexiCellsUpdate.size()];
+            final CellUpdate[] updates = new CellUpdate[flexiCellsUpdate.size()];
                         
             Iterator<Entry<FlexiCell, Integer[]>> iterator = flexiCellsUpdate.iterator();
             int i = 0;
@@ -206,15 +202,15 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
                 FlexiCell cell = entry.getKey();
                 Integer[] props = entry.getValue();
                 
-                updates[i] = new Update();
+                updates[i] = new CellUpdate();
                 updates[i].rowId = cell.getRowId();
                 updates[i].columnId = cell.getColId();
-                updates[i].componentIdx = fg.getComonentIdx(cell.getRowId(), cell.getComponent());
+                updates[i].componentIdx = Integer.valueOf(cell.getComponent().getId());
                 updates[i].props = props;
                 i++;
             }
             
-            w.startNode("cells", Update[].class);
+            w.startNode("cells", CellUpdate[].class);
             mc.convertAnother(updates);
             w.endNode();
         }
@@ -244,6 +240,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
     public FlexiGridPeer() {
         addOutputProperty(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION);
         addOutputProperty(FlexiGrid.PROPERTY_ACTIVE_PAGE);
+        addOutputProperty(FlexiGrid.PROPERTY_CELLS_UPDATE);
       
         //* Event fired when ActivePage is changed */
         addEvent(new EventPeer(FlexiGrid.INPUT_ACTIVE_PAGE_CHANGED,
@@ -406,21 +403,19 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         // Add FlexiGrid JavaScript library to client.
         serverMessage.addLibrary(FLEXIGRID_SERVICE.getId());
         serverMessage.addLibrary(FLEXIGRID_SYNC_SERVICE.getId());
-        
-        
+                
         // * Configure input / output streams
         // ----------------------------------
         cellConverter = new FlexiCellConverter((FlexiGrid) component);
         columnConverter = new FlexiColumnConverter((FlexiGrid) component);   
         updateConverter = new FlexiCellsUpdateConverter((FlexiGrid) component);
         
-        
+        // * JAVA to JSON
+        // --------------        
         streamOut.registerConverter(cellConverter);
         streamOut.registerConverter(columnConverter);
-        streamOut.registerConverter(updateConverter);
-        
-        // * JAVA to JSON
-        // --------------
+        streamOut.registerConverter(updateConverter);        
+
         streamOut.alias("columnModel",          FlexiColumnModel.class);
         streamOut.alias("activePage",           FlexiPage.class);
         streamOut.alias("resultsPerPageOption", ResultsPerPageOption.class);
@@ -480,14 +475,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
      * @see nextapp.echo.webcontainer.ComponentSynchronizePeer#getOutputProperty(Context, Component, String, int)
      */
     @Override
-    public Object getOutputProperty(final Context context, final Component component, final String propertyName, final int propertyIndex) {
-      
-        HashMap<FlexiCell, Integer[]> hashMap = new HashMap<FlexiCell, Integer[]>();        
-        hashMap.put(((FlexiGrid)component).getFlexTableModel().getCellAt(0, 0), new Integer[] { FlexiCellsUpdate.LAYOUT_DATA_UPDATE });
-        
-        FlexiCellsUpdate update = new FlexiCellsUpdate(hashMap);
-        streamOut.toXML(update);
-      
+    public Object getOutputProperty(final Context context, final Component component, final String propertyName, final int propertyIndex) {            
         if (FlexiGrid.PROPERTY_ACTIVE_PAGE.equals(propertyName)) {
             return streamOut.toXML(((FlexiGrid) component).getActivePage());
         } else if (FlexiGrid.PROPERTY_COLUMNMODEL.equals(propertyName)) {
@@ -498,7 +486,10 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             return streamOut.toXML(((FlexiGrid) component).getSortingModel());
         } else if (FlexiGrid.PROPERTY_TABLE_ROW_SELECTION.equals(propertyName)) {
             return Arrays.toString(((FlexiGrid) component).getSelectedRowsIds());
+        } else if (FlexiGrid.PROPERTY_CELLS_UPDATE.equals(propertyName)) {
+            return streamOut.toXML(((FlexiGrid) component).getLastCellsUpdate());
         }
+        
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
 }

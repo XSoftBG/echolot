@@ -1270,60 +1270,102 @@
                 
                 component.removeAllListeners('displayed');
                 component.addListener('displayed', autoResizeMethod);
+                component.addListener('property', Core.method({"grid": g, "component": component, "div": div, "td": td}, function(event) {
+                        if (event.propertyName == 'layoutData') {
+                            if (event.oldValue.width !== event.newValue.width) {
+                                this.grid.renderCellWidth(this.td, event.newValue.width);
+                            }
+                            if (event.oldValue.height !== event.newValue.height) {
+                                this.grid.renderCellHeight(this.td, event.newValue.height);
+                            }
+                            if (event.oldValue.alignment !== event.newValue.alignment) {
+                                this.grid.renderCellAlignment(this.td, this.div, event.newValue.alignment);
+                            }                           
+                          
+                            this.grid.renderCellInsets(this.div, event.newValue.insets);
+                            this.grid.renderCellBackground(this.td, event.newValue.background);
+                            this.grid.renderCellBackgroundImage(this.div, event.newValue.backgroundImage);
+                        }                        
+                    })
+                );
+            },
+            
+            renderCellWidth: function(td, width) {
+                td.style.width = width;
+            },
+            
+            renderCellHeight: function(td, height) {
+                td.style.height = height;
+            },
+            
+            renderCellAlignment: function(td, div, alignment) {
+                var qdiv = $(div);
+                var horizontal = Echo.Sync.Alignment.getRenderedHorizontal(alignment);
+                var vertical = typeof(alignment) == "object" ? alignment.vertical : alignment;
+
+                switch (horizontal) {
+                    case "center":
+                        qdiv.css({
+                            'margin' : '0 auto', 
+                            'float': 'none'
+                        });
+                        break;
+                    default:
+                        qdiv.css({
+                            'float': horizontal
+                        });
+                        break;
+                }
+
+                var verticalValue;
+                switch (vertical) {
+                    case "top":
+                        verticalValue = "top";
+                        break;
+                    case "middle":
+                        verticalValue = "middle";
+                        break;
+                    case "bottom":
+                        verticalValue = "bottom";
+                        break;
+                    default:
+                        verticalValue = "";
+                        break;
+                }
+                td.style.verticalAlign = verticalValue;
+                td.style.textAlign = 'center';
+            },
+            
+            renderCellInsets: function(div, insets) {
+                Echo.Sync.Insets.render(insets, div, "padding");
+            },
+            
+            renderCellBackground: function(td, backgroundColor) {
+                Echo.Sync.Color.render(backgroundColor, td, "backgroundColor");
+            },
+            
+            renderCellBackgroundImage: function(td, backgroundImage) {
+                Echo.Sync.FillImage.render(backgroundImage, td);
             },
             
             renderCellLayoutData: function(component, div, td) {
-                var qdiv = $(div);
                 var layoutData = component.render("layoutData");
                 if (layoutData) {                    
                     if (layoutData.width) {
-                        td.style.width = layoutData.width;
+                        g.renderCellWidth(td, layoutData.width);
                     }
                     
                     if (layoutData.height) {
-                        td.style.height = layoutData.height;
+                        g.renderCellHeight(td, layoutData.height);
                     }
                     
                     if (layoutData.alignment) {
-                        var horizontal = Echo.Sync.Alignment.getRenderedHorizontal(layoutData.alignment);
-                        var vertical = typeof(layoutData.alignment) == "object" ? layoutData.alignment.vertical : layoutData.alignment;
-                        
-                        switch (horizontal) {
-                            case "center":
-                                qdiv.css({
-                                    'margin' : '0 auto', 
-                                    'float': 'none'
-                                });
-                                break;
-                            default:
-                                qdiv.css({
-                                    'float': horizontal
-                                });
-                                break;
-                        }
-                        
-                        var verticalValue;
-                        switch (vertical) {
-                            case "top":
-                                verticalValue = "top";
-                                break;
-                            case "middle":
-                                verticalValue = "middle";
-                                break;
-                            case "bottom":
-                                verticalValue = "bottom";
-                                break;
-                            default:
-                                verticalValue = "";
-                                break;
-                        }
-                        td.style.verticalAlign = verticalValue;
-                        td.style.textAlign = 'center';
+                        g.renderCellAlignment(td, div, layoutData.alignment);
                     }
-                                      
-                    Echo.Sync.Insets.render(layoutData.insets, div, "padding");
-                    Echo.Sync.FillImage.render(layoutData.backgroundImage, td);                    
-                    Echo.Sync.Color.render(layoutData.background, td, "backgroundColor");
+                    
+                    g.renderCellInsets(div, layoutData.insets);
+                    g.renderCellBackground(td, layoutData.background);
+                    g.renderCellBackgroundImage(div, layoutData.backgroundImage);
                 }
             }
         }; // --- EOF Grid Declaration (g)

@@ -15,8 +15,10 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
                 TABLE_ROW_SELECTION: "tableRowSelection",
                 TABLE_ROW_SELECTION_CHANGED: "tableRowSelectionChanged",
                 
-                RESULTS_PPAGE_OPTION: "resultsPerPageOption",
+                RESULTS_PPAGE_OPTION: "resultsPerPageOption",                
                 RESULTS_PPAGE_OPTION_CHANGED: "resultsPerPageOptionChanged",
+              
+                CELLS_UPDATE: "cellsUpdate",
               
                 HEIGHT_OFFSET: "heightOffset",                
                 TABLE_COLUMN_TOGGLE: "tableColumnToggle",
@@ -483,7 +485,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     // there are some cases were an empty update is triggered - that can lead to errors in IE so just go back with true because nothing to do for us
                     return true;
                 }
-
+                
                 if (Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
                     partitialUpdate = false;
                 }
@@ -495,7 +497,11 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     Echo.Render.renderComponentDispose(update, update.parent);
                     containerElement.removeChild(element);
                     this.renderAdd(update, containerElement);
-                } else {
+                } else {                  
+                    if(Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.CELLS_UPDATE) >= 0) {
+                        var cellsUpdate = this._fromJsonString(this.component.render(exxcellent.FlexiGrid.CELLS_UPDATE));
+                    }
+                  
                     // only reload the data rows
                     var options = this._renderUpdateOptions();
                     this._flexigrid.flexOptions(options);
