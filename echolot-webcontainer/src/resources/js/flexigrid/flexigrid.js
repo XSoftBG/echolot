@@ -89,6 +89,7 @@
         var g = {      
             hset : {},
             rePosDrag: function () {
+                //alert("rePosDrag");
                 // If Debugging is enabled record the start time of the rendering process.
                 if (p.debug) {
                     var startTime = new Date();
@@ -1264,14 +1265,16 @@
                     this.style.height = '';
                     var bounds = new Core.Web.Measure.Bounds(this);
                     this.style.width = bounds.width + 'px';
-                    this.style.height = bounds.height + 'px';
+                    //this.style.height = bounds.height + 'px';
                     this.style.cssFloat = of;
                 });
                 
                 autoResizeMethod();
                 
-                component.removeAllListeners('displayed');
-                component.addListener('displayed', autoResizeMethod);
+                component.removeAllListeners('updated');
+                component.removeAllListeners('property');                
+                
+                component.addListener('updated', autoResizeMethod);
                 component.addListener('property', Core.method({"grid": g, "component": component, "div": div, "td": td}, function(event) {
                         if (event.propertyName == 'layoutData') {
                             if (event.oldValue.width !== event.newValue.width) {
@@ -1287,13 +1290,28 @@
                             this.grid.renderCellInsets(this.div, event.newValue.insets);
                             this.grid.renderCellBackground(this.td, event.newValue.background);
                             this.grid.renderCellBackgroundImage(this.div, event.newValue.backgroundImage);
-                        }                        
+                        }
                     })
                 );
             },
             
             renderCellWidth: function(td, width) {
-                td.style.width = width;
+                var container = $(td);
+                if (container.is('td')) {
+                    var temp = td.id.substr(5);
+                    var colId = parseInt(temp.substr(temp.indexOf('x') + 1));
+                    var qth = $('#col' + colId);
+                    if (qth.data('isUserSized')) {
+                        td.style.width = qth.css('width');
+                    } else {
+                        td.style.width = width;                        
+                    }                    
+                } else {
+                    if (!container.data('isUserSized')) {
+                        td.style.width = width;
+                        this.rePosDrag();
+                    }
+                }
             },
             
             renderCellHeight: function(td, height) {
@@ -2194,7 +2212,7 @@
             for (idx = 0; idx < sortingColumns.length; idx++) {
                 var sortingColumn = sortingColumns[idx];
                 for (var adx = 0; adx < columnModel.columns.length; adx++) {
-                    if(columnModel.columns[adx].name == sortingColumn.columnId){
+                    if(columnModel.columns[adx].id == sortingColumn.columnId){
                         columnsToSort.push(new Object({
                             index: adx,
                             order: sortingColumn.sortOrder
@@ -2241,33 +2259,9 @@
                 return rows;
 
                 function alphaNumericSorter(row1, row2) {
-                    var row1Cell = null;
-                    var row2Cell = null;            
-            
-                    first_cell = row1.cell[columnIdx];
-                    if(isNaN(first_cell)) {
-                        row1Cell = first_cell;
-                    }              
-                    else {
-                        echoComponent = p.owner.component.getComponent(parseInt(first_cell));
-                        if(echoComponent != null)
-                            row1Cell = echoComponent.get("text");
-                        else
-                            row1Cell = first_cell;
-                    }
-            
-                    second_cell = row2.cell[columnIdx];
-                    if(isNaN(second_cell)) {
-                        row2Cell = second_cell;
-                    }              
-                    else {
-                        echoComponent = p.owner.component.getComponent(parseInt(second_cell));
-                        if(echoComponent != null)
-                            row2Cell = echoComponent.get("text");
-                        else
-                            row2Cell = second_cell;
-                    }
-
+                    var row1Cell = p.owner.component.getComponent(row1.cells[columnIdx].componentIdx).render("text", "");
+                    var row2Cell = p.owner.component.getComponent(row2.cells[columnIdx].componentIdx).render("text", "");
+                    
                     // undefined rows
                     if (!row1Cell && !row2Cell) {
                         return 0;// test for undefined rows

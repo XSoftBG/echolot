@@ -144,11 +144,11 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
             },
             
             /** Performed when the results per page changes from client */
-            doChangeResultsPerPage : function(resultsPerPage) {
+            doChangeResultsPerPage : function(initialOption) {
                 this.fireEvent({
                             type : exxcellent.FlexiGrid.RESULTS_PPAGE_OPTION_CHANGED,
                             source : this,
-                            data : resultsPerPage
+                            data : initialOption
                         });
             }
         });
@@ -483,7 +483,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
                 if (updatedProperties.length === 0) {
                     // there are some cases were an empty update is triggered - that can lead to errors in IE so just go back with true because nothing to do for us
-                    return true;
+                    return false;
                 }
                 
                 if (Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
@@ -507,7 +507,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     this._flexigrid.flexOptions(options);
                     this._flexigrid.flexReload();
                 }
-                return true;
+                
+                return false;
             },
 
             /**
@@ -784,16 +785,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             /**
              * Method to process the event ot changing the ResultsPerPageOption.
              */
-            _onRpChange : function(resultsPerPageInitialOption) {              
-              var rppoObj = {
-                resultsPerPageOption : {
-                  pageOptions: this._getResultsPerPageOption().pageOptions,
-                  initialOption: resultsPerPageInitialOption
-                }
-              };
-              
-              var jsonMessage = this._toJsonString(rppoObj);              
-              this.component.doChangeResultsPerPage(jsonMessage);
+            _onRpChange : function(initialOption) {              
+                this.component.doChangeResultsPerPage(initialOption);
             },
 
             /**

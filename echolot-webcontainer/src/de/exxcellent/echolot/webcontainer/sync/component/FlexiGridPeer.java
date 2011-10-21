@@ -295,26 +295,20 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         
         //* Event fired when ResultsPerPageOption is changed */
         addEvent(new EventPeer(FlexiGrid.INPUT_PROPERTY_RESULTS_PER_PAGE_OPTION_CHANGED, 
-                FlexiGrid.RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY, String.class) {
+                FlexiGrid.RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY, Integer.class) {
             @Override
             public boolean hasListeners(Context context, Component c) {
                 return true;
             }
 
             @Override
-            public void processEvent(Context context, Component component, Object eventData)
-            {
-              final FlexiGrid flexigrid = (FlexiGrid) component;
-              final String jsonMessage = (String) eventData;
-              try {
-                    final ResultsPerPageOption aResultsPerPageOption = (ResultsPerPageOption) streamIn.fromXML(jsonMessage);
-                    flexigrid.setResultsPerPageOption(aResultsPerPageOption);
-                    flexigrid.userResultsPerPageOptionChange(aResultsPerPageOption);
-                    flexigrid.setActivePage(1);
-                    super.processEvent(context, flexigrid, aResultsPerPageOption);
-                } catch (NumberFormatException e) {
-                    throw new RuntimeException("Could not unmarshall ResultsPerPageOption from JSON msg: '" + jsonMessage + "'", e);
-                }
+            public void processEvent(Context context, Component component, Object eventData) {
+                final FlexiGrid flexigrid = (FlexiGrid) component;
+                final Integer initialOption = (Integer) eventData;
+                ResultsPerPageOption currentRPPO = flexigrid.getResultsPerPageOption();
+                flexigrid.setResultsPerPageOption(new ResultsPerPageOption(initialOption, currentRPPO.getPageOption()));
+                flexigrid.userResultsPerPageOptionChange(initialOption);
+                flexigrid.setActivePage(1);
             }
         });
         
