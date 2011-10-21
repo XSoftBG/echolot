@@ -57,6 +57,7 @@ import de.exxcellent.echolot.listener.TableSortingChangeListener;
 import de.exxcellent.echolot.model.flexi.FlexiCellsUpdate;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -313,7 +314,7 @@ public final class FlexiGrid extends Component implements Pane {
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/load.gif");
         
     
-    private static final String FLEXIGRID_CHILDS_PROPS = "_FLEXIGRID_CHILDS_PROPS";
+    private static final String FLEXI_CELL_COMPONENT_PROPS = "_FLEXIGRID_CHILDS_PROPS";
     
     /**
      * This is due to the lack of knowledge how to force a sync on the client.
@@ -386,13 +387,14 @@ public final class FlexiGrid extends Component implements Pane {
         }
     };
     
-    private final PropertyChangeListener CELL_LAYOUT_DATA_LISTENER = new PropertyChangeListener() {
+    
+    private final class FlexiCellLayoutDataListener implements PropertyChangeListener, Serializable {
         private boolean inProcess = false;
                 
         private void addToCollection(Integer componentID, ArrayList<FlexiCell> collection) {
             Component component = FlexiGrid.this.getComponent(componentID);
             MutableStyle componentStyle = (MutableStyle) component.getLocalStyle();
-            FlexiCell componentCell = (FlexiCell) componentStyle.getIndex(FLEXIGRID_CHILDS_PROPS, 0);
+            FlexiCell componentCell = (FlexiCell) componentStyle.getIndex(FLEXI_CELL_COMPONENT_PROPS, 0);
             collection.add(componentCell);
         }
         
@@ -427,7 +429,7 @@ public final class FlexiGrid extends Component implements Pane {
                     return;
                 }
                 MutableStyle sourceStyle = (MutableStyle) source.getLocalStyle();
-                FlexiCell sourceCell = (FlexiCell) sourceStyle.getIndex(FLEXIGRID_CHILDS_PROPS, 0);
+                FlexiCell sourceCell = (FlexiCell) sourceStyle.getIndex(FLEXI_CELL_COMPONENT_PROPS, 0);
                 int colID = sourceCell.getColId();
                 int rowID = sourceCell.getRowId();
 
@@ -444,34 +446,50 @@ public final class FlexiGrid extends Component implements Pane {
                     addToCollection(componentID, columnCells);
                 }
 
-                if (widthResult >= 1) {
-                    for (FlexiCell fc : columnCells) {
-                        fc.setWidth(newWidth);
-                    }
-                    maxColumnWidths.put(colID, newWidth);
-                } else {
-                    sourceCell.setWidth(oldWidth);
+                // set new width to each cell with colId == colID
+                // ----------------------------------------------
+                for (FlexiCell fc : columnCells) {
+                    fc.setWidth(newWidth);
                 }
-
-                if (heightResult >= 1) {
-                    for (FlexiCell fc : rowCells) {
-                        fc.setHeight(newHeight);
-                    }
-                    maxRowHeights.put(rowID, newHeight);
-                } else {
-                    sourceCell.setHeight(oldHeight);
+                maxColumnWidths.put(colID, newWidth);
+                
+                // set new height to each cell with rowId == rowID
+                // ----------------------------------------------
+                for (FlexiCell fc : rowCells) {
+                    fc.setHeight(newHeight);
                 }
+                maxRowHeights.put(rowID, newHeight);
+                
+                
+//                if (widthResult >= 1) {
+//                    for (FlexiCell fc : columnCells) {
+//                        fc.setWidth(newWidth);
+//                    }
+//                    maxColumnWidths.put(colID, newWidth);
+//                } else {
+//                    sourceCell.setWidth(oldWidth);
+//                }
+//
+//                if (heightResult >= 1) {
+//                    for (FlexiCell fc : rowCells) {
+//                        fc.setHeight(newHeight);
+//                    }
+//                    maxRowHeights.put(rowID, newHeight);
+//                } else {
+//                    sourceCell.setHeight(oldHeight);
+//                }
 
                 // finishing ...
                 System.out.println("work ...");
                 this.inProcess = false;
             }
         }
-    };
+    }
     
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
     private FlexiSortingModel sortingModel;
+    private final FlexiCellLayoutDataListener FLEXI_CELL_LAYOUT_DATA_LISTENER = new FlexiCellLayoutDataListener();
     
     /* Key: Row's ID -> Value: components' ids */
     private final HashMap<Integer, ArrayList<Integer>> rowsChilds = new HashMap<Integer, ArrayList<Integer>>();
@@ -827,9 +845,9 @@ public final class FlexiGrid extends Component implements Pane {
             }
             
             component.setId(idx.toString());            
-            component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, CELL_LAYOUT_DATA_LISTENER);
+            component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, FLEXI_CELL_LAYOUT_DATA_LISTENER);
             MutableStyle componentStyle = (MutableStyle) component.getLocalStyle();
-            componentStyle.setIndex(FLEXIGRID_CHILDS_PROPS, 0, cell);
+            componentStyle.setIndex(FLEXI_CELL_COMPONENT_PROPS, 0, cell);
             
             ArrayList<Integer> rowComponentsIds = rowsChilds.get(rowID);
             if (rowComponentsIds == null) {
@@ -1516,8 +1534,8 @@ public final class FlexiGrid extends Component implements Pane {
     
     
     // by sieskei
-    public void userResultsPerPageOptionChange(ResultsPerPageOption rppo) {
-        fireResultsPerPageOptionChange(rppo);
+    public void userResultsPerPageOptionChange(Integer initialOption) {
+        fireResultsPerPageOptionChange(initialOption);
     }
 
     /**
@@ -1575,7 +1593,7 @@ public final class FlexiGrid extends Component implements Pane {
     /**
      * Notifies <code>ResultsPerPageOptionChangeListener</code>s that the user has changed the results per page option.
      */
-    protected void fireResultsPerPageOptionChange(ResultsPerPageOption rppo) {
+    protected void fireResultsPerPageOptionChange(Integer initialOption) {
         if (!hasEventListenerList()) {
             return;
         }
@@ -1583,7 +1601,7 @@ public final class FlexiGrid extends Component implements Pane {
         if (listeners.length == 0) {
             return;
         }
-        ResultsPerPageOptionEvent e = new ResultsPerPageOptionEvent(this, rppo);
+        ResultsPerPageOptionEvent e = new ResultsPerPageOptionEvent(this, initialOption);
         for (int i = 0; i < listeners.length; ++i) {
             ((ResultsPerPageOptionChangeListener) listeners[i]).resultsPerPageChange(e);
         }

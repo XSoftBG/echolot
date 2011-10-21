@@ -29,7 +29,6 @@
 
 package de.exxcellent.echolot.event;
 
-import de.exxcellent.echolot.model.flexi.ResultsPerPageOption;
 import java.util.EventObject;
 
 /**
@@ -38,17 +37,15 @@ import java.util.EventObject;
  * @author sieskei (XSoft Ltd.)
  */
 
-public class ResultsPerPageOptionEvent extends EventObject {
-  
-  private final ResultsPerPageOption rppo;
+public class ResultsPerPageOptionEvent extends EventObject {  
+    private final Integer initialOption;
 
-  public ResultsPerPageOptionEvent(Object source, ResultsPerPageOption rppo)
-  {
-    super(source);
-    this.rppo = rppo;
-  }
-  
-  public ResultsPerPageOption getResultsPerPageOption() {
-    return rppo;
-  }
+    public ResultsPerPageOptionEvent(Object source, Integer initialOption) {
+        super(source);
+        this.initialOption = initialOption;
+    }
+
+    public Integer getNewIntialOption() {
+       return initialOption;
+    }
 }

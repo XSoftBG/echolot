@@ -86,10 +86,20 @@ public class FlexiCell implements Serializable, Cloneable {
       this.component.setLayoutData(layoutData);
     }
 
+    /**
+     * Get cell component.
+     * @return current cell component.
+     */
     public Component getComponent() {
         return component;
     }
 
+    /**
+     * Set new cell component.
+     * <br />
+     * The new component inherits layoutData!
+     * @param component new cell component
+     */
     public void setComponent(Component component) {
         FlexiCellLayoutData layoutData = getLayoutData();
         this.component = component;
@@ -107,7 +117,7 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set new cell width.
      * @param newWidth new width.
-     * @return 
+     * @return success of the operation.
      */
     public boolean setWidth(Extent newWidth) {
         Extent currentWidth = getWidth();        
@@ -132,7 +142,7 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set new cell height.
      * @param newHeight new height.
-     * @return 
+     * @return success of the operation.
      */
     public boolean setHeight(Extent newHeight) {
         Extent currentHeight = getHeight();
@@ -157,11 +167,10 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set new cell alignment.
      * @param newAlignment new alignment.
-     * @return success of the operation
+     * @return success of the operation.
      */
-    public boolean setAlignment(Alignment newAlignment) {
-        Alignment currentAlign = getAlignment();
-        if (currentAlign != null && currentAlign.equals(newAlignment)) {
+    public boolean setAlignment(Alignment newAlignment) {      
+        if (newAlignment.equals(getAlignment())) {
             return false;
         }
         
@@ -182,11 +191,10 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set new cell insets.
      * @param newInsets new insets.
-     * @return success of the operation
+     * @return success of the operation.
      */
     public boolean setInsets(Insets newInsets) {
-        Insets currentInsets = getInsets();
-        if (currentInsets != null && currentInsets.equals(newInsets)) {
+        if (newInsets.equals(getInsets())) {
             return false;
         }
         
@@ -207,14 +215,13 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set cell background color.
      * @param newBackground new background color.
-     * @return success of the operation
+     * @return success of the operation.
      */
     public boolean setBackground(Color newBackground) {
-        Color currentColor = getBackground();
-        if (currentColor != null && currentColor.equals(newBackground)) {
+        if (newBackground.equals(getBackground())) {
             return false;
         }
-        
+      
         FlexiCellLayoutData cloned = getLayoutData().clone();
         cloned.setBackground(newBackground);
         setLayoutData(cloned);
@@ -232,11 +239,10 @@ public class FlexiCell implements Serializable, Cloneable {
     /**
      * Set cell background image.
      * @param newBackgroundImage new background image.
-     * @return success of the operation
+     * @return success of the operation.
      */        
     public boolean setBackgroundImage(FillImage newBackgroundImage) {
-        FillImage currentImage = getBackgroundImage();
-        if (currentImage != null && currentImage.equals(newBackgroundImage)) {
+        if(newBackgroundImage.equals(getBackgroundImage())) {
             return false;
         }
         
@@ -248,7 +254,7 @@ public class FlexiCell implements Serializable, Cloneable {
     
     /**
      * Inherits the settings from another cell, if no own.
-     * @param cell
+     * @param cell 'parental' cell
      */
     public void equalizeLayoutDataTo(FlexiCell cell) {
         FlexiCellLayoutData cellLayoutData = cell.getLayoutData();
@@ -277,11 +283,17 @@ public class FlexiCell implements Serializable, Cloneable {
         setLayoutData(newLayoutData);
     }
 
+    /**
+     * @see java.lang.Object#hashCode()
+     */
     @Override
     public int hashCode() {
         return (this.rowId << 16) | this.colId;
     }
 
+    /**
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
