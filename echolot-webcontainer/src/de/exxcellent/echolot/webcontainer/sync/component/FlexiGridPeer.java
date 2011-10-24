@@ -283,7 +283,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
                  * }}
                  * </pre>
                  */
-                try {                  
+                try {
+                    super.processEvent(context, component, eventData);
                     final FlexiRowSelection rowSelection = (FlexiRowSelection) streamIn.fromXML(jsonMessage);
                     rowSelection.repair();
                     flexigrid.userTableRowSelection(rowSelection);
@@ -372,9 +373,9 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
                  */
                 try {
                     final FlexiSortingModel aSortingModel = (FlexiSortingModel) streamIn.fromXML(jsonMessage);
-                    flexigrid.setSortingModel(aSortingModel);
-                    flexigrid.userTableSortingChange(aSortingModel);
-                    super.processEvent(context, flexigrid, aSortingModel);
+                    //flexigrid.setSortingModel(aSortingModel);
+                    //flexigrid.userTableSortingChange(aSortingModel);
+                    //super.processEvent(context, flexigrid, aSortingModel);
                 } catch (NumberFormatException e) {
                     throw new RuntimeException("Could not unmarshall sortingModel from JSON msg== '" + jsonMessage + "'", e);
                 }

@@ -30,6 +30,8 @@
 package de.exxcellent.echolot.model.flexi;
 
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
 import nextapp.echo.app.Alignment;
 import nextapp.echo.app.Color;
@@ -45,7 +47,14 @@ import nextapp.echo.app.Label;
  */
 public class FlexiCell implements Serializable, Cloneable {    
     private static final long serialVersionUID = 201110101l;
-        
+    private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
+    
+    /** 
+     * The property change event dispatcher.
+     * This object is lazily instantiated. 
+     */
+    private PropertyChangeSupport componentChangeSupport;
+    
     private final int rowId;
     private final int colId;
     
@@ -98,12 +107,14 @@ public class FlexiCell implements Serializable, Cloneable {
      * Set new cell component.
      * <br />
      * The new component inherits layoutData!
-     * @param component new cell component
+     * @param newComponent new cell component
      */
-    public void setComponent(Component component) {
+    public void setComponent(Component newComponent) {
         FlexiCellLayoutData layoutData = getLayoutData();
-        this.component = component;
+        Component oldComponent = this.component;
+        this.component = newComponent;
         this.component.setLayoutData(layoutData);
+        fireComponentChange(oldComponent, this.component);
     }
     
     /**
@@ -283,6 +294,42 @@ public class FlexiCell implements Serializable, Cloneable {
         setLayoutData(newLayoutData);
     }
 
+    /**
+     * Adds a component change listener to this <code>FlexiCell</code>.
+     *
+     * @param l the listener to add
+     */
+    public void addComponentChangeListener(PropertyChangeListener l) {
+        if (componentChangeSupport == null) {
+            componentChangeSupport = new PropertyChangeSupport(this);
+        }
+        componentChangeSupport.addPropertyChangeListener(PROPERTY_COMPONENT_CHANGE, l);
+    }
+    
+    /**
+     * Removes a component change listener from this <code>FlexiCell</code>.
+     *
+     * @param l the listener to be removed
+     */
+    public void removeComponentChangeListener(PropertyChangeListener l) {
+        if (componentChangeSupport != null) {
+            componentChangeSupport.removePropertyChangeListener(PROPERTY_COMPONENT_CHANGE, l);
+        }
+    }
+    
+    /**
+     * Reports a bound component change to <code>ComponentChangeListener</code>s
+     *
+     * @param oldValue the previous component
+     * @param newValue the present component
+     */
+    protected void fireComponentChange(Component oldValue, Component newValue) {
+        // Report to PropertyChangeListeners.
+        if (componentChangeSupport != null) {
+            componentChangeSupport.firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldValue, newValue);
+        }
+    }
+    
     /**
      * @see java.lang.Object#hashCode()
      */

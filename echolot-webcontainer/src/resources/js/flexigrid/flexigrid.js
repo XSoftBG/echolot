@@ -115,7 +115,9 @@
                     }
                     cdpos = cdpos + cdleft + cdpad;
                     // Select the drag which is equals to the index of the current header cell.
-                    $(qdrags[n]).css('left', cdpos + 'px').show();
+                    $(qdrags[n]).css({
+                        'left': cdpos + 'px'
+                    }).show();
                     cdleft = cdpos;
                 }
                 if (p.debug && window.console && window.console.log) {
@@ -176,25 +178,29 @@
                     var startTime = new Date();
                 }
                 newH = false;
-                if (!newH) newH = $(g.bDiv).height();
+                
+                if (!newH) {
+                    newH = $(g.bDiv).height();
+                }
+                   
                 var hdHeight = $(this.hDiv).height();
-                $('div',this.cDrag).each(
-                    function ()
-                    {
-                        $(this).height(newH+hdHeight);
-                    }
-                    );
+                
+                $('div',this.cDrag).each(function() {
+                    $(this).height(newH + hdHeight);
+                });
 
                 /*
-				 * adjust the column visibility menu height (nDiv).
-				 */
+                * adjust the column visibility menu height (nDiv).
+                */
+               
                 /*
-				var nd = parseInt($(g.nDiv).height());
-				if (nd>newH)
-					$(g.nDiv).height(newH).width(200);
-				else
-					$(g.nDiv).height('auto').width('auto');
-				*/
+                var nd = parseInt($(g.nDiv).height());
+                if (nd>newH)
+                        $(g.nDiv).height(newH).width(200);
+                else
+                        $(g.nDiv).height('auto').width('auto');
+                */
+               
                 $(g.block).css({
                     height:newH,
                     marginBottom:(newH * -1)
@@ -360,6 +366,7 @@
                 }
                 if (this.colresize)
                 {
+                    g.setBusy(true);
                     var n = this.colresize.n;// index of column
                     var nw = this.colresize.nw;// new width of column
 
@@ -367,28 +374,30 @@
                     var columnSel = $('th:visible:eq('+n+')',this.hDiv);
                     columnSel.css('width', nw);
                     columnSel.data('isUserSized', true);
+                                        
+                    var rows = $('tr', this.bDiv); 
+                    var rc = 0;
+                    function resizeRows() {
+                        var rowsPerBatch = 20;
+                        do {
+                            rowsPerBatch--;                        
+                            if (rc < rows.length) {
+                                $('td:visible:eq('+n+')', rows[rc++]).css('width', nw);
+                                if (rowsPerBatch <= 0) {
+                                    setTimeout(resizeRows, 1);
+                                    return;
+                                }
+                            } else {
+                                rowsPerBatch = 0;
+                            }
+                        } while (rowsPerBatch > 0);                    
+                        g.setBusy(false);
+                    }
+
+                    setTimeout(resizeRows, 1);
                     
-                    //columnSel.parent(':first').css('width', nw);
-                    
-                    $('tr', this.bDiv).each (
-                        function ()
-                        {
-                            var td = $('td:visible:eq('+n+')',this);
-                            td.css('width', nw);
-                            
-                        //                            var div = td.children('first');
-                        //                            var dow = div.data('original-width');
-                        //                            if(nw < dow) {
-                        //                              
-                        //                            }
-                        //                            
-                            
-                        //cellDiv.parent(':first').css('width', nw);                            
-                        }
-                        );
                     // synchronize the header and the body while scrolling
                     this.hDiv.scrollLeft = this.bDiv.scrollLeft;
-
 
                     $('div:eq('+n+')',this.cDrag).siblings().show();
                     $('.dragging',this.cDrag).removeClass('dragging');
@@ -584,6 +593,7 @@
 
                 // Build new tbody...
                 var tbody = document.createElement('tbody');
+                tbody.id = 'fgDataBody';
                 // Select the body before. This is better because this selected jQuery object could
                 // be used more then one times in the next steps.
                 var qtbody = $(tbody);
@@ -607,7 +617,7 @@
                     });
                     // adjust the column visibility menu height and width
                     var mHeight = bHeight - 100;
-                    $(g.nDiv).height(mHeight > 50 ? mHeight : 100).width(200);
+                    //$(g.nDiv).height(mHeight > 50 ? mHeight : 100).width(200);
                     if (p.debug && window.console && window.console.log) {
                         console.log('Finalize calculated height :' + bHeight + ' px, ' +
                             'heightOffset: ' + p.heightOffset + ' px, menuHeight: ' + mHeight);
@@ -627,16 +637,15 @@
                     var qt = $(t);
                     // Clean the current body complete and add the new generated body.
                     $('tr', qt).unbind();
-                    qt.empty();
-                    qt.append(qtbody);
+                    qt.empty().append(qtbody);
 
                     g.rePosDrag();
+                    g.fixHeight();
 
                     // This is paranoid but set the variables back to null. It is better for debugging.
                     tbody = null;
                     qtbody = null;
                     data = null;
-
                     // Call the onSuccess hook (if present).
                     if (p.onSuccess) {
                         p.onSuccess.call(p.owner);
@@ -702,9 +711,9 @@
                                     var td = document.createElement('td');
                                     qtr.append(td);
                                     g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
-                                }
-                                qtbody.append(tr);
+                                }                                
                                 g.addRowProp(qtr);
+                                qtbody.append(tr);
                                 // Prepare the next step.
                                 ji++;
                                 if (rowsPerBatch <= 0) {
@@ -787,6 +796,11 @@
 			 * On change sort.
 			 */
             changeSort: function(th, multiSelect) { //change sortorder
+                
+                
+                // this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
+                
+                
                 if (p.debug){
                     var startTime = new Date();
                 }
@@ -821,6 +835,7 @@
 
                 var sortColumn = new Object();
                 var abbrSelector = $(th).attr('abbr');
+                var columnIdx = $(th, th.parentNode).index();
                 // if already sorted column, toggle sorting
                 if (isSorted){
                     var no = '';
@@ -836,6 +851,7 @@
                     } else {
                         var sortColumn = new Object({
                             columnId: abbrSelector,
+                            columnIdx: columnIdx,
                             sortOrder: ($(thdiv).hasClass('sasc')? 'asc':'desc')
                         });
                         p.sortModel.columns.push(sortColumn);
@@ -847,19 +863,64 @@
                     thdiv.addClass('s' + p.sortorder);
                     var sortColumn = new Object({
                         columnId: abbrSelector,
+                        columnIdx: columnIdx,
                         sortOrder: p.sortorder
                     });
                     p.sortModel.columns.push(sortColumn);
                 }
+                
+                var clonedData = JSON.parse(JSON.stringify(this.data));                
+                this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(clonedData)));
+                this.data = clonedData;
+                
+                var sortedColumns = [];
+                $(p.sortModel.columns).each(function(i, col) {
+                    sortedColumns.push(col.columnIdx);
+                });
+                
+                var addRowChildProp = function(i, child) {
+                    if (Core.Arrays.indexOf(sortedColumns, i) >= 0) {
+                        $(child).addClass('sorted');
+                    } else {
+                        $(child).removeClass('sorted');
+                    }
+                } 
+                
+                var rc = 0;
+                function renderRows() {
+                    var rowsPerBatch = 20;
+                    do {
+                        rowsPerBatch--;                        
+                        if (rc < clonedData.rows.length) {
+                            var qrow = $('#row' + clonedData.rows[rc++].id);
+                            qrow.children().each(addRowChildProp);
 
+                            if (rc % 2 == 0 && p.striped) {
+                                qrow.addClass('erow');
+                            } else {
+                                qrow.removeClass('erow');
+                            }
+                            
+                            $('#fgDataBody').append(qrow)
+                            
+                            if (rowsPerBatch <= 0) {
+                                setTimeout(renderRows, 1);
+                                return;
+                            }
+                        } else {
+                            rowsPerBatch = 0;
+                        }
+                    } while (rowsPerBatch > 0);
+                    g.setBusy(false);
+                }
+                
+                setTimeout(renderRows, 1);
+                
                 if (p.onChangeSort){
-                    /*
-					 * ECHO3 we need the owner of the object as 'this'.
-					 */
+                    /* ECHO3 we need the owner of the object as 'this'. */
                     p.onChangeSort.call(p.owner, p.sortModel);
                 }
-
-                this.setBusy(false);
+                
                 if (p.debug && window.console && window.console.log) {
                     // If debugging is enabled log the duration of this operation.
                     var nowTime = new Date();
@@ -904,7 +965,10 @@
                         $('.pPageStat',this.pDiv).html(p.procmsg);
                         $('.pReload',this.pDiv).addClass('loading');
                         $(g.block).css({
-                            top:g.bDiv.offsetTop
+                            top:g.bDiv.offsetTop,
+                            position: 'absolute',
+                            width: g.bDiv.offsetWidth,
+                            height: g.bDiv.offsetHeight
                         });
                         if (p.hideOnSubmit) {
                             $(this.gDiv).prepend(g.block); //$(t).hide();
@@ -937,7 +1001,10 @@
             },
 
             //* Get latest data */
-            populate: function () { 
+            populate: function () {
+                
+                console.log('populate start ...');
+                
                 if (this.loading) return true;
 
                 if (p.onSubmit) {
@@ -982,11 +1049,18 @@
                 }
                 /* COMMENT-ECHO3: We need to use echo3 calls instead of ajax URL based approach. */
                 data = p.onPopulateCallback.call(p.owner, data);
+                console.log('addData start ...');
                 g.addData(data);
+                console.log('addData finish ...');
                 if (data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {
+                    console.log('multiSort start ...');
                     this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
-                }                            
-                /* COMMENT-ECHO3: Notify for clear selection */
+                    console.log('multiSort finish ...');
+                }
+                
+                this.data = data;
+                
+                /* COMMENT-ECHO3: Notify for selection */
                 g.notifyForSelection();
             },
 
@@ -1026,21 +1100,25 @@
                         break;
                 }
 
-                if (p.newp==p.page) return false;
+                if (p.newp == p.page) {
+                    return false;
+                }
 
+                /*  ECHO3 we need the owner of the object as 'this'. */
                 if (p.onChangePage) {
-                    /*  ECHO3 we need the owner of the object as 'this'. */
                     p.onChangePage.call(p.owner, p.newp);
                 }
-                else
+                else {
                     this.populate();
+                }
+                    
             },
 
             addCellProp: function (cell, prnt, cellData, pth) {
                 // prepeare cell ...
                 // -----------------
                 var qcell = $(cell);
-                cell.id = 'cell-' + cellData.rowId + 'x' + cellData.colId;
+                //cell.id = 'cell-' + cellData.rowId + 'x' + cellData.colId;
                 if (pth != null) {
                     if ($(pth).hasClass('sorted'))
                         qcell.addClass('sorted');
@@ -1056,8 +1134,6 @@
 
                 // add content to cell ...
                 // -----------------------
-                //qcell.unselectable();
-                //qcell.empty().append(childDiv).removeAttr('width');
                 qcell.empty().append(childDiv);
             },
 
@@ -1188,8 +1264,11 @@
                         var idx = $.inArray(val, p.asr);
                         if(idx != null)
                             p.asr.splice(idx, 1);
-                    });          
+                    });
+                    
+                    
                     p.onSelection.call(p.owner, p.asr, p.osr, p.nsr, p.nur);
+                    
                     p.osr = $.makeArray(p.asr);          
                     p.nsr = $.makeArray();
                     p.nur = $.makeArray();
@@ -1254,11 +1333,18 @@
                 }
                 
                 var component = p.owner.component.getComponent(index);
+                td.id = "cell" + component.renderId.substr(4);
                 
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
                 var autoResizeMethod = Core.method(div, function(event) {
+                    if(event && !event.data.hasUpdatedProperties() &&
+                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
+                        !event.data.hasUpdatedLayoutDataChildren) {
+                        return;
+                    }
+                    
                     var of = this.style.cssFloat;
                     this.style.cssFloat = 'left';
                     this.style.width = '';
@@ -1271,28 +1357,33 @@
                 
                 autoResizeMethod();
                 
-                component.removeAllListeners('updated');
-                component.removeAllListeners('property');                
+                component.removeAllListeners('updated', true);
+                component.removeAllListeners('property', true);
                 
-                component.addListener('updated', autoResizeMethod);
-                component.addListener('property', Core.method({"grid": g, "component": component, "div": div, "td": td}, function(event) {
-                        if (event.propertyName == 'layoutData') {
-                            if (event.oldValue.width !== event.newValue.width) {
-                                this.grid.renderCellWidth(this.td, event.newValue.width);
-                            }
-                            if (event.oldValue.height !== event.newValue.height) {
-                                this.grid.renderCellHeight(this.td, event.newValue.height);
-                            }
-                            if (event.oldValue.alignment !== event.newValue.alignment) {
-                                this.grid.renderCellAlignment(this.td, this.div, event.newValue.alignment);
-                            }                           
-                          
-                            this.grid.renderCellInsets(this.div, event.newValue.insets);
-                            this.grid.renderCellBackground(this.td, event.newValue.background);
-                            this.grid.renderCellBackgroundImage(this.div, event.newValue.backgroundImage);
+                component.addListener('updated', autoResizeMethod, true);
+                component.addListener('property', Core.method({
+                    "grid": g, 
+                    "component": component, 
+                    "div": div, 
+                    "td": td
+                }, function(event) {
+                    if (event.propertyName == 'layoutData') {
+                        if (event.oldValue.width !== event.newValue.width) {
+                            this.grid.renderCellWidth(this.td, event.newValue.width);
                         }
-                    })
-                );
+                        if (event.oldValue.height !== event.newValue.height) {
+                            this.grid.renderCellHeight(this.td, event.newValue.height);
+                        }
+                        if (event.oldValue.alignment !== event.newValue.alignment) {
+                            this.grid.renderCellAlignment(this.td, this.div, event.newValue.alignment);
+                        }                           
+
+                        this.grid.renderCellInsets(this.div, event.newValue.insets);
+                        this.grid.renderCellBackground(this.td, event.newValue.background);
+                        this.grid.renderCellBackgroundImage(this.div, event.newValue.backgroundImage);
+                    }
+                }
+                ), true);
             },
             
             renderCellWidth: function(td, width) {
@@ -1402,7 +1493,7 @@
                 if(/^true$/i.test(p.colModel[i].visible)) {
                     var cm = p.colModel[i];
                     var pth = document.createElement('th');
-                    pth.id = 'col' + cm.id;                   
+                    //pth.id = 'col' + cm.id;                   
 
                     if (cm.id !== null && cm.sortable) {
                         $(pth).attr('abbr', cm.id);
@@ -1423,7 +1514,7 @@
                     $(pth).data( {
                         'rowDataIndex': i, 
                         'componentIdx': cm.componentIdx
-                        }); // sets the value of userid & component index
+                    }); // sets the value of userid & component index
 
                     $(tr).append(pth);
                 }        
@@ -1540,6 +1631,8 @@
             console.log("Building table header");
         }
 
+        //alert("SortModel: " + p.sortModel + " ClientSort: " + p.clientsort);
+
         //setup table header (thead)
         $('thead tr:first th',g.hDiv).each
         (
@@ -1574,7 +1667,7 @@
                     if (p.sortModel && p.sortModel.columns) {
                         for (i=0; i<p.sortModel.columns.length; i++) {
                             var sortColumn = p.sortModel.columns[i];
-                            if (columnNameSelector === sortColumn.columnId) {
+                            if (columnNameSelector == sortColumn.columnId) {
                                 qth.addClass('sorted');
                                 thdiv.className = 's'+ sortColumn.sortOrder;
                             }
@@ -1627,17 +1720,15 @@
                             var nv = $('th:visible',g.hDiv).index(this);
                             var onl = parseInt($('div:eq('+nv+')',g.cDrag).css('left'));
                             var nw = parseInt($(g.nBtn).width()) + parseInt($(g.nBtn).css('borderLeftWidth'));
-                            
-                            //var bl = $('th:visible',g.hDiv).width() - nw;
-                            
                             var nl = onl - nw + Math.floor(p.cgwidth/2);
 
                             $(g.nDiv).hide();
                             $(g.nBtn).hide();
 
                             $(g.nBtn).css({
-                                'left':nl,
-                                top:g.hDiv.offsetTop
+                                'left': nl,
+                                'top': g.hDiv.offsetTop,
+                                'height': this.offsetHeight                                
                             }).show();
 
                             var ndw = parseInt($(g.nDiv).width());
@@ -2038,7 +2129,7 @@
             (
                 function ()
                 {
-                    $(g.nDiv).slideToggle('fast');
+                    $(g.nDiv).fadeToggle('fast');
                     return true;
                 }
                 );
@@ -2259,8 +2350,8 @@
                 return rows;
 
                 function alphaNumericSorter(row1, row2) {
-                    var row1Cell = p.owner.component.getComponent(row1.cells[columnIdx].componentIdx).render("text", "");
-                    var row2Cell = p.owner.component.getComponent(row2.cells[columnIdx].componentIdx).render("text", "");
+                    var row1Cell = p.owner.component.getComponent(row1.cells[columnIdx].componentIdx).get('text');
+                    var row2Cell = p.owner.component.getComponent(row2.cells[columnIdx].componentIdx).get('text');
                     
                     // undefined rows
                     if (!row1Cell && !row2Cell) {
@@ -2270,6 +2361,8 @@
                     } else if (row1Cell && !row2Cell) {
                         return 1;// test for undefined row2
                     }
+                    
+                    var result;
                     if (isDigit(row1Cell) && isDigit(row2Cell)) {
                         // convert into num value the fastest way,
                         // see http://www.jibbering.com/faq/faq_notes/type_convert.html
@@ -2291,8 +2384,8 @@
                         if (p.debug && window.console && window.console.log) {
                             console.log('Tested row type = "number" ' + row1Num + ' to ' + row2Num);
                         }
-                        var result = sortOrder == 'asc' ? row1Num - row2Num : row2Num - row1Num;
-                        return result;
+                        
+                        result = sortOrder == 'asc' ? row1Num - row2Num : row2Num - row1Num;
                     }
                     // string rows
                     else {
@@ -2300,16 +2393,18 @@
                             console.log('Tested row type = "string" '+ row1Cell + ' to ' + row2Cell);
                         }
                         if (row1Cell == row2Cell) {
-                            return 0;
+                            result = 0;
                         }
                         if (sortOrder == 'asc') {
-                            return (row1Cell < row2Cell) ? -1 : 1;
+                            result = (row1Cell < row2Cell) ? -1 : 1;
                         } else {
-                            return (row1Cell > row2Cell) ? -1 : 1;
+                            result = (row1Cell > row2Cell) ? -1 : 1;
                         }
                     }
 
+                    return result;
                 }
+                
                 function isDigit(s) {
                     if (typeof s == 'number') return true;
                     var DECIMAL = '\\' + p.digitGroupDL;
@@ -2317,7 +2412,6 @@
                     var exp = '(^([-+]?[\\d'+ DECIMAL + DECIMAL_DELIMITER + ']*)$)';
                     return RegExp(exp).test($.trim(s));
                 }
-
             }
         };
         /**
@@ -2574,11 +2668,25 @@
             };
         });
     };
+    
+    $.fn.flexRenderCells = function(renderCells) {
+        return this.each( function() {
+            if (this.grid) {
+                console.log('renderCells Size: ' + renderCells.length);
+                for (c = 0; c < renderCells.length; c++) {
+                    var qcell = $('#cell_' + renderCells[c].id);
+                    var childDiv = document.createElement("div");
+                    this.grid.renderCell(renderCells[c].componentIdx, childDiv, qcell.get(0));
+                    qcell.empty().append(childDiv);
+                }
+            };
+        });
+    };
+    
 
     //* Plugin for unslectable elements */
     $.fn.unselectable = function() {
         return this.each(function() {
-
             $(this)
             .css('-moz-user-select', 'none')		// FF
             .css('-khtml-user-select', 'none')		// Safari, Google Chrome

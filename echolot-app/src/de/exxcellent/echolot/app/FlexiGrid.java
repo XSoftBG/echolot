@@ -60,14 +60,11 @@ import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Set;
 import nextapp.echo.app.*;
 
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.TreeSet;
 
 /**
  * The {@link FlexiGrid} is a component using the <a href="http://www.flexigrid.info/">flexigrid jquery
@@ -388,7 +385,7 @@ public final class FlexiGrid extends Component implements Pane {
     };
     
     
-    private final class FlexiCellLayoutDataListener implements PropertyChangeListener, Serializable {
+    private final class FlexiCellLayoutDataChangeListener implements PropertyChangeListener, Serializable {
         private boolean inProcess = false;
                 
         private void addToCollection(Integer componentID, ArrayList<FlexiCell> collection) {
@@ -486,10 +483,37 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
     
+    private final class FlexiCellComponentChangeListener implements PropertyChangeListener, Serializable {
+        @Override
+        public void propertyChange(PropertyChangeEvent pce) {
+            
+            /* get data from old component */
+            Component oldComponent = (Component) pce.getOldValue();
+            MutableStyle oldStyle = (MutableStyle) oldComponent.getLocalStyle();            
+            FlexiCell cell = (FlexiCell) oldStyle.getIndex(FLEXI_CELL_COMPONENT_PROPS, 0);
+            Integer componentIdx = Integer.valueOf(oldComponent.getId());
+            
+            /* set data to new component */
+            Component newComponent = (Component) pce.getNewValue();
+            MutableStyle newStyle = (MutableStyle) newComponent.getLocalStyle();
+            newStyle.setIndex(FLEXI_CELL_COMPONENT_PROPS, 0, cell);
+            newComponent.setId(oldComponent.getId());
+            newComponent.setRenderId(oldComponent.getRenderId());
+            newComponent.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, FLEXICELL_LAYOUTDATA_CHANGE_LISTENER);
+            
+            /* remove old component & add new */
+            FlexiGrid.this.remove(componentIdx);
+            FlexiGrid.this.add(newComponent, componentIdx);
+        }
+    }
+    
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
     private FlexiSortingModel sortingModel;
-    private final FlexiCellLayoutDataListener FLEXI_CELL_LAYOUT_DATA_LISTENER = new FlexiCellLayoutDataListener();
+    
+    private final FlexiCellLayoutDataChangeListener FLEXICELL_LAYOUTDATA_CHANGE_LISTENER = new FlexiCellLayoutDataChangeListener();
+    
+    private final FlexiCellComponentChangeListener FLEXICELL_COMPONENT_CHANGE_LISTENER = new FlexiCellComponentChangeListener();
     
     /* Key: Row's ID -> Value: components' ids */
     private final HashMap<Integer, ArrayList<Integer>> rowsChilds = new HashMap<Integer, ArrayList<Integer>>();
@@ -660,8 +684,9 @@ public final class FlexiGrid extends Component implements Pane {
         
         // set max height for each column from model
         // -----------------------------------------
+        int c = 0;
         maxRowHeights.put(-1, maxHeight);
-        tableModel.getColumnAt(0).getCell().setHeight(maxHeight);
+        while(!tableModel.getColumnAt(c++).getCell().setHeight(maxHeight) && c < columnCount) { };
         
         // set new column model
         // --------------------
@@ -796,12 +821,12 @@ public final class FlexiGrid extends Component implements Pane {
             
             // set the maximum height for each cell of current row
             // ---------------------------------------------------
+            
+            
+            
             maxRowHeights.put(rowId, rowMaxHeight);
-            for (int c = 0; c < amountOfColumns; c++) {
-                if (rowCells[c].setHeight(rowMaxHeight)) {
-                    break;
-                }
-            }
+            int c = 0;
+            while (!rowCells[c++].setHeight(rowMaxHeight) && c < amountOfColumns) { };
             
             FlexiRow row = new FlexiRow(rowId, rowCells);
             rows[rowCounter] = row;
@@ -844,8 +869,20 @@ public final class FlexiGrid extends Component implements Pane {
                 add(component);
             }
             
-            component.setId(idx.toString());            
-            component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, FLEXI_CELL_LAYOUT_DATA_LISTENER);
+            
+            
+            StringBuilder renderId = new StringBuilder("fc_");
+            if(rowID != -1) {
+                renderId.append(rowID);
+            }
+            else {
+                renderId.append("H");
+            }
+            
+            renderId.append("x").append(colID);            
+            component.setRenderId(renderId.toString());
+            component.setId(idx.toString());
+            
             MutableStyle componentStyle = (MutableStyle) component.getLocalStyle();
             componentStyle.setIndex(FLEXI_CELL_COMPONENT_PROPS, 0, cell);
             
@@ -862,6 +899,9 @@ public final class FlexiGrid extends Component implements Pane {
                 columnsChilds.put(colID, columnComponentsIds);
             }
             columnComponentsIds.add(idx);
+            
+            component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, FLEXICELL_LAYOUTDATA_CHANGE_LISTENER);
+            cell.addComponentChangeListener(FLEXICELL_COMPONENT_CHANGE_LISTENER);
         }
     }
     
