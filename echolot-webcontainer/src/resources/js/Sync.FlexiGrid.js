@@ -11,7 +11,7 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
     $static : {
         ACTIVE_PAGE : "activePage",
         ACTIVE_PAGE_CHANGED : "activePageChanged",
-                
+                 
         TABLE_ROW_SELECTION: "tableRowSelection",
         TABLE_ROW_SELECTION_CHANGED: "tableRowSelectionChanged",
                 
