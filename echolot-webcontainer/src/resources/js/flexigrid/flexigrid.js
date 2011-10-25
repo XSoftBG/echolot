@@ -1357,49 +1357,19 @@
                 
                 autoResizeMethod();
                 
-                component.removeAllListeners('updated', true);
-                component.removeAllListeners('property', true);
-                
+                component.removeAllListeners('updated', true);                
                 component.addListener('updated', autoResizeMethod, true);
-                component.addListener('property', Core.method({
-                    "grid": g, 
-                    "component": component, 
-                    "div": div, 
-                    "td": td
-                }, function(event) {
-                    if (event.propertyName == 'layoutData') {
-                        if (event.oldValue.width !== event.newValue.width) {
-                            this.grid.renderCellWidth(this.td, event.newValue.width);
-                        }
-                        if (event.oldValue.height !== event.newValue.height) {
-                            this.grid.renderCellHeight(this.td, event.newValue.height);
-                        }
-                        if (event.oldValue.alignment !== event.newValue.alignment) {
-                            this.grid.renderCellAlignment(this.td, this.div, event.newValue.alignment);
-                        }                           
-
-                        this.grid.renderCellInsets(this.div, event.newValue.insets);
-                        this.grid.renderCellBackground(this.td, event.newValue.background);
-                        this.grid.renderCellBackgroundImage(this.div, event.newValue.backgroundImage);
-                    }
-                }
-                ), true);
             },
             
-            renderCellWidth: function(td, width) {
-                var container = $(td);
-                if (container.is('td')) {
-                    var temp = td.id.substr(5);
-                    var colId = parseInt(temp.substr(temp.indexOf('x') + 1));
-                    var qth = $('#col' + colId);
-                    if (qth.data('isUserSized')) {
-                        td.style.width = qth.css('width');
-                    } else {
-                        td.style.width = width;                        
-                    }                    
+            renderCellWidth: function(container, width) {
+                var temp = container.id.substr(5); // *x* ...
+                var colId = parseInt(temp.substr(temp.indexOf('x') + 1)); // number ...
+                var qth = $('#cell_Hx' + colId);
+                if (qth.data('isUserSized')) {
+                    container.style.width = qth.css('width');
                 } else {
-                    if (!container.data('isUserSized')) {
-                        td.style.width = width;
+                    container.style.width = width;
+                    if ($(container).is('th')) {
                         this.rePosDrag();
                     }
                 }
@@ -2672,17 +2642,30 @@
     $.fn.flexRenderCells = function(renderCells) {
         return this.each( function() {
             if (this.grid) {
-                console.log('renderCells Size: ' + renderCells.length);
+                this.grid.setBusy(true);
                 for (c = 0; c < renderCells.length; c++) {
                     var qcell = $('#cell_' + renderCells[c].id);
                     var childDiv = document.createElement("div");
                     this.grid.renderCell(renderCells[c].componentIdx, childDiv, qcell.get(0));
                     qcell.empty().append(childDiv);
                 }
+                this.grid.setBusy(false);
             };
         });
     };
     
+    $.fn.flexUpdateCells = function(renderCells) {
+        return this.each( function() {
+            if (this.grid) {
+                this.grid.setBusy(true);
+                for (c = 0; c < renderCells.length; c++) {
+                    var cell = document.getElementById('cell_' + renderCells[c].id);
+                    this.grid.renderCellLayoutData(renderCells[c].component, cell.firstChild, cell);
+                }
+                this.grid.setBusy(false);
+            };
+        });
+    };
 
     //* Plugin for unslectable elements */
     $.fn.unselectable = function() {

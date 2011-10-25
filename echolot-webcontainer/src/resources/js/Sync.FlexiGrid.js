@@ -11,14 +11,12 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
     $static : {
         ACTIVE_PAGE : "activePage",
         ACTIVE_PAGE_CHANGED : "activePageChanged",
-                 
+                
         TABLE_ROW_SELECTION: "tableRowSelection",
         TABLE_ROW_SELECTION_CHANGED: "tableRowSelectionChanged",
                 
         RESULTS_PPAGE_OPTION: "resultsPerPageOption",                
         RESULTS_PPAGE_OPTION_CHANGED: "resultsPerPageOptionChanged",
-              
-        CELLS_UPDATE: "cellsUpdate",
               
         HEIGHT_OFFSET: "heightOffset",                
         TABLE_COLUMN_TOGGLE: "tableColumnToggle",
@@ -504,24 +502,40 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 this._flexigrid.flexOptions(options);
                 this._flexigrid.flexReload();
             }
-        } else if (update.hasAddedChildren()) {
+        } else {
             var activePageComponentIdxs = this._getActivePage().componentIdxs;
             var columnModelComponentIdxs = this._getColumnModel().componentIdxs;
-            var renderCells = [];
-            
-            for(c = 0; c < update.getAddedChildren().length; c++) {
-                var newComponent = update.getAddedChildren()[c];
-                var newComponentIdx = this.component.indexOf(newComponent);
-                if (Core.Arrays.indexOf(activePageComponentIdxs, newComponentIdx) >= 0 || Core.Arrays.indexOf(columnModelComponentIdxs, newComponentIdx)) {
-                    renderCells.push( {
-                        "id": newComponent.renderId.substr(5), 
-                        "componentIdx": newComponentIdx
-                    });
+            var cells = [];
+                        
+            var itComponents = Core.method(this, function(updatedChilds) {              
+                    var result = [];                
+                    for(c = 0; c < updatedChilds.length; c++) {
+                        var component = updatedChilds[c];
+                        var componentIdx = this.component.indexOf(component);
+                        if (Core.Arrays.indexOf(activePageComponentIdxs, componentIdx) >= 0 || Core.Arrays.indexOf(columnModelComponentIdxs, componentIdx) >= 0) {
+                            result.push( {
+                                "id": component.renderId.substr(5),
+                                "component": component,
+                                "componentIdx": componentIdx
+                            });
+                        }
+                    }                
+                    return result;
                 }
-            }
+            );
+                        
+            if (update.hasAddedChildren()) {
+                cells = itComponents(update.getAddedChildren());
+                if (cells.length != 0) {
+                    this._flexigrid.flexRenderCells(cells);
+                }
+            } 
             
-            if (renderCells.length != 0) {
-                this._flexigrid.flexRenderCells(renderCells);
+            if (update.hasUpdatedLayoutDataChildren()) {
+                cells = itComponents(update.getUpdatedLayoutDataChildren());
+                if (cells.length != 0) {
+                    this._flexigrid.flexUpdateCells(cells);
+                }
             }
         }
         
