@@ -43,6 +43,7 @@ public class ResultsPerPageOption implements Serializable {
     
     /** Default constructor. */
     public ResultsPerPageOption() {
+        super();
     }
 
     /**

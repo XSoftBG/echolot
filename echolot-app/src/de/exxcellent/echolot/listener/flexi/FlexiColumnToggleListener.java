@@ -1,5 +1,5 @@
 /*
- * This file (TableSortingChangeListener.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiColumnToggleListener.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,22 +27,22 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.listener;
+package de.exxcellent.echolot.listener.flexi;
 
-import de.exxcellent.echolot.event.TableSortingChangeEvent;
+import de.exxcellent.echolot.event.flexi.FlexiColumnToggleEvent;
 import java.io.Serializable;
 import java.util.EventListener;
 
 /**
- * Listener interface for receiving <code>TableSortingChangeEvent</code>s.
+ * Listener interface for receiving <code>FlexiColumnToggleEvent</code>s.
  * 
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
  */ 
-public interface TableSortingChangeListener extends EventListener, Serializable {
+public interface FlexiColumnToggleListener extends EventListener, Serializable {
     /**
-     * Invoked when a user attempts to change the sorting of columns in a <code>Table</code> a like component.
+     * Invoked when a user attempts to show or hide a column in a <code>Table</code> a like component.
      * 
-     * @param e the <code>TableSortingChangeEvent</code> describing the change
+     * @param e the <code>FlexiColumnToggleEvent</code> describing the change
      */
-    public void sortingChange(TableSortingChangeEvent e);
+    public void columnToggle(FlexiColumnToggleEvent e);
 }

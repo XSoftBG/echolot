@@ -1,5 +1,5 @@
 /*
- * This file (TableRowSelectionChangeListener.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiRowSelectionListener.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,23 +27,23 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.listener;
+package de.exxcellent.echolot.listener.flexi;
 
-import de.exxcellent.echolot.event.TableRowSelectionEvent;
+import de.exxcellent.echolot.event.flexi.FlexiRowSelectionEvent;
 import java.io.Serializable;
 import java.util.EventListener;
 
 /**
- * Listener interface for receiving <code>TableRowSelectionEvent</code>s.
+ * Listener interface for receiving <code>FlexiRowSelectionEvent</code>s.
  * 
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
  */ 
 
-public interface TableRowSelectionChangeListener extends EventListener, Serializable {
+public interface FlexiRowSelectionListener extends EventListener, Serializable {
     /**
      * Invoked when a user attempts to select a row in a <code>Table</code> a like component.
      * 
-     * @param e the <code>TableRowSelectionEvent</code> describing the change
+     * @param e the <code>FlexiRowSelectionEvent</code> describing the change
      */
-    public void rowSelection(TableRowSelectionEvent e);
+    public void rowSelection(FlexiRowSelectionEvent e);
 }

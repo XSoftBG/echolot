@@ -1,6 +1,6 @@
-package de.exxcellent.echolot.listener;
+package de.exxcellent.echolot.listener.flexi;
 
-import de.exxcellent.echolot.event.FlexTableModelEvent;
+import de.exxcellent.echolot.event.flexi.FlexiTableModelEvent;
 import java.io.Serializable;
 import java.util.EventListener;
 
@@ -9,5 +9,5 @@ import java.util.EventListener;
  * @author sieskei (XSoft Ltd.)
  */
 public interface FlexiTableModelListener extends EventListener, Serializable {
-    public void flexTableChanged(FlexTableModelEvent ftme);
+    public void flexTableChanged(FlexiTableModelEvent ftme);
 }

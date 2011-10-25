@@ -38,14 +38,17 @@ import java.util.Arrays;
 public class FlexiRow implements Serializable {
     private static final long serialVersionUID = 201110103l;
     
-    private final int id;
-    private final FlexiCell[] cells;
+    protected int id;
+    protected FlexiCell[] cells;
 
+    protected FlexiRow() {
+        super();
+    }
+    
     public FlexiRow(int id, FlexiCell[] cells) {
         this.id = id;
         this.cells = cells;
     }
-
     public int getId() {
         return id;
     }

@@ -42,19 +42,18 @@ import de.exxcellent.echolot.model.flexi.FlexiPage;
 import de.exxcellent.echolot.model.flexi.FlexiRow;
 import de.exxcellent.echolot.model.flexi.FlexiColumnVisibility;
 
-import de.exxcellent.echolot.event.FlexTableModelEvent;
-import de.exxcellent.echolot.event.ResultsPerPageOptionEvent;
-import de.exxcellent.echolot.event.TableColumnToggleEvent;
-import de.exxcellent.echolot.event.TableRowSelectionEvent;
-import de.exxcellent.echolot.event.TableSortingChangeEvent;
+import de.exxcellent.echolot.event.flexi.FlexiTableModelEvent;
+import de.exxcellent.echolot.event.flexi.FlexiRPPOEvent;
+import de.exxcellent.echolot.event.flexi.FlexiColumnToggleEvent;
+import de.exxcellent.echolot.event.flexi.FlexiRowSelectionEvent;
+import de.exxcellent.echolot.event.flexi.FlexiSortingChangeEvent;
 
-import de.exxcellent.echolot.listener.FlexiTableModelListener;
-import de.exxcellent.echolot.listener.ResultsPerPageOptionChangeListener;
-import de.exxcellent.echolot.listener.TableColumnToggleListener;
-import de.exxcellent.echolot.listener.TableRowSelectionChangeListener;
-import de.exxcellent.echolot.listener.TableSortingChangeListener;
+import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
+import de.exxcellent.echolot.listener.flexi.FlexiRPPOListener;
+import de.exxcellent.echolot.listener.flexi.FlexiColumnToggleListener;
+import de.exxcellent.echolot.listener.flexi.FlexiRowSelectionListener;
+import de.exxcellent.echolot.listener.flexi.FlexiSortingChangeListener;
 
-import de.exxcellent.echolot.model.flexi.FlexiCellsUpdate;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
@@ -241,9 +240,7 @@ public final class FlexiGrid extends Component implements Pane {
     public static final String PROPERTY_RESULTS_PER_PAGE_OPTION = "resultsPerPageOption";
     public static final String INPUT_PROPERTY_RESULTS_PER_PAGE_OPTION_CHANGED = "resultsPerPageOptionChanged";
     public static final String RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY = "resultsPerPageOptionListeners";
-    
-    public static final String PROPERTY_CELLS_UPDATE = "cellsUpdate";
-    
+        
     /**
      * The constant used to track changes to the action listener list.
      */
@@ -316,14 +313,14 @@ public final class FlexiGrid extends Component implements Pane {
     /**
      * This is due to the lack of knowledge how to force a sync on the client.
      */
-    private final TableSortingChangeListener TABLE_SORTING_CHANGE_LISTENER = new TableSortingChangeListener() {
+    private final FlexiSortingChangeListener TABLE_SORTING_CHANGE_LISTENER = new FlexiSortingChangeListener() {
         @Override
-        public void sortingChange(TableSortingChangeEvent e) { }
+        public void sortingChange(FlexiSortingChangeEvent e) { }
     };
     
-    private final TableRowSelectionChangeListener TABLE_RS_CHANGE_LISTENER = new TableRowSelectionChangeListener() {
+    private final FlexiRowSelectionListener TABLE_RS_CHANGE_LISTENER = new FlexiRowSelectionListener() {
         @Override
-        public void rowSelection(TableRowSelectionEvent e) {
+        public void rowSelection(FlexiRowSelectionEvent e) {
           FlexiGrid.this.set(
                     FlexiGrid.PROPERTY_TABLE_ROW_SELECTION, 
                     e.getRowSelection().getAllSelectedRowsIds(), 
@@ -334,17 +331,17 @@ public final class FlexiGrid extends Component implements Pane {
     
     private final FlexiTableModelListener FLEX_TABLE_MODEL_LISTENER = new FlexiTableModelListener() {
         @Override
-        public void flexTableChanged(FlexTableModelEvent event) {
+        public void flexTableChanged(FlexiTableModelEvent event) {
           final int type = event.getType();
           switch(type) {
             // table has new rows
             // ------------------
-            case FlexTableModelEvent.INSERT:
+            case FlexiTableModelEvent.INSERT:
               setLastActivePage();
               break;
             // table has deleted rows
             // ----------------------
-            case FlexTableModelEvent.DELETE:
+            case FlexiTableModelEvent.DELETE:
               int[] deletedRowsIds = event.getRowsIds();
               for(int rowId : deletedRowsIds)
                 releaseRowResources(rowId);
@@ -355,20 +352,10 @@ public final class FlexiGrid extends Component implements Pane {
                   currentPageIdx = lastPageIdx;
               }
               setActivePage(currentPageIdx);
-              break;            
-            // table has rows that were updated
-            // -----------------------
-            case FlexTableModelEvent.UPDATE:
-              int[] updatedRowsIds = event.getRowsIds();
-              for(int rowId : updatedRowsIds)
-                releaseRowResources(rowId);              
-              
-              set(PROPERTY_ACTIVE_PAGE, new FlexiPage(1, 1, new FlexiRow[0]), false);
-              reloadCurrentPage();
               break;
             // column model is updated
             // -----------------------
-            case FlexTableModelEvent.STRUCTURE_CHANGED:
+            case FlexiTableModelEvent.STRUCTURE_CHANGED:
               validateColumnModel();
               break;
             default:
@@ -377,10 +364,10 @@ public final class FlexiGrid extends Component implements Pane {
         }
         
         private void releaseRowResources(int rowId) {
-//            HashMap<Component, Integer> rowComponents = childs.remove(rowId);
-//            if(rowComponents != null) {
-//                FlexiGrid.this.childsForReplace.addAll(rowComponents.values());
-//            }
+            ArrayList<Integer> rowComponents = rowsChilds.remove(rowId);
+            if(rowComponents != null) {
+                childsForReplace.addAll(rowComponents);
+            }
         }
     };
     
@@ -555,7 +542,6 @@ public final class FlexiGrid extends Component implements Pane {
         setMinimalColumnHeight(80);
         setNoWrap(Boolean.TRUE);
         setSingleSelect(Boolean.TRUE);
-        setNewCellsUpdate(new FlexiCellsUpdate(new HashMap<FlexiCell, Integer[]>()));
 
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
@@ -643,15 +629,25 @@ public final class FlexiGrid extends Component implements Pane {
             return;
         }
         
-        tableModel.addFlexTableModelListener(FLEX_TABLE_MODEL_LISTENER);        
+        tableModel.addFlexTableModelListener(FLEX_TABLE_MODEL_LISTENER);
+        
+        // setzen der RowsPerPage Option
+        // -----------------------------
+        ResultsPerPageOption rppo = new ResultsPerPageOption();
+        if (tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
+            int rowCount = tableModel.getRowCount();
+            rppo.setInitialOption(rowCount);
+            rppo.setPageOption(new int[]{ rowCount });
+        } else {
+            rppo.setInitialOption(tableModel.getResultsPerPage());
+            rppo.setPageOption(tableModel.getResultsPerPageOption());
+        }        
+        setResultsPerPageOption(rppo);
+        
+        
         validateColumnModel();
         setActivePage(1);
-        // setzen der RowsPerPage Option
-        if (tableModel.getRowsPerPageCount() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
-            setResultsPerPageOption(new ResultsPerPageOption(tableModel.getRowCount(), new int[]{tableModel.getRowCount()}));
-        } else {
-            setResultsPerPageOption(new ResultsPerPageOption(tableModel.getRowsPerPageCount(), new int[]{tableModel.getRowsPerPageCount()}));
-        }
+
     }
     
     /**
@@ -704,7 +700,7 @@ public final class FlexiGrid extends Component implements Pane {
     }
         
     public int getTotalPageCount() {
-        if(tableModel.getRowsPerPageCount() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE)
+        if(tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE)
           return 1;
 
         final int totalRowCount = tableModel.getRowCount();
@@ -754,7 +750,7 @@ public final class FlexiGrid extends Component implements Pane {
 
         // if all Rows should be displayed on one page ...
         // -----------------------------------------------
-        if (tableModel.getRowsPerPageCount() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
+        if (tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
             // ... we set rowStart to zero and rowEnd to maximum
             // -------------------------------------------------
             firstRowStart = 0;
@@ -762,8 +758,8 @@ public final class FlexiGrid extends Component implements Pane {
         } else {
             // ... otherwise if there is some paging active we have to calculate the range of rows to display
             // ----------------------------------------------------------------------------------------------
-            firstRowStart = (page - 1) * tableModel.getRowsPerPageCount();
-            rowEnd = firstRowStart + tableModel.getRowsPerPageCount();
+            firstRowStart = (page - 1) * tableModel.getResultsPerPage();
+            rowEnd = firstRowStart + tableModel.getResultsPerPage();
             if (rowEnd > tableModel.getRowCount()) {
                 rowEnd = tableModel.getRowCount();
             }
@@ -859,6 +855,17 @@ public final class FlexiGrid extends Component implements Pane {
         String componentID = component.getId();
         
         if (componentID == null) {
+            StringBuilder renderId = new StringBuilder("fc_");
+            if(rowID != -1) {
+                renderId.append(rowID);
+            }
+            else {
+                renderId.append("H");
+            }
+
+            renderId.append("x").append(colID);            
+            component.setRenderId(renderId.toString());
+          
             Integer idx = null;
             if (!childsForReplace.isEmpty()) {                          
                 idx = childsForReplace.get(0);
@@ -869,18 +876,6 @@ public final class FlexiGrid extends Component implements Pane {
                 add(component);
             }
             
-            
-            
-            StringBuilder renderId = new StringBuilder("fc_");
-            if(rowID != -1) {
-                renderId.append(rowID);
-            }
-            else {
-                renderId.append("H");
-            }
-            
-            renderId.append("x").append(colID);            
-            component.setRenderId(renderId.toString());
             component.setId(idx.toString());
             
             MutableStyle componentStyle = (MutableStyle) component.getLocalStyle();
@@ -944,14 +939,6 @@ public final class FlexiGrid extends Component implements Pane {
         set(PROPERTY_RESULTS_PER_PAGE_OPTION, newValue);
     }
     
-    public FlexiCellsUpdate getLastCellsUpdate() {
-        return (FlexiCellsUpdate) get(PROPERTY_CELLS_UPDATE);
-    }
-    
-    public void setNewCellsUpdate(FlexiCellsUpdate update) {
-        set(PROPERTY_CELLS_UPDATE, update);
-    }
-
     /**
      * Returns <code>true</code> if the results per page are shown.
      *
@@ -1404,7 +1391,7 @@ public final class FlexiGrid extends Component implements Pane {
      * <p/>
      * If <code>true</code> the client side sorting algorithm is enabled. The client side sorting reduces the bandwidth
      * and supports multicolumn sorting for alpha numeric values. You can also use your own sorting method server side
-     * by implementing an {@link TableSortingChangeListener} to sort and setting the updated {@link TableModel}
+     * by implementing an {@link FlexiSortingChangeListener} to sort and setting the updated {@link TableModel}
      * containing all sorted data. However this clientSorting value should then be set to <code>false</code> to avoid
      * double sorting.
      *
@@ -1464,84 +1451,84 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     /**
-     * Adds a {@link TableRowSelectionChangeListener}.
+     * Adds a {@link FlexiRowSelectionListener}.
      *
      * @param l will be informed if a row is selected
      */
-    public void addTableRowSelectionListener(TableRowSelectionChangeListener l) {
-        getEventListenerList().addListener(TableRowSelectionChangeListener.class, l);
+    public void addTableRowSelectionListener(FlexiRowSelectionListener l) {
+        getEventListenerList().addListener(FlexiRowSelectionListener.class, l);
         firePropertyChange(TABLE_ROW_SELECTION_LISTENERS_CHANGED_PROPERTY, null, l);
     }
 
     /**
-     * Removes a {@link TableRowSelectionChangeListener}
+     * Removes a {@link FlexiRowSelectionListener}
      *
      * @param l will be removed from listener list.
      */
-    public void removeTableRowSelectionListener(TableRowSelectionChangeListener l) {
-        getEventListenerList().removeListener(TableRowSelectionChangeListener.class, l);
+    public void removeTableRowSelectionListener(FlexiRowSelectionListener l) {
+        getEventListenerList().removeListener(FlexiRowSelectionListener.class, l);
         firePropertyChange(TABLE_ROW_SELECTION_LISTENERS_CHANGED_PROPERTY, l, null);
     }
     
     /**
-     * Adds a {@link TableColumnToggleListener}.
+     * Adds a {@link FlexiColumnToggleListener}.
      *
      * @param l will be informed if the state of a column changes from visible to invisible
      */
-    public void addTableColumnToggleListener(TableColumnToggleListener l) {
-        getEventListenerList().addListener(TableColumnToggleListener.class, l);
+    public void addTableColumnToggleListener(FlexiColumnToggleListener l) {
+        getEventListenerList().addListener(FlexiColumnToggleListener.class, l);
         firePropertyChange(TABLE_COLUMNTOGGLE_LISTENERS_CHANGED_PROPERTY, null, l);
     }
 
     /**
-     * Removes a {@link TableColumnToggleListener}
+     * Removes a {@link FlexiColumnToggleListener}
      *
      * @param l will be removed from listener list.
      */
-    public void removeTableColumnToggleListener(TableColumnToggleListener l) {
-        getEventListenerList().removeListener(TableColumnToggleListener.class, l);
+    public void removeTableColumnToggleListener(FlexiColumnToggleListener l) {
+        getEventListenerList().removeListener(FlexiColumnToggleListener.class, l);
         firePropertyChange(TABLE_COLUMNTOGGLE_LISTENERS_CHANGED_PROPERTY, l, null);
     }
 
     /**
-     * Adds a {@link TableSortingChangeListener}.
+     * Adds a {@link FlexiSortingChangeListener}.
      *
      * @param l will be informed if the sorting changes for columns
      */
-    public void addTableSortingChangeListener(TableSortingChangeListener l) {
-        getEventListenerList().addListener(TableSortingChangeListener.class, l);
+    public void addTableSortingChangeListener(FlexiSortingChangeListener l) {
+        getEventListenerList().addListener(FlexiSortingChangeListener.class, l);
         firePropertyChange(TABLE_SORTCHANGE_LISTENERS_CHANGED_PROPERTY, null, l);
     }
 
     /**
-     * Removes a {@link TableSortingChangeListener}
+     * Removes a {@link FlexiSortingChangeListener}
      *
      * @param l will be removed from listener list.
      */
-    public void removeTableSortingChangeListener(TableSortingChangeListener l) {
-        getEventListenerList().removeListener(TableSortingChangeListener.class, l);
+    public void removeTableSortingChangeListener(FlexiSortingChangeListener l) {
+        getEventListenerList().removeListener(FlexiSortingChangeListener.class, l);
         firePropertyChange(TABLE_SORTCHANGE_LISTENERS_CHANGED_PROPERTY, l, null);
     }
     
         
     /**
-     * Adds a {@link ResultsPerPageOptionChangeListener}.
+     * Adds a {@link FlexiRPPOListener}.
      *
      * @param l will be informed if the results per page options change
      */
-    public void addResultsPerPageOptionChangeListener(ResultsPerPageOptionChangeListener l) {
-        getEventListenerList().addListener(ResultsPerPageOptionChangeListener.class, l);
+    public void addResultsPerPageOptionChangeListener(FlexiRPPOListener l) {
+        getEventListenerList().addListener(FlexiRPPOListener.class, l);
         firePropertyChange(RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY, null, l);
     }
     
     
     /**
-     * Removes a {@link ResultsPerPageOptionChangeListener}
+     * Removes a {@link FlexiRPPOListener}
      *
      * @param l will be removed from listener list.
      */
-    public void removeResultsPerPageOptionChangeListener(ResultsPerPageOptionChangeListener l) {
-        getEventListenerList().removeListener(ResultsPerPageOptionChangeListener.class, l);
+    public void removeResultsPerPageOptionChangeListener(FlexiRPPOListener l) {
+        getEventListenerList().removeListener(FlexiRPPOListener.class, l);
         firePropertyChange(RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY, l, null);
     }
     
@@ -1579,119 +1566,119 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     /**
-     * Notifies <code>TableRowSelectionChangeListener</code>s that the user has selected a row.
+     * Notifies <code>FlexiRowSelectionListener</code>s that the user has selected a row.
      */
     protected void fireTableRowSelection(FlexiRowSelection rowSelection) {
         if (!hasEventListenerList()) {
             return;
         }
-        EventListener[] listeners = getEventListenerList().getListeners(TableRowSelectionChangeListener.class);
+        EventListener[] listeners = getEventListenerList().getListeners(FlexiRowSelectionListener.class);
         if (listeners.length == 0) {
             return;
         }
-        TableRowSelectionEvent e = new TableRowSelectionEvent(this, rowSelection);
+        FlexiRowSelectionEvent e = new FlexiRowSelectionEvent(this, rowSelection);
         for (int i = 0; i < listeners.length; ++i) {
-            ((TableRowSelectionChangeListener) listeners[i]).rowSelection(e);
+            ((FlexiRowSelectionListener) listeners[i]).rowSelection(e);
         }
     }    
 
     /**
-     * Notifies <code>TableRowSelectionChangeListener</code>s that the user has selected a row.
+     * Notifies <code>FlexiRowSelectionListener</code>s that the user has selected a row.
      */
     protected void fireTableColumnToggle(FlexiColumnVisibility columnVisibility) {
         if (!hasEventListenerList()) {
             return;
         }
-        EventListener[] listeners = getEventListenerList().getListeners(TableColumnToggleListener.class);
+        EventListener[] listeners = getEventListenerList().getListeners(FlexiColumnToggleListener.class);
         if (listeners.length == 0) {
             return;
         }
-        TableColumnToggleEvent e = new TableColumnToggleEvent(this, columnVisibility);
+        FlexiColumnToggleEvent e = new FlexiColumnToggleEvent(this, columnVisibility);
         for (int i = 0; i < listeners.length; ++i) {
-            ((TableColumnToggleListener) listeners[i]).columnToggle(e);
+            ((FlexiColumnToggleListener) listeners[i]).columnToggle(e);
         }
     }
 
     /**
-     * Notifies <code>TableSortingChangeListener</code>s that the user has changed the sorting.
+     * Notifies <code>FlexiSortingChangeListener</code>s that the user has changed the sorting.
      */
     protected void fireTableSortingChange(FlexiSortingModel sortingModel) {
         if (!hasEventListenerList()) {
             return;
         }
-        EventListener[] listeners = getEventListenerList().getListeners(TableSortingChangeListener.class);
+        EventListener[] listeners = getEventListenerList().getListeners(FlexiSortingChangeListener.class);
         if (listeners.length == 0) {
             return;
         }
-        TableSortingChangeEvent e = new TableSortingChangeEvent(this, sortingModel);
+        FlexiSortingChangeEvent e = new FlexiSortingChangeEvent(this, sortingModel);
         for (int i = 0; i < listeners.length; ++i) {
-            ((TableSortingChangeListener) listeners[i]).sortingChange(e);
+            ((FlexiSortingChangeListener) listeners[i]).sortingChange(e);
         }
     }
     
     
     /**
-     * Notifies <code>ResultsPerPageOptionChangeListener</code>s that the user has changed the results per page option.
+     * Notifies <code>FlexiRPPOListener</code>s that the user has changed the results per page option.
      */
     protected void fireResultsPerPageOptionChange(Integer initialOption) {
         if (!hasEventListenerList()) {
             return;
         }
-        EventListener[] listeners = getEventListenerList().getListeners(ResultsPerPageOptionChangeListener.class);
+        EventListener[] listeners = getEventListenerList().getListeners(FlexiRPPOListener.class);
         if (listeners.length == 0) {
             return;
         }
-        ResultsPerPageOptionEvent e = new ResultsPerPageOptionEvent(this, initialOption);
+        FlexiRPPOEvent e = new FlexiRPPOEvent(this, initialOption);
         for (int i = 0; i < listeners.length; ++i) {
-            ((ResultsPerPageOptionChangeListener) listeners[i]).resultsPerPageChange(e);
+            ((FlexiRPPOListener) listeners[i]).resultsPerPageChange(e);
         }
     }
 
     /**
-     * Determines the any <code>TableRowSelectionChangeListener</code>s are registered.
+     * Determines the any <code>FlexiRowSelectionListener</code>s are registered.
      *
-     * @return true if any <code>TableRowSelectionChangeListener</code>s are registered
+     * @return true if any <code>FlexiRowSelectionListener</code>s are registered
      */
     public boolean hasTableRowSelectionListeners() {
         if (!hasEventListenerList()) {
             return false;
         }
-        return getEventListenerList().getListenerCount(TableRowSelectionChangeListener.class) > 0;
+        return getEventListenerList().getListenerCount(FlexiRowSelectionListener.class) > 0;
     }
 
     /**
-     * Determines the any <code>TableColumnToggleListener</code>s are registered.
+     * Determines the any <code>FlexiColumnToggleListener</code>s are registered.
      *
-     * @return true if any <code>TableColumnToggleListener</code>s are registered
+     * @return true if any <code>FlexiColumnToggleListener</code>s are registered
      */
     public boolean hasTableColumnToggleListeners() {
         if (!hasEventListenerList()) {
             return false;
         }
-        return getEventListenerList().getListenerCount(TableColumnToggleListener.class) > 0;
+        return getEventListenerList().getListenerCount(FlexiColumnToggleListener.class) > 0;
     }
 
     /**
-     * Determines the any <code>TableSortingChangeListener</code>s are registered.
+     * Determines the any <code>FlexiSortingChangeListener</code>s are registered.
      *
-     * @return true if any <code>TableSortingChangeListener</code>s are registered
+     * @return true if any <code>FlexiSortingChangeListener</code>s are registered
      */
     public boolean hasTableSortingChangeListeners() {
         if (!hasEventListenerList()) {
             return false;
         }
-        return getEventListenerList().getListenerCount(TableSortingChangeListener.class) > 0;
+        return getEventListenerList().getListenerCount(FlexiSortingChangeListener.class) > 0;
     }
     
     /**
-     * Determines the any <code>ResultsPerPageOptionChangeListener</code>s are registered.
+     * Determines the any <code>FlexiRPPOListener</code>s are registered.
      *
-     * @return true if any <code>ResultsPerPageOptionChangeListener</code>s are registered
+     * @return true if any <code>FlexiRPPOListener</code>s are registered
      */
     public boolean hasResultPerPageOptionChangeListeners() {
         if (!hasEventListenerList()) {
             return false;
         }
-        return getEventListenerList().getListenerCount(ResultsPerPageOptionChangeListener.class) > 0;
+        return getEventListenerList().getListenerCount(FlexiRPPOListener.class) > 0;
     }
 }

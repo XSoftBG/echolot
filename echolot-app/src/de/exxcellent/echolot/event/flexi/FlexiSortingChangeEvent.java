@@ -1,5 +1,5 @@
 /*
- * This file (TableColumnToggleEvent.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiSortingChangeEvent.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,34 +27,34 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.event;
+package de.exxcellent.echolot.event.flexi;
 
-import de.exxcellent.echolot.model.flexi.FlexiColumnVisibility;
+import de.exxcellent.echolot.model.flexi.FlexiSortingModel;
 import java.util.EventObject;
 
 /**
- * Event describing the visibility change of a table column.
+ * Event describing the sorting change of table columns.
  * 
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
  */
-public class TableColumnToggleEvent extends EventObject {
-    private final FlexiColumnVisibility columnVisibility;
+public class FlexiSortingChangeEvent extends EventObject {
+    private final FlexiSortingModel sortingModel;
 
     /**
-     * Creates a new <code>TableColumnToggleEvent</code>.
+     * Creates a new <code>FlexiSortingChangeEvent</code>.
      * 
      * @param source the source of the event
-     * @param columnVisibility the data of the change
+     * @param sortingModel the data of the change
      */
-    public TableColumnToggleEvent(Object source, FlexiColumnVisibility columnVisibility) {
+    public FlexiSortingChangeEvent(Object source, FlexiSortingModel sortingModel) {
         super(source);
-        this.columnVisibility = columnVisibility;
+        this.sortingModel = sortingModel;
     }
 
     /**
      * @return the the data of of the change.
      */
-    public FlexiColumnVisibility getColumnVisibility() {
-        return columnVisibility;
+    public FlexiSortingModel getSortingModel() {
+        return sortingModel;
     }
 }

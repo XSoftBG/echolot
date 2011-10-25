@@ -27,24 +27,24 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.listener;
+package de.exxcellent.echolot.listener.flexi;
 
-import de.exxcellent.echolot.event.ResultsPerPageOptionEvent;
+import de.exxcellent.echolot.event.flexi.FlexiRPPOEvent;
 import java.io.Serializable;
 import java.util.EventListener;
 
 /**
- * Listener interface for receiving <code>ResultsPerPageOptionChangeListener</code>s.
+ * Listener interface for receiving <code>FlexiRPPOListener</code>s.
  * 
  * @author sieskei (XSoft Ltd.)
  */ 
 
-public interface ResultsPerPageOptionChangeListener extends EventListener, Serializable {
+public interface FlexiRPPOListener extends EventListener, Serializable {
     
     /**
      * Invoked when a user attempts to change the number of rows per page in a <code>Table</code>.
      * 
-     * @param e the <code>ResultsPerPageOptionEvent</code> describing the change
+     * @param e the <code>FlexiRPPOEvent</code> describing the change
      */
-    public void resultsPerPageChange(ResultsPerPageOptionEvent e);
+    public void resultsPerPageChange(FlexiRPPOEvent e);
 }

@@ -1,5 +1,5 @@
 /*
- * This file (TableColumnToggleListener.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiColumnToggleEvent.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,22 +27,34 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.listener;
+package de.exxcellent.echolot.event.flexi;
 
-import de.exxcellent.echolot.event.TableColumnToggleEvent;
-import java.io.Serializable;
-import java.util.EventListener;
+import de.exxcellent.echolot.model.flexi.FlexiColumnVisibility;
+import java.util.EventObject;
 
 /**
- * Listener interface for receiving <code>TableColumnToggleEvent</code>s.
+ * Event describing the visibility change of a table column.
  * 
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
- */ 
-public interface TableColumnToggleListener extends EventListener, Serializable {
+ */
+public class FlexiColumnToggleEvent extends EventObject {
+    private final FlexiColumnVisibility columnVisibility;
+
     /**
-     * Invoked when a user attempts to show or hide a column in a <code>Table</code> a like component.
+     * Creates a new <code>FlexiColumnToggleEvent</code>.
      * 
-     * @param e the <code>TableColumnToggleEvent</code> describing the change
+     * @param source the source of the event
+     * @param columnVisibility the data of the change
      */
-    public void columnToggle(TableColumnToggleEvent e);
+    public FlexiColumnToggleEvent(Object source, FlexiColumnVisibility columnVisibility) {
+        super(source);
+        this.columnVisibility = columnVisibility;
+    }
+
+    /**
+     * @return the the data of of the change.
+     */
+    public FlexiColumnVisibility getColumnVisibility() {
+        return columnVisibility;
+    }
 }

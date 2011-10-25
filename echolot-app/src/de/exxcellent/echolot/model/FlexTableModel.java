@@ -7,8 +7,8 @@
 
 package de.exxcellent.echolot.model;
 
-import de.exxcellent.echolot.event.FlexTableModelEvent;
-import de.exxcellent.echolot.listener.FlexiTableModelListener;
+import de.exxcellent.echolot.event.flexi.FlexiTableModelEvent;
+import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
 import java.io.Serializable;
 import java.util.EventListener;
 import nextapp.echo.app.event.EventListenerList;
@@ -52,26 +52,19 @@ public abstract class FlexTableModel implements Serializable {
     
     /** Notifies <code>FlexiTableModelListener</code>s that the rows were inserted */
     public void fireTableRowsInserted() {
-        fireTableChanged(new FlexTableModelEvent(this, FlexTableModelEvent.INSERT));
+//        fireTableChanged(new FlexiTableModelEvent(this, FlexiTableModelEvent.INSERT));
     }
         
     /** Notifies <code>FlexiTableModelListener</code>s that rows were deleted */
     public void fireTableRowsDeleted(int... rowsIds) {
           if(rowsIds.length != 0) {
-              fireTableChanged(new FlexTableModelEvent(this, FlexTableModelEvent.DELETE, rowsIds));
-          }
-    }
-    
-    /** Notifies <code>FlexiTableModelListener</code>s that rows were updated */
-    public void fireTableRowsUpdated(int... rowsIds) {
-          if(rowsIds.length != 0) {
-              fireTableChanged(new FlexTableModelEvent(this, FlexTableModelEvent.UPDATE, rowsIds));
+//              fireTableChanged(new FlexiTableModelEvent(this, FlexiTableModelEvent.DELETE, rowsIds));
           }
     }
     
     /** Notifies <code>FlexiTableModelListener</code>s that column model were changed */
     public void fireTableColumnsChanged() {
-          fireTableChanged(new FlexTableModelEvent(this, FlexTableModelEvent.STRUCTURE_CHANGED));
+//          fireTableChanged(new FlexiTableModelEvent(this, FlexiTableModelEvent.STRUCTURE_CHANGED));
     }
     
     /**
@@ -79,7 +72,7 @@ public abstract class FlexTableModel implements Serializable {
      *
      * @param e the event
      */
-    public void fireTableChanged(FlexTableModelEvent e) {
+    public void fireTableChanged(FlexiTableModelEvent e) {
         EventListener[] listeners = listenerList.getListeners(FlexiTableModelListener.class);
         
         for (int index = 0; index < listeners.length; ++index) {

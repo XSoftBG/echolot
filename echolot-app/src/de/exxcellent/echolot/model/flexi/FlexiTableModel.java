@@ -29,29 +29,33 @@
 
 package de.exxcellent.echolot.model.flexi;
 
-import de.exxcellent.echolot.listener.FlexiTableModelListener;
+import de.exxcellent.echolot.listener.flexi.FlexiRPPOListener;
+import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
 import java.io.Serializable;
 
 /**
  *
  * @author sieskei (XSoft Ltd.)
  */
-public interface FlexiTableModel extends Serializable {    
+public interface FlexiTableModel extends FlexiRPPOListener, Serializable {    
     public static final int SHOW_ALL_ROWS_ON_ONE_PAGE = -1;
     
-    //* Rows methods
-    // -------------
+    // * Rows methods
+    // --------------
     public int getRowCount();
-    public int getRowsPerPageCount();
+    public int getResultsPerPage();
+    public int[] getResultsPerPageOption();
     public FlexiRow getRowAt(int rowIndex);
+    public int getRowIdAt(int rowIndex);
     
-    //* Columns methods
-    // ----------------
+    // * Columns methods
+    // -----------------
     public int getColumnCount();
     public FlexiColumn getColumnAt(int columnIndex);
+    public int getColumnIdAt(int columnIndex);
     
-    //* Cells methods
-    // --------------
+    // * Cells methods
+    // ---------------
     public FlexiCell getCellAt(int rowIndex, int columnIndex);
     
     // * Listeners

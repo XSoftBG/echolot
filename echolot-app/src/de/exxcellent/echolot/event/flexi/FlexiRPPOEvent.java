@@ -1,5 +1,5 @@
 /*
- * This file (TableRowSelectEvent.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiRPPOEvent.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,7 +27,7 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.event;
+package de.exxcellent.echolot.event.flexi;
 
 import java.util.EventObject;
 
@@ -37,10 +37,10 @@ import java.util.EventObject;
  * @author sieskei (XSoft Ltd.)
  */
 
-public class ResultsPerPageOptionEvent extends EventObject {  
+public class FlexiRPPOEvent extends EventObject {  
     private final Integer initialOption;
 
-    public ResultsPerPageOptionEvent(Object source, Integer initialOption) {
+    public FlexiRPPOEvent(Object source, Integer initialOption) {
         super(source);
         this.initialOption = initialOption;
     }

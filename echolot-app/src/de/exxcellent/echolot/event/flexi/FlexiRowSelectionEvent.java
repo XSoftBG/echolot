@@ -1,5 +1,5 @@
 /*
- * This file (TableSortingChangeEvent.java) is part of the Echolot Project (hereinafter "Echolot").
+ * This file (FlexiRowSelectionEvent.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -27,34 +27,34 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  */
 
-package de.exxcellent.echolot.event;
+package de.exxcellent.echolot.event.flexi;
 
-import de.exxcellent.echolot.model.flexi.FlexiSortingModel;
+import de.exxcellent.echolot.model.flexi.FlexiRowSelection;
 import java.util.EventObject;
 
 /**
- * Event describing the sorting change of table columns.
+ * Event describing the selection of a table row.
  * 
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
  */
-public class TableSortingChangeEvent extends EventObject {
-    private final FlexiSortingModel sortingModel;
+public class FlexiRowSelectionEvent extends EventObject {
+    private final FlexiRowSelection rowSelection;
 
     /**
-     * Creates a new <code>TableSortingChangeEvent</code>.
+     * Creates a new <code>FlexiRowSelectionEvent</code>.
      * 
      * @param source the source of the event
-     * @param sortingModel the data of the change
+     * @param rowSelection the data of the selection
      */
-    public TableSortingChangeEvent(Object source, FlexiSortingModel sortingModel) {
+    public FlexiRowSelectionEvent(Object source, FlexiRowSelection rowSelection) {
         super(source);
-        this.sortingModel = sortingModel;
+        this.rowSelection = rowSelection;
     }
 
     /**
-     * @return the the data of of the change.
+     * @return the the data of of the selection.
      */
-    public FlexiSortingModel getSortingModel() {
-        return sortingModel;
+    public FlexiRowSelection getRowSelection() {
+        return rowSelection;
     }
 }

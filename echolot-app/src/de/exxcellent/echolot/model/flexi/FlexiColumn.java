@@ -45,14 +45,23 @@ public class FlexiColumn implements Serializable {
     private final FlexiCell cell;
     
     private final int id;    
-    private boolean sortable = true;
-    private boolean hided = false;
-    private boolean visible = true;
-    private String tooltip = null;
+    private boolean sortable;
+    private boolean hided ;
+    private boolean visible;
+    private String tooltip;
         
     public FlexiColumn(int id, String title) {
+        this(id, title, null, true, false, true);
+    }
+    
+    public FlexiColumn(int id, String title, String tooltip, boolean sortable, boolean hided, boolean visible) {
         this.id = id;
         cell = new FlexiCell(-1, id, title);
+        
+        this.tooltip = tooltip;
+        this.sortable = sortable;
+        this.hided = hided;
+        this.visible = visible;
         
         // set default props for LayoutData ...
         // ... if necessary, children will inherit
@@ -64,15 +73,6 @@ public class FlexiColumn implements Serializable {
         layoutData.setHeight(new Extent(25));
         
         cell.setLayoutData(layoutData);
-    }
-    
-    private FlexiColumn(int id, FlexiCell cell, boolean sortable, boolean hided, boolean visible, String tooltip) {
-        this.id = id;
-        this.cell = cell;
-        this.sortable = sortable;
-        this.hided = hided;
-        this.visible = visible;
-        this.tooltip = tooltip;
     }
 
     public FlexiCell getCell() {
