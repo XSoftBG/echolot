@@ -634,20 +634,19 @@ public final class FlexiGrid extends Component implements Pane {
         // setzen der RowsPerPage Option
         // -----------------------------
         ResultsPerPageOption rppo = new ResultsPerPageOption();
-        if (tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
+        if (tableModel.getDefaultResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
             int rowCount = tableModel.getRowCount();
             rppo.setInitialOption(rowCount);
             rppo.setPageOption(new int[]{ rowCount });
         } else {
-            rppo.setInitialOption(tableModel.getResultsPerPage());
-            rppo.setPageOption(tableModel.getResultsPerPageOption());
+            rppo.setInitialOption(tableModel.getDefaultResultsPerPage());
+            rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
         }        
         setResultsPerPageOption(rppo);
         
         
         validateColumnModel();
         setActivePage(1);
-
     }
     
     /**
@@ -700,12 +699,11 @@ public final class FlexiGrid extends Component implements Pane {
     }
         
     public int getTotalPageCount() {
-        if(tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE)
+        final int rowsPerPageCount = this.getRowsPerPageCount();
+        if(rowsPerPageCount == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE)
           return 1;
 
         final int totalRowCount = tableModel.getRowCount();
-        final int rowsPerPageCount = getResultsPerPageOption().getInitialOption();
-
         if((totalRowCount % rowsPerPageCount) == 0)
             return totalRowCount / rowsPerPageCount;
         else
@@ -744,13 +742,14 @@ public final class FlexiGrid extends Component implements Pane {
      * @param page
      * @return new Page
      */
-    private FlexiPage makePage(int page) {        
+    private FlexiPage makePage(int page) {
+        final int rowsPerPageCount = this.getRowsPerPageCount();
         int firstRowStart;
         int rowEnd;
 
         // if all Rows should be displayed on one page ...
         // -----------------------------------------------
-        if (tableModel.getResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
+        if (rowsPerPageCount == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
             // ... we set rowStart to zero and rowEnd to maximum
             // -------------------------------------------------
             firstRowStart = 0;
@@ -758,8 +757,8 @@ public final class FlexiGrid extends Component implements Pane {
         } else {
             // ... otherwise if there is some paging active we have to calculate the range of rows to display
             // ----------------------------------------------------------------------------------------------
-            firstRowStart = (page - 1) * tableModel.getResultsPerPage();
-            rowEnd = firstRowStart + tableModel.getResultsPerPage();
+            firstRowStart = (page - 1) * rowsPerPageCount;
+            rowEnd = firstRowStart + rowsPerPageCount;
             if (rowEnd > tableModel.getRowCount()) {
                 rowEnd = tableModel.getRowCount();
             }
@@ -900,6 +899,29 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
     
+    
+    /**
+     * Returns the options of number of shown results per page.
+     *
+     * @return the options of number of shown results per page
+     */
+    public ResultsPerPageOption getResultsPerPageOption() {
+        return (ResultsPerPageOption) get(PROPERTY_RESULTS_PER_PAGE_OPTION);
+    }
+    
+    public int getRowsPerPageCount() {
+        return getResultsPerPageOption().getInitialOption();
+    }
+
+    /**
+     * Sets the options of number of shown results per page, e.g. "[10,15,20,25]".
+     * Don't set this manually if you don't know what you are doing... - will be done by flexigrid for you
+     *
+     * @param newValue the initial number shown of results per page
+     */
+    public void setResultsPerPageOption(ResultsPerPageOption newValue) {
+        set(PROPERTY_RESULTS_PER_PAGE_OPTION, newValue);
+    }
        
     
     /**
@@ -918,25 +940,6 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public void setMessageNoItems(String newValue) {
         set(PROPERTY_NO_ITEMS_MSG, newValue);
-    }
-
-    /**
-     * Returns the options of number of shown results per page.
-     *
-     * @return the options of number of shown results per page
-     */
-    public ResultsPerPageOption getResultsPerPageOption() {
-        return (ResultsPerPageOption) get(PROPERTY_RESULTS_PER_PAGE_OPTION);
-    }
-
-    /**
-     * Sets the options of number of shown results per page, e.g. "[10,15,20,25]".
-     * Don't set this manually if you don't know what you are doing... - will be done by flexigrid for you
-     *
-     * @param newValue the initial number shown of results per page
-     */
-    public void setResultsPerPageOption(ResultsPerPageOption newValue) {
-        set(PROPERTY_RESULTS_PER_PAGE_OPTION, newValue);
     }
     
     /**

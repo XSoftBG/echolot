@@ -40,11 +40,31 @@ import java.io.Serializable;
 public interface FlexiTableModel extends FlexiRPPOListener, Serializable {    
     public static final int SHOW_ALL_ROWS_ON_ONE_PAGE = -1;
     
+    /**
+     * <b>
+     * <i>Method is invoked only when PROPERTY_RESULTS_PER_PAGE_OPTION == null !!!</i>
+     * <br />
+     * <br />
+     * The table is initialized with PROPERTY_RESULTS_PER_PAGE_OPTION == null so that the method will be called at least once!
+     * </b>
+     * @return maximum number of rows per page
+     */
+    public int getDefaultResultsPerPage();
+    
+    /**
+     * <b>
+     * <i>Method is invoked only when PROPERTY_RESULTS_PER_PAGE_OPTION == null !!!</i>
+     * <br />
+     * <br />
+     * The table is initialized with PROPERTY_RESULTS_PER_PAGE_OPTION == null so that the method will be called at least once!
+     * </b>
+     * @return choice for the maximum number of rows per page
+     */
+    public int[] getDefaultResultsPerPageOption();
+    
     // * Rows methods
     // --------------
     public int getRowCount();
-    public int getResultsPerPage();
-    public int[] getResultsPerPageOption();
     public FlexiRow getRowAt(int rowIndex);
     public int getRowIdAt(int rowIndex);
     
