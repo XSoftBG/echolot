@@ -838,10 +838,7 @@ public final class FlexiGrid extends Component implements Pane {
             }
             
             int startRow = firstRowStart;
-            FlexiCell cell = null;
-            do {
-                cell = tableModel.getCellAt(startRow++, c);
-            } while (!cell.setWidth(maxWidth) && startRow < rowEnd);
+            while(startRow < rowEnd && tableModel.getCellAt(startRow++, c).setWidth(maxWidth)) { };
         }        
                 
         return new FlexiPage(page, tableModel.getRowCount(), rows);

@@ -37,7 +37,7 @@ import java.io.Serializable;
  *
  * @author sieskei (XSoft Ltd.)
  */
-public interface FlexiTableModel extends FlexiRPPOListener, Serializable {    
+public interface FlexiTableModel extends Serializable {    
     public static final int SHOW_ALL_ROWS_ON_ONE_PAGE = -1;
     
     /**
