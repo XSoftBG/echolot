@@ -221,7 +221,7 @@
             },
             dragStart: function (dragtype,e,obj) { //default drag function start
 
-                if (dragtype=='colresize') //column resize
+                if (dragtype == 'colresize') //column resize
                 {
                     $(g.nDiv).hide();
                     $(g.nBtn).hide();
@@ -239,7 +239,7 @@
                     });
                     $('body').css('cursor','col-resize');
                 }
-                else if (dragtype=='vresize') //table resize
+                else if (dragtype == 'vresize') //table resize
                 {
                     var hgo = false;
                     $('body').css('cursor','row-resize');
@@ -258,7 +258,7 @@
 
                 }
 
-                else if (dragtype=='colMove') //column header drag
+                else if (dragtype == 'colMove') //column header drag
                 {
                     $(g.nDiv).hide();
                     $(g.nBtn).hide();
@@ -367,6 +367,7 @@
                 if (this.colresize)
                 {
                     g.setBusy(true);
+                    console.log('col idx:' + this.colresize.n);
                     var n = this.colresize.n;// index of column
                     var nw = this.colresize.nw;// new width of column
 
@@ -384,7 +385,7 @@
                             rowsPerBatch--;                        
                             if (rc < rows.length) {
                                 //$('td:visible:eq('+n+')', rows[rc++]).css('width', nw);
-                                $(rows[rc++]).children('td:eq(' + n + ')').css('width', nw);                                
+                                $(rows[rc++]).children('td:visible:eq(' + n + ')').css('width', nw);                                
                                 if (rowsPerBatch <= 0) {
                                     setTimeout(resizeRows, 1);
                                     return;
@@ -426,15 +427,20 @@
                 }
                 else if (this.colCopy)
                 {
+                    console.log(this.colCopy);
+                    console.log(this.dcolt);
                     $(this.colCopy).remove();
                     if (this.dcolt != null)
                     {
-                        if (this.dcoln>this.dcolt)
-                            $('th:eq('+this.dcolt+')',this.hDiv).before(this.dcol);
-                        else
-                            $('th:eq('+this.dcolt+')',this.hDiv).after(this.dcol);
+                        if (this.dcoln>this.dcolt) {
+                            $('th:eq('+this.dcolt+')', this.hDiv).before(this.dcol);
+                        }                            
+                        else {
+                            $('th:eq('+this.dcolt+')', this.hDiv).after(this.dcol);
+                        }
                           
-                        this.switchCol(this.dcoln,this.dcolt);
+                        this.switchCol(this.dcoln, this.dcolt);
+                        
                         $(this.cdropleft).remove();
                         $(this.cdropright).remove();
                         this.rePosDrag();
@@ -467,44 +473,56 @@
                 $(g.gDiv).noSelect(false);
             },
             toggleCol: function(cid,visible) {
-
                 var ncol = $("th[axis='col"+cid+"']",this.hDiv)[0];
                 var n = $('thead th',g.hDiv).index(ncol);
-                var cb = $('input[value='+cid+']',g.nDiv)[0];
+//                var cb = $('input[value='+cid+']',g.nDiv)[0];
 
-
-                if (visible==null)
-                {
+                if (visible == null) {
                     visible = ncol.hide;
                 }
 
-
-
-                if ($('input:checked',g.nDiv).length<p.minColToggle&&!visible) return false;
-
-                if (visible)
-                {
-                    ncol.hide = false;
-                    $(ncol).show();
-                    cb.checked = true;
-                }
-                else
-                {
-                    ncol.hide = true;
-                    $(ncol).hide();
-                    cb.checked = false;
+                if ($('input:checked', g.nDiv).length < p.minColToggle && !visible) {
+                    return false;
                 }
 
-                $('tbody tr',t).each
-                (
-                    function ()
-                    {
-                        if (visible)
-                            $('td:eq('+n+')',this).show();
-                        else
-                            $('td:eq('+n+')',this).hide();
-                    }
-                    );
+
+//                if (visible)
+//                {
+//                    ncol.hide = false;
+//                    $(ncol).show();
+//                    cb.checked = true;
+//                }
+//                else
+//                {
+//                    ncol.hide = true;
+//                    $(ncol).hide();
+//                    cb.checked = false;
+//                }
+                
+                
+//                ncol.hide = !ncol.hide;
+                $(ncol).toggle();
+//                cb.checked = !cb.checked;
+
+
+
+                var qbody = $('#' + $.fn.fixID('data_' + p.idSuffix));
+                var rows = qbody.children("tr");
+                rows.each(function() {
+                    $(this).children('td:eq(' + n + ')').toggle();
+                });
+
+
+//                $('tbody tr',t).each
+//                (
+//                    function ()
+//                    {
+//                        if (visible)
+//                            $('td:eq('+n+')',this).show();
+//                        else
+//                            $('td:eq('+n+')',this).hide();
+//                    }
+//                    );
 
                 this.rePosDrag();
 
@@ -522,25 +540,28 @@
             // After columns are dragged and dropped the data has to be adjusted.
             switchCol: function(cdrag,cdrop) { //switch columns
 
-                $('tbody tr',t).each
-                (
-                    function ()
-                    {
-                        if (cdrag>cdrop)
-                            $('td:eq('+cdrop+')',this).before($('td:eq('+cdrag+')',this));
-                        else
-                            $('td:eq('+cdrop+')',this).after($('td:eq('+cdrag+')',this));
+                var qbody = $('#' + $.fn.fixID('data_' + p.idSuffix));
+                var rows = qbody.children("tr");
+                rows.each(function() {
+                    var qthis = $(this);
+                    var dropTD = qthis.children('td:eq(' + cdrop + ')');
+                    var dragTD = qthis.children('td:eq(' + cdrag + ')');
+                    
+                    if (cdrag > cdrop) {
+                        dropTD.before(dragTD);
+                    } else {
+                        dropTD.after(dragTD);
                     }
-                    );
+                });
 
                 //switch order in nDiv
-                if (cdrag>cdrop)
-                    $('tr:eq('+cdrop+')',this.nDiv).before($('tr:eq('+cdrag+')',this.nDiv));
+                if (cdrag > cdrop)
+                    $('tr:eq('+cdrop+')', this.nDiv).before($('tr:eq('+cdrag+')', this.nDiv));
                 else
-                    $('tr:eq('+cdrop+')',this.nDiv).after($('tr:eq('+cdrag+')',this.nDiv));
+                    $('tr:eq('+cdrop+')', this.nDiv).after($('tr:eq('+cdrag+')', this.nDiv));
 
-                if ($.browser.msie&&$.browser.version<7.0){
-                    $('tr:eq('+cdrop+') input',this.nDiv)[0].attr('checked', true);
+                if ($.browser.msie && $.browser.version < 7.0){
+                    $('tr:eq('+cdrop+') input', this.nDiv)[0].attr('checked', true);
                 }
 
                 this.hDiv.scrollLeft = this.bDiv.scrollLeft;
@@ -2665,12 +2686,12 @@
     };
 
     $.fn.fixID = function(ID) {
-          return ID.replace(/(:|\.)/g,'\\$1');
+        return ID.replace(/(:|\.)/g,'\\$1');
     };
     
     $.fn.getHeader = function() {
-          var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
-          return $('#' + headerId);
+        var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
+        return $('#' + headerId);
     };
 
     //* Plugin for unslectable elements */
