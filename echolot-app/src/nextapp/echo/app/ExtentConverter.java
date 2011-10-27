@@ -1,5 +1,5 @@
 /*
- * This file (ExtentConverter.java) is part of the Echolot Project (hereinafter "Echolot").test
+ * This file (ExtentConverter.java) is part of the Echolot Project (hereinafter "Echolot").
  * Copyright (C) 2008-2010 eXXcellent Solutions GmbH.
  *
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
