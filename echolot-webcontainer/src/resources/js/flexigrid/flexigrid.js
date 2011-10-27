@@ -375,14 +375,16 @@
                     columnSel.css('width', nw);
                     columnSel.data('isUserSized', true);
                                         
-                    var rows = $('tr', this.bDiv); 
+                    //var rows = $('tr', this.bDiv); 
+                    var rows = $('#' + $.fn.fixID('data_' + p.idSuffix)).children('tr');
                     var rc = 0;
                     function resizeRows() {
                         var rowsPerBatch = 20;
                         do {
                             rowsPerBatch--;                        
                             if (rc < rows.length) {
-                                $('td:visible:eq('+n+')', rows[rc++]).css('width', nw);
+                                //$('td:visible:eq('+n+')', rows[rc++]).css('width', nw);
+                                $(rows[rc++]).children('td:eq(' + n + ')').css('width', nw);                                
                                 if (rowsPerBatch <= 0) {
                                     setTimeout(resizeRows, 1);
                                     return;
