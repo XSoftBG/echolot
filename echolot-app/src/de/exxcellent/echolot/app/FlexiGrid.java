@@ -315,7 +315,13 @@ public final class FlexiGrid extends Component implements Pane {
      */
     private final FlexiSortingChangeListener TABLE_SORTING_CHANGE_LISTENER = new FlexiSortingChangeListener() {
         @Override
-        public void sortingChange(FlexiSortingChangeEvent e) { }
+        public void sortingChange(FlexiSortingChangeEvent e) { 
+             FlexiGrid.this.set(
+                    FlexiGrid.PROPERTY_SORTINGMODEL, 
+                    e.getSortingModel(), 
+                    false
+                  );
+        }
     };
     
     private final FlexiRowSelectionListener TABLE_RS_CHANGE_LISTENER = new FlexiRowSelectionListener() {
@@ -494,6 +500,7 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
     
+    private final String renderId;
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
     private FlexiSortingModel sortingModel;
@@ -526,6 +533,10 @@ public final class FlexiGrid extends Component implements Pane {
     
     public FlexiGrid(String noItemsMsg, String processingMsg, String pageStatisticsMsg) {
         super();
+        
+        this.renderId = "fg" + ApplicationInstance.generateSystemId();
+        setRenderId(renderId);
+        
         setCSS(CSS_REFERENCE);
         setHeight(-1);
         setWidth(-1);
@@ -850,18 +861,9 @@ public final class FlexiGrid extends Component implements Pane {
         Component component = cell.getComponent();
         String componentID = component.getId();
         
-        if (componentID == null) {
-            StringBuilder renderId = new StringBuilder("fc_");
-            if(rowID != -1) {
-                renderId.append(rowID);
-            }
-            else {
-                renderId.append("H");
-            }
-
-            renderId.append("x").append(colID);            
-            component.setRenderId(renderId.toString());
-          
+        if (componentID == null || componentID.isEmpty()) {         
+            component.setRenderId(generateChildRenderId(rowID, colID));
+            
             Integer idx = null;
             if (!childsForReplace.isEmpty()) {                          
                 idx = childsForReplace.get(0);
@@ -893,7 +895,19 @@ public final class FlexiGrid extends Component implements Pane {
             
             component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, FLEXICELL_LAYOUTDATA_CHANGE_LISTENER);
             cell.addComponentChangeListener(FLEXICELL_COMPONENT_CHANGE_LISTENER);
+            System.out.println("Added: " + cell.toString());
         }
+    }
+    
+    private String generateChildRenderId(final int rowID, final int colID) {
+        StringBuilder rid = new StringBuilder("fc_");
+        if(rowID != -1) {
+            rid.append(rowID);
+        }
+        else {
+            rid.append("H");
+        }
+        return rid.append("x").append(colID).append("_").append(renderId).toString();
     }
     
     

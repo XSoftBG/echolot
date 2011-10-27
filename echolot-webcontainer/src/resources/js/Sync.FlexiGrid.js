@@ -514,7 +514,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                         var componentIdx = this.component.indexOf(component);
                         if (Core.Arrays.indexOf(activePageComponentIdxs, componentIdx) >= 0 || Core.Arrays.indexOf(columnModelComponentIdxs, componentIdx) >= 0) {
                             result.push( {
-                                "id": component.renderId.substr(5),
+                                "id": component.renderId,
                                 "component": component,
                                 "componentIdx": componentIdx
                             });
@@ -562,6 +562,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 
         return {
             owner: this,
+            idSuffix: this.component.renderId,
             method:'GET',
             url: this,
             dataType: 'json',

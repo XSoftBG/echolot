@@ -361,4 +361,16 @@ public class FlexiCell implements Serializable, Cloneable {
         }
         return true;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[ FlexiCell:\n")
+        .append("- ID: ").append(component.getId()).append("\n")
+        .append("- RenderID: ").append(component.getRenderId()).append("\n")
+        .append("- Component: ").append(component).append("\n")
+        .append("- RowID: ").append(rowId).append("\n")
+        .append("- ColID: ").append(colId).append(" ]\n");
+        return sb.toString();
+    }
 }

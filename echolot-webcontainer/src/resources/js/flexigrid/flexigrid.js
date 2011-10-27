@@ -593,7 +593,7 @@
 
                 // Build new tbody...
                 var tbody = document.createElement('tbody');
-                tbody.id = 'fgDataBody';
+                tbody.id = 'data_' + p.idSuffix;
                 // Select the body before. This is better because this selected jQuery object could
                 // be used more then one times in the next steps.
                 var qtbody = $(tbody);
@@ -605,11 +605,11 @@
                 	 * can not be used... its more complicated.
                 	 * the idea was to measure all prev siblings (divs)
                 	 *
-                	var componentHeight = globalDiv.attr('offsetHeight');
-					globalDiv.prevAll().each(function () {
-				        componentHeight += $(this).attr('offsetHeight');
-					});
-					*/
+                      var componentHeight = globalDiv.attr('offsetHeight');
+                      globalDiv.prevAll().each(function () {
+                          componentHeight += $(this).attr('offsetHeight');
+                      });
+                   */
                     var bHeight = globalDiv.offsetParent().attr('offsetHeight') - p.heightOffset;
                     // adjust the flexigrid body (table) height
                     $(g.bDiv).css({
@@ -700,7 +700,7 @@
                                 if (row.id === null) {
                                 // nothing to do.
                                 } else {
-                                    tr.id = 'row' + row.id;
+                                    tr.id = 'row_' + row.id + '_' + p.idSuffix;
                                 }
                                 // Add each cell for each header column (rowDataIndex)
                                 var colCount = headers.length;
@@ -760,7 +760,8 @@
                                 if (nid === null) {
                                 // nothing to do
                                 } else {
-                                    tr.id = 'row' + nid;
+                                    //tr.id = 'row' + nid;
+                                    tr.id = 'row_' + row.nid + '_' + p.idSuffix;
                                 }
                                 nid = null;
                                 var cells = $('cell', row);
@@ -796,11 +797,6 @@
 			 * On change sort.
 			 */
             changeSort: function(th, multiSelect) { //change sortorder
-                
-                
-                // this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
-                
-                
                 if (p.debug){
                     var startTime = new Date();
                 }
@@ -887,12 +883,13 @@
                 } 
                 
                 var rc = 0;
+                var qData = $('#' + $.fn.fixID('data_' + p.idSuffix));
                 function renderRows() {
                     var rowsPerBatch = 20;
                     do {
                         rowsPerBatch--;                        
                         if (rc < clonedData.rows.length) {
-                            var qrow = $('#row' + clonedData.rows[rc++].id);
+                            var qrow = $('#' + $.fn.fixID('row_' + clonedData.rows[rc++].id + '_' + p.idSuffix));
                             qrow.children().each(addRowChildProp);
 
                             if (rc % 2 == 0 && p.striped) {
@@ -901,7 +898,7 @@
                                 qrow.removeClass('erow');
                             }
                             
-                            $('#fgDataBody').append(qrow)
+                            qData.append(qrow)
                             
                             if (rowsPerBatch <= 0) {
                                 setTimeout(renderRows, 1);
@@ -1327,13 +1324,13 @@
             },
             pager: 0,
             
-            renderCell: function(index, div, td) {                
+            renderCell: function(index, div, td) {
                 if (Echo.Render._disposedComponents == null) {
                     Echo.Render._disposedComponents = {};
                 }
                 
                 var component = p.owner.component.getComponent(index);
-                td.id = "cell" + component.renderId.substr(4);
+                td.id = 'cell_' + component.renderId;
                 
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
@@ -1362,9 +1359,7 @@
             },
             
             renderCellWidth: function(container, width) {
-                var temp = container.id.substr(5); // *x* ...
-                var colId = parseInt(temp.substr(temp.indexOf('x') + 1)); // number ...
-                var qth = $('#cell_Hx' + colId);
+                qth = $(container).getHeader();                
                 if (qth.data('isUserSized')) {
                     container.style.width = qth.css('width');
                 } else {
@@ -2644,10 +2639,10 @@
             if (this.grid) {
                 this.grid.setBusy(true);
                 for (c = 0; c < renderCells.length; c++) {
-                    var qcell = $('#cell_' + renderCells[c].id);
+                    var cell = document.getElementById('cell_' + renderCells[c].id);
                     var childDiv = document.createElement("div");
-                    this.grid.renderCell(renderCells[c].componentIdx, childDiv, qcell.get(0));
-                    qcell.empty().append(childDiv);
+                    this.grid.renderCell(renderCells[c].componentIdx, childDiv, cell);
+                    $(cell).empty().append(childDiv);
                 }
                 this.grid.setBusy(false);
             };
@@ -2665,6 +2660,15 @@
                 this.grid.setBusy(false);
             };
         });
+    };
+
+    $.fn.fixID = function(ID) {
+          return ID.replace(/(:|\.)/g,'\\$1');
+    };
+    
+    $.fn.getHeader = function() {
+          var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
+          return $('#' + headerId);
     };
 
     //* Plugin for unslectable elements */

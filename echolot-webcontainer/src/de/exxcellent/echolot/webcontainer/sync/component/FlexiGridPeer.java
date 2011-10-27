@@ -316,7 +316,6 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
                  */
                 try {
                     final FlexiSortingModel aSortingModel = (FlexiSortingModel) streamIn.fromXML(jsonMessage);
-                    flexigrid.setSortingModel(aSortingModel);
                     flexigrid.userTableSortingChange(aSortingModel);
                 } catch (NumberFormatException e) {
                     throw new RuntimeException("Could not unmarshall sortingModel from JSON msg== '" + jsonMessage + "'", e);

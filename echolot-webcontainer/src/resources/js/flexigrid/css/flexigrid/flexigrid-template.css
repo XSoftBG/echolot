@@ -46,11 +46,15 @@
     padding-right: 40px;
 }
 
+.flexigrid div.hDivBox table:first-child
+{
+    table-layout: fixed;
+    width: 0px;
+}
+
 .flexigrid div.bDiv table
 {
     margin-bottom: 10px;
-    width: 0px;
-    table-layout: fixed;
 }
 
 .flexigrid div.bDiv table.autoht
@@ -58,6 +62,8 @@
     border-bottom: 0px;
     margin-bottom: 0px;
     float: left;
+    width: 0px;
+    table-layout: fixed;
 }
 
 .flexigrid div.nDiv td
@@ -281,8 +287,6 @@
 .flexigrid div.hDiv table
 {
     border-right: 1px solid #fff;
-    table-layout: fixed;
-    width: 0px;
 }
 
 .flexigrid div.cDrag
