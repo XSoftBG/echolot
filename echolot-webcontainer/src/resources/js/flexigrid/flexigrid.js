@@ -371,12 +371,10 @@
                     var n = this.colresize.n;// index of column
                     var nw = this.colresize.nw;// new width of column
 
-                    //var columnSel = $('th:visible div:eq('+n+')',this.hDiv);
                     var columnSel = $('th:visible:eq('+n+')',this.hDiv);
                     columnSel.css('width', nw);
                     columnSel.data('isUserSized', true);
-                                        
-                    //var rows = $('tr', this.bDiv); 
+                    
                     var rows = $('#' + $.fn.fixID('data_' + p.idSuffix)).children('tr');
                     var rc = 0;
                     function resizeRows() {
@@ -384,7 +382,6 @@
                         do {
                             rowsPerBatch--;                        
                             if (rc < rows.length) {
-                                //$('td:visible:eq('+n+')', rows[rc++]).css('width', nw);
                                 $(rows[rc++]).children('td:visible:eq(' + n + ')').css('width', nw);                                
                                 if (rowsPerBatch <= 0) {
                                     setTimeout(resizeRows, 1);
@@ -396,7 +393,6 @@
                         } while (rowsPerBatch > 0);                    
                         g.setBusy(false);
                     }
-
                     setTimeout(resizeRows, 1);
                     
                     // synchronize the header and the body while scrolling
@@ -427,8 +423,6 @@
                 }
                 else if (this.colCopy)
                 {
-                    console.log(this.colCopy);
-                    console.log(this.dcolt);
                     $(this.colCopy).remove();
                     if (this.dcolt != null)
                     {
@@ -475,7 +469,7 @@
             toggleCol: function(cid,visible) {
                 var ncol = $("th[axis='col"+cid+"']",this.hDiv)[0];
                 var n = $('thead th',g.hDiv).index(ncol);
-//                var cb = $('input[value='+cid+']',g.nDiv)[0];
+                var cb = $('input[value='+cid+']',g.nDiv)[0];
 
                 if (visible == null) {
                     visible = ncol.hide;
@@ -485,26 +479,15 @@
                     return false;
                 }
 
-
-//                if (visible)
-//                {
-//                    ncol.hide = false;
-//                    $(ncol).show();
-//                    cb.checked = true;
-//                }
-//                else
-//                {
-//                    ncol.hide = true;
-//                    $(ncol).hide();
-//                    cb.checked = false;
-//                }
-                
-                
-//                ncol.hide = !ncol.hide;
-                $(ncol).toggle();
-//                cb.checked = !cb.checked;
-
-
+                if (visible) {
+                    ncol.hide = false;
+                    $(ncol).show();
+                    cb.checked = true;
+                } else {
+                    ncol.hide = true;
+                    $(ncol).hide();
+                    cb.checked = false;
+                }
 
                 var qbody = $('#' + $.fn.fixID('data_' + p.idSuffix));
                 var rows = qbody.children("tr");
@@ -512,28 +495,18 @@
                     $(this).children('td:eq(' + n + ')').toggle();
                 });
 
-
-//                $('tbody tr',t).each
-//                (
-//                    function ()
-//                    {
-//                        if (visible)
-//                            $('td:eq('+n+')',this).show();
-//                        else
-//                            $('td:eq('+n+')',this).hide();
-//                    }
-//                    );
-
                 this.rePosDrag();
 
+                /*
+                 * ECHO3 we need the owner of the object as 'this'.
+                 * Event if column visibility is changed.
+                 */
                 if (p.onToggleCol && p.colModel){
-                    /*
-					 * ECHO3 we need the owner of the object as 'this'.
-					 * Event if column visibility is changed.
-					 */
+
                     var columnId = p.colModel[cid].id;
                     p.onToggleCol.call(p.owner, columnId, visible);
                 }
+                
                 return visible;
             },
 
@@ -950,24 +923,25 @@
                 }
             },
 
-            buildpager: function(){ //rebuild pager based on new properties
-
+            // * rebuild pager based on new properties ...
+            // -------------------------------------------
+            buildpager: function(){ 
                 $('.pcontrol input',this.pDiv).val(p.page);
                 $('.pcontrol span',this.pDiv).html(p.pages);
 
                 var r1 = (p.page-1) * p.rp + 1;
                 var r2 = r1 + p.rp - 1;
-
-                if (p.total<r2) r2 = p.total;
-
+                if (p.total < r2) {
+                  r2 = p.total;
+                }
+                
                 var stat = p.pagestat;
 
                 stat = stat.replace(/{from}/,r1);
                 stat = stat.replace(/{to}/,r2);
                 stat = stat.replace(/{total}/,p.total);
 
-                $('.pPageStat',this.pDiv).html(stat);
-
+                $('.pPageStat', this.pDiv).html(stat);
             },
 
             /**
@@ -979,11 +953,13 @@
              */
             setBusy: function (busy) {
                 var result = false;
+                var pstat = $('.pPageStat', this.pDiv);                
                 if (busy) {
                     if (!this.loading) {
                         this.loading = true;
-                        $('.pPageStat',this.pDiv).html(p.procmsg);
-                        $('.pReload',this.pDiv).addClass('loading');
+                        pstat.data('content', pstat.html());
+                        pstat.html(p.procmsg);
+                        $('.pReload', this.pDiv).addClass('loading');
                         $(g.block).css({
                             top:g.bDiv.offsetTop,
                             position: 'absolute',
@@ -1000,9 +976,10 @@
                     }
                 } else {
                     if (this.loading) {
-                        var qstatus = $('.pPageStat',this.pDiv);
+                        var qstatus = $('.pPageStat', this.pDiv);
                         if (qstatus.html() == p.procmsg) {
-                            $('.pPageStat',this.pDiv).text('');
+                            pstat.html(pstat.data('content'));                            
+                            //$('.pPageStat',this.pDiv).text('');
                         }
                         $('.pReload',this.pDiv).removeClass('loading');
                         if (p.hideOnSubmit) {
@@ -1012,7 +989,6 @@
                         if ($.browser.opera) {
                             $(t).css('visibility','visible');
                         }
-
                         this.loading = false;
                         result = true;
                     }
@@ -1353,7 +1329,7 @@
                 }
                 
                 var component = p.owner.component.getComponent(index);
-                td.id = 'cell_' + component.renderId;
+                td.id = 'CELL.' + component.renderId;
                 
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
@@ -2660,14 +2636,28 @@
     $.fn.flexRenderCells = function(renderCells) {
         return this.each( function() {
             if (this.grid) {
-                this.grid.setBusy(true);
-                for (c = 0; c < renderCells.length; c++) {
-                    var cell = document.getElementById('cell_' + renderCells[c].id);
-                    var childDiv = document.createElement("div");
-                    this.grid.renderCell(renderCells[c].componentIdx, childDiv, cell);
-                    $(cell).empty().append(childDiv);
-                }
-                this.grid.setBusy(false);
+                this.grid.setBusy(true);    
+                var cc = 0;
+                var rendererMethod = Core.method(this, function() {
+                    var cellsPerBatch = 20;
+                    do {
+                        cellsPerBatch--;                        
+                        if (cc < renderCells.length) {
+                            var cell = document.getElementById('cell_' + renderCells[cc].id);
+                            var childDiv = document.createElement("div");
+                            this.grid.renderCell(renderCells[cc++].componentIdx, childDiv, cell);
+                            $(cell).empty().append(childDiv);
+                            if (cellsPerBatch <= 0) {
+                                setTimeout(rendererMethod, 1);
+                                return;
+                            }
+                        } else {
+                            cellsPerBatch = 0;
+                        }
+                    } while (cellsPerBatch > 0);                    
+                    this.grid.setBusy(false);
+                });                
+                setTimeout(rendererMethod, 1);
             };
         });
     };
@@ -2675,12 +2665,27 @@
     $.fn.flexUpdateCells = function(renderCells) {
         return this.each( function() {
             if (this.grid) {
-                this.grid.setBusy(true);
-                for (c = 0; c < renderCells.length; c++) {
-                    var cell = document.getElementById('cell_' + renderCells[c].id);
-                    this.grid.renderCellLayoutData(renderCells[c].component, cell.firstChild, cell);
-                }
-                this.grid.setBusy(false);
+                this.grid.setBusy(true);    
+                var cc = 0;
+                var rendererMethod = Core.method(this, function() {
+                    var cellsPerBatch = 20;
+                    do {
+                        cellsPerBatch--;                        
+                        if (cc < renderCells.length) {
+                            var cell = document.getElementById('cell_' + renderCells[cc].id);
+                            this.grid.renderCellLayoutData(renderCells[cc++].component, cell.firstChild, cell);
+                            
+                            if (cellsPerBatch <= 0) {
+                                setTimeout(rendererMethod, 1);
+                                return;
+                            }
+                        } else {
+                            cellsPerBatch = 0;
+                        }
+                    } while (cellsPerBatch > 0);                    
+                    this.grid.setBusy(false);
+                });                
+                setTimeout(rendererMethod, 1);
             };
         });
     };

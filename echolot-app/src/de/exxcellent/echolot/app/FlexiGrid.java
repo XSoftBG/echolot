@@ -310,6 +310,8 @@ public final class FlexiGrid extends Component implements Pane {
     
     private static final String FLEXI_CELL_COMPONENT_PROPS = "_FLEXIGRID_CHILDS_PROPS";
     
+    private static long nextID = 0;
+    
     /**
      * This is due to the lack of knowledge how to force a sync on the client.
      */
@@ -391,7 +393,7 @@ public final class FlexiGrid extends Component implements Pane {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {          
             if (this.inProcess || activePageIdx == -1) {
-                System.out.println("return");
+                //System.out.println("return");
                 return;
             } else {
                 this.inProcess = true;
@@ -414,7 +416,7 @@ public final class FlexiGrid extends Component implements Pane {
                 int widthResult = newWidth.compareTo(oldWidth);
                 int heightResult = newHeight.compareTo(oldHeight);
                 if(widthResult == 0 && heightResult == 0) {
-                    System.out.println("return");
+                    //System.out.println("return");
                     this.inProcess = false;
                     return;
                 }
@@ -449,28 +451,9 @@ public final class FlexiGrid extends Component implements Pane {
                     fc.setHeight(newHeight);
                 }
                 maxRowHeights.put(rowID, newHeight);
-                
-                
-//                if (widthResult >= 1) {
-//                    for (FlexiCell fc : columnCells) {
-//                        fc.setWidth(newWidth);
-//                    }
-//                    maxColumnWidths.put(colID, newWidth);
-//                } else {
-//                    sourceCell.setWidth(oldWidth);
-//                }
-//
-//                if (heightResult >= 1) {
-//                    for (FlexiCell fc : rowCells) {
-//                        fc.setHeight(newHeight);
-//                    }
-//                    maxRowHeights.put(rowID, newHeight);
-//                } else {
-//                    sourceCell.setHeight(oldHeight);
-//                }
 
                 // finishing ...
-                System.out.println("work ...");
+                //System.out.println("work ...");
                 this.inProcess = false;
             }
         }
@@ -534,7 +517,7 @@ public final class FlexiGrid extends Component implements Pane {
     public FlexiGrid(String noItemsMsg, String processingMsg, String pageStatisticsMsg) {
         super();
         
-        this.renderId = "fg" + ApplicationInstance.generateSystemId();
+        this.renderId = "FG" + nextID++;
         setRenderId(renderId);
         
         setCSS(CSS_REFERENCE);
@@ -861,16 +844,16 @@ public final class FlexiGrid extends Component implements Pane {
         Component component = cell.getComponent();
         String componentID = component.getId();
         
-        if (componentID == null || componentID.isEmpty()) {         
-            component.setRenderId(generateChildRenderId(rowID, colID));
-            
+        if (componentID == null || componentID.isEmpty()) {
             Integer idx = null;
-            if (!childsForReplace.isEmpty()) {                          
+            if (!childsForReplace.isEmpty()) {
                 idx = childsForReplace.get(0);
                 remove(idx);
+                component.setRenderId(genRenderId(idx));
                 add(component, idx);
             } else {
                 idx = getComponentCount();
+                component.setRenderId(genRenderId(idx));
                 add(component);
             }
             
@@ -899,17 +882,9 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
     
-    private String generateChildRenderId(final int rowID, final int colID) {
-        StringBuilder rid = new StringBuilder("fc_");
-        if(rowID != -1) {
-            rid.append(rowID);
-        }
-        else {
-            rid.append("H");
-        }
-        return rid.append("x").append(colID).append("_").append(renderId).toString();
+    private String genRenderId(int componentIndex) {
+        return renderId + "FC" + componentIndex;
     }
-    
     
     /**
      * Returns the options of number of shown results per page.
