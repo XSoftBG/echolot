@@ -117,8 +117,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.setValue(Boolean.toString(column.isVisible()));
             w.endNode();
             
-            w.startNode("componentIdx", Integer.class);
-            w.setValue(column.getCell().getComponent().getId());
+            w.startNode("cell", FlexiCell.class);
+            mc.convertAnother(column.getCell());
             w.endNode();
         }
 
@@ -154,7 +154,11 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.startNode("colId", int.class);
             w.setValue(Integer.toString(cell.getColId()));
             w.endNode();  
-           
+            
+            w.startNode("renderId", String.class);
+            w.setValue("C." + cell.getComponent().getRenderId());
+            w.endNode();
+            
             w.startNode("componentIdx", Integer.class);
             w.setValue(cell.getComponent().getId());
             w.endNode();

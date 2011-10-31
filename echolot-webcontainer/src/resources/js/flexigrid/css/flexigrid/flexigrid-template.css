@@ -486,28 +486,24 @@ div.colCopy {
 {
 }
 
-.flexigrid span.cdropleft
+.flexigrid div.hDiv span.cdropleft
 {
     display: block;
-    background: url(PREV_IMG) no-repeat -4px center;
-    width: 24px;
-    height: 24px;
-    position: relative;
-    top: -24px;
-    margin-bottom: -24px;
-    z-index: 3;
+    background: url(PREV_IMG) no-repeat center;
+    width: 16px;
+    height: 16px;
+    position: fixed;
+    float: left;
 }
 
 .flexigrid div.hDiv span.cdropright
 {
     display: block;
-    background: url(NEXT_IMG) no-repeat 12px center;
-    width: 24px;
-    height: 24px;
+    background: url(NEXT_IMG) no-repeat center;
+    width: 16px;
+    height: 16px;
+    position: fixed;
     float: right;
-    position: relative;
-    top: -24px;
-    margin-bottom: -24px;
 }
 
 

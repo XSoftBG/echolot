@@ -375,7 +375,7 @@
                     columnSel.css('width', nw);
                     columnSel.data('isUserSized', true);
                     
-                    var rows = $('#' + $.fn.fixID('data_' + p.idSuffix)).children('tr');
+                    var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
                     var rc = 0;
                     function resizeRows() {
                         var rowsPerBatch = 20;
@@ -489,7 +489,7 @@
                     cb.checked = false;
                 }
 
-                var qbody = $('#' + $.fn.fixID('data_' + p.idSuffix));
+                var qbody = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
                 var rows = qbody.children("tr");
                 rows.each(function() {
                     $(this).children('td:eq(' + n + ')').toggle();
@@ -513,7 +513,7 @@
             // After columns are dragged and dropped the data has to be adjusted.
             switchCol: function(cdrag,cdrop) { //switch columns
 
-                var qbody = $('#' + $.fn.fixID('data_' + p.idSuffix));
+                var qbody = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
                 var rows = qbody.children("tr");
                 rows.each(function() {
                     var qthis = $(this);
@@ -589,7 +589,7 @@
 
                 // Build new tbody...
                 var tbody = document.createElement('tbody');
-                tbody.id = 'data_' + p.idSuffix;
+                tbody.id = p.ownerId + '.DATA';
                 // Select the body before. This is better because this selected jQuery object could
                 // be used more then one times in the next steps.
                 var qtbody = $(tbody);
@@ -696,7 +696,7 @@
                                 if (row.id === null) {
                                 // nothing to do.
                                 } else {
-                                    tr.id = 'row_' + row.id + '_' + p.idSuffix;
+                                    tr.id = p.ownerId + '.ROW.' + row.id;
                                 }
                                 // Add each cell for each header column (rowDataIndex)
                                 var colCount = headers.length;
@@ -757,7 +757,7 @@
                                 // nothing to do
                                 } else {
                                     //tr.id = 'row' + nid;
-                                    tr.id = 'row_' + row.nid + '_' + p.idSuffix;
+                                    tr.id = p.ownerId + '.ROW.' + row.nid;
                                 }
                                 nid = null;
                                 var cells = $('cell', row);
@@ -879,13 +879,13 @@
                 } 
                 
                 var rc = 0;
-                var qData = $('#' + $.fn.fixID('data_' + p.idSuffix));
+                var qData = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
                 function renderRows() {
                     var rowsPerBatch = 20;
                     do {
                         rowsPerBatch--;                        
                         if (rc < clonedData.rows.length) {
-                            var qrow = $('#' + $.fn.fixID('row_' + clonedData.rows[rc++].id + '_' + p.idSuffix));
+                            var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc++].id));
                             qrow.children().each(addRowChildProp);
 
                             if (rc % 2 == 0 && p.striped) {
@@ -1323,6 +1323,14 @@
             },
             pager: 0,
             
+            getCellHeader: function(cell) {
+               if (cell.is('th')) {
+                   return cell;
+               } else {
+                   return $('tr:eq(0) > th:eq(' + cell.index() + ')', $('#' + $.fn.fixID('HEADER.' + p.ownerId)));
+               }
+            },
+            
             renderCell: function(index, div, td) {
                 if (Echo.Render._disposedComponents == null) {
                     Echo.Render._disposedComponents = {};
@@ -1335,11 +1343,16 @@
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
                 var autoResizeMethod = Core.method(div, function(event) {
-                    if(event && !event.data.hasUpdatedProperties() &&
-                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
-                        !event.data.hasUpdatedLayoutDataChildren) {
-                        return;
+                    if (event) {
+                        console.log(event.data.toString());
                     }
+                    
+                    
+//                    if(event && !event.data.hasUpdatedProperties() &&
+//                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
+//                        !event.data.hasUpdatedLayoutDataChildren) {
+//                        return;
+//                    }
                     
                     var of = this.style.cssFloat;
                     this.style.cssFloat = 'left';
@@ -1358,12 +1371,19 @@
             },
             
             renderCellWidth: function(container, width) {
-                qth = $(container).getHeader();                
-                if (qth.data('isUserSized')) {
-                    container.style.width = qth.css('width');
+                var qcontainer = $(container);
+                var qth = g.getCellHeader(qcontainer);
+                var userSized = qth.data('isUserSized');
+                
+                if (qth != qcontainer) {
+                    if (userSized) {
+                        qcontainer.css('width',  qth.css('width'));
+                    } else {
+                        qcontainer.css('width',  width);
+                    }
                 } else {
-                    container.style.width = width;
-                    if ($(container).is('th')) {
+                    if (!userSized) {
+                        qcontainer.css('width',  width);
                         this.rePosDrag();
                     }
                 }
@@ -1477,7 +1497,7 @@
                     // store the data index using jquery
                     $(pth).data( {
                         'rowDataIndex': i, 
-                        'componentIdx': cm.componentIdx
+                        'componentIdx': cm.cell.componentIdx
                     }); // sets the value of userid & component index
 
                     $(tr).append(pth);
@@ -1504,6 +1524,7 @@
 
         if (p.usepager || p.showPageStat) g.pDiv = document.createElement('div'); //create pager container
         g.hTable = document.createElement('table');
+        g.hTable.id = 'HEADER.' + p.ownerId;
 
         //set gDiv
         g.gDiv.className = 'flexigrid';
@@ -1667,19 +1688,26 @@
                             }
                         }
                         // drop the dragged column on another column (hover-in)
-                        if (g.colCopy)
-                        {
-                            var n = $('th',g.hDiv).index(this);
-
-                            if (n==g.dcoln) return false;
-
-
-
-                            if (n<g.dcoln) $(this).append(g.cdropleft);
-                            else $(this).append(g.cdropright);
-
+                        if (g.colCopy) {
+                            var n = $('th', g.hDiv).index(this);
+                            if (n == g.dcoln) {
+                                return false;
+                            }
+                            
+                            var offset = qth.offset();
+                            var arrow = null;
+                            if (n < g.dcoln) {
+                                arrow = $(g.cdropleft);
+                                arrow.css('left', offset.left);
+                            } else {
+                                arrow = $(g.cdropright);
+                                arrow.css('left', offset.left + qth.width() - 16);
+                            }
+                            
+                            arrow.css('top', offset.top + (qth.height() / 2) - 8);
+                            qth.append(arrow);
+                            
                             g.dcolt = n;
-
                         } else if (!g.colresize) {
                             var nv = $('th:visible',g.hDiv).index(this);
                             var onl = parseInt($('div:eq('+nv+')',g.cDrag).css('left'));
@@ -2633,7 +2661,7 @@
         });
     };
     
-    $.fn.flexRenderCells = function(renderCells) {
+    $.fn.flexRenderChilds = function(childs) {
         return this.each( function() {
             if (this.grid) {
                 this.grid.setBusy(true);    
@@ -2642,10 +2670,10 @@
                     var cellsPerBatch = 20;
                     do {
                         cellsPerBatch--;                        
-                        if (cc < renderCells.length) {
-                            var cell = document.getElementById('cell_' + renderCells[cc].id);
+                        if (cc < childs.length) {
+                            var cell = document.getElementById(childs[cc]);
                             var childDiv = document.createElement("div");
-                            this.grid.renderCell(renderCells[cc++].componentIdx, childDiv, cell);
+                            this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0], childDiv, cell);
                             $(cell).empty().append(childDiv);
                             if (cellsPerBatch <= 0) {
                                 setTimeout(rendererMethod, 1);
@@ -2662,7 +2690,7 @@
         });
     };
     
-    $.fn.flexUpdateCells = function(renderCells) {
+    $.fn.flexRenderLayoutChilds = function(childs) {
         return this.each( function() {
             if (this.grid) {
                 this.grid.setBusy(true);    
@@ -2671,10 +2699,10 @@
                     var cellsPerBatch = 20;
                     do {
                         cellsPerBatch--;                        
-                        if (cc < renderCells.length) {
-                            var cell = document.getElementById('cell_' + renderCells[cc].id);
-                            this.grid.renderCellLayoutData(renderCells[cc++].component, cell.firstChild, cell);
-                            
+                        if (cc < childs.length) {
+                            var component = this.p.owner.component.getComponent(/(\d*)$/.exec(childs[cc])[0]);
+                            var cell = document.getElementById(childs[cc++]);
+                            this.grid.renderCellLayoutData(component, cell.firstChild, cell);                            
                             if (cellsPerBatch <= 0) {
                                 setTimeout(rendererMethod, 1);
                                 return;
@@ -2695,8 +2723,14 @@
     };
     
     $.fn.getHeader = function() {
-        var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
-        return $('#' + headerId);
+       if (this.is('th')) {
+           return this;
+       } else {
+           var index = this.index();
+           return $('tr:eq(0) > th:eq(' + index + ')', $('#' + $.fn.fixID('HEADER.C.FG0')));
+       }
+//        var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
+//        return $('#' + headerId);
     };
 
     //* Plugin for unslectable elements */

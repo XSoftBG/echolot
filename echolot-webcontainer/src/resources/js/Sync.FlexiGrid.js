@@ -503,65 +503,41 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 this._flexigrid.flexReload();
             }
         } else {
-            var activePageComponentIdxs = this._getActivePage().componentIdxs;
-            var columnModelComponentIdxs = this._getColumnModel().componentIdxs;
-            var cells = [];
-                        
-            var itComponents = Core.method(this, function(updatedChilds) {              
-                    var result = [];                
-                    for(c = 0; c < updatedChilds.length; c++) {
-                        var component = updatedChilds[c];
-                        var componentIdx = this.component.indexOf(component);
-                        if (Core.Arrays.indexOf(activePageComponentIdxs, componentIdx) >= 0 || Core.Arrays.indexOf(columnModelComponentIdxs, componentIdx) >= 0) {
-                            result.push( {
-                                "id": component.renderId,
-                                "component": component,
-                                "componentIdx": componentIdx
-                            });
-                        }
-                    }                
-                    return result;
-                }
-            );
-              
-              
-              
-              
-              
-            
             var iterator = Core.method(this, function(updatedChilds) {
                 var result = [];
-                for(i = 0; i < updatedChilds.length; i++) {
-                    result.push(updatedChilds[i].renderId);
+                for (c = 0; c < updatedChilds.length; c++) {
+                    var child = activePageCells[updatedChilds[c].renderId] || columnModelCells[updatedChilds[c].renderId];
+                    if (child) {
+                        result.push(child);
+                    }
                 }
-                
-                console.log("IDs: " + result);
                 return result;
-            });
+            });             
             
-            
-
-
-            if (update.hasAddedChildren()) {
-                iterator(update.getAddedChildren());
-              
-                cells = itComponents(update.getAddedChildren());
-                if (cells.length != 0) {
-                    this._flexigrid.flexRenderCells(cells);
+            var activePageCells = this._getActivePage().cells;
+            var columnModelCells = this._getColumnModel().cells;
+            var cells = [];
+                        
+            if (update.hasAddedChildren() && update.hasRemovedChildren) {
+                var added = update.getAddedChildren();
+                var removed = update.getRemovedChildren();
+                
+                // * stupid if ... :)
+                // -----------------
+                if (added.length == removed.length) {
+                    cells = iterator(added);
+                    if(cells.length != 0) {
+                        this._flexigrid.flexRenderChilds(cells);
+                    }
                 }
-                
-                
-            } 
+            }
             
             if (update.hasUpdatedLayoutDataChildren()) {
-                iterator(update.getUpdatedLayoutDataChildren());
-                
-                cells = itComponents(update.getUpdatedLayoutDataChildren());
-                if (cells.length != 0) {
-                    this._flexigrid.flexUpdateCells(cells);
+                var updated = update.getUpdatedLayoutDataChildren();
+                cells = iterator(updated);
+                if(cells.length != 0) {
+                    this._flexigrid.flexRenderLayoutChilds(cells);
                 }
-                
-                
             }
         }
         
@@ -588,7 +564,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 
         return {
             owner: this,
-            idSuffix: this.component.renderId,
+            ownerId: this.component.renderId,
             method:'GET',
             url: this,
             dataType: 'json',
@@ -716,35 +692,16 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         // ... the key is component renderId ...
         // ... we need from this when component in table is replaced ...
         // -------------------------------------------------------------        
-        if (Echo.Render._disposedComponents == null) {
-            Echo.Render._disposedComponents = {};
-        }       
-        
-        if (!this._activePage.compPos) {
-            this._activePage.compPos = [];
+        if (!this._activePage.cells) {
+            this._activePage.cells = [];
             for (r = 0; r < this._activePage.rows.length; r++) {
                 for (c = 0; c < this._activePage.rows[r].cells.length; c++) {
                     var cell = this._activePage.rows[r].cells[c];
-                    var compInfo = {
-                        renderId: this.component.getComponent(cell.componentIdx).renderId,
-                        rowId: cell.rowId,
-                        colId: cell.colId
-                    };
-                    this._activePage.compPos[compInfo.renderId] = compInfo;
+                    var child = this.component.getComponent(cell.componentIdx);
+                    this._activePage.cells[child.renderId] = "CELL." + child.renderId;
                 }
             }
         }
-
-        // ----------------------------------------------------------------------------------------------
-        if(!this._activePage.componentIdxs) {
-            this._activePage.componentIdxs = [];
-            for (r = 0; r < this._activePage.rows.length; r++) {
-                for (c = 0; c < this._activePage.rows[r].cells.length; c++) {
-                    this._activePage.componentIdxs.push(this._activePage.rows[r].cells[c].componentIdx);
-                }
-            }
-        }
-        // ----------------------------------------------------------------------------------------------
                 
         return this._activePage;
     },
@@ -795,38 +752,18 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             this._columnModel = this._fromJsonString(value).columnModel;
         }
         
-        
         // * Store child's table position (colId, rowId) ...
         // ... the key is component renderId ...
         // ... we need from this when component in table is replaced ...
         // -------------------------------------------------------------        
-        if (Echo.Render._disposedComponents == null) {
-            Echo.Render._disposedComponents = {};
-        }       
-        
-        if (!this._columnModel.compPos) {
-            this._columnModel.compPos = [];
-            for (i = 0; i < this._columnModel.columns.length; i++) {
-                var cell = this._columnModel.columns[i];
-                var compInfo = {
-                    renderId: this.component.getComponent(cell.componentIdx).renderId,
-                    rowId: -1,
-                    colId: cell.Id
-                };
-                this._columnModel.compPos[compInfo.renderId] = compInfo;
-            }
-        }
-        
-        
-        
-        // --------------------------------------------------------------------------------------
-        if(!this._columnModel.componentIdxs) {
-            this._columnModel.componentIdxs = [];
+        if (!this._columnModel.cells) {
+            this._columnModel.cells = [];
             for (c = 0; c < this._columnModel.columns.length; c++) {
-                this._columnModel.componentIdxs.push(this._columnModel.columns[c].componentIdx);
+                var cell = this._columnModel.columns[c].cell;
+                var child = this.component.getComponent(cell.componentIdx);
+                this._columnModel.cells[child.renderId] = "CELL." + child.renderId;
             }
         }
-        // --------------------------------------------------------------------------------------
         
         return this._columnModel;                
     },
