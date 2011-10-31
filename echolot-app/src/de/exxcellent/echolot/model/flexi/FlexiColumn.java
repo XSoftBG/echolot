@@ -30,7 +30,10 @@
 package de.exxcellent.echolot.model.flexi;
 
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.Serializable;
+import java.util.Map.Entry;
 import nextapp.echo.app.Alignment;
 import nextapp.echo.app.Extent;
 import nextapp.echo.app.Insets;
@@ -42,13 +45,85 @@ import nextapp.echo.app.Insets;
 public class FlexiColumn implements Serializable {    
     private static final long serialVersionUID = 201110102l;
     
-    private final FlexiCell cell;
+    private static final String PROPERTY_TOOLTIP  = "PROPERTY_TOOLTIP";
+    private static final String PROPERTY_SORTABLE = "PROPERTY_SORTABLE";
+    private static final String PROPERTY_HIDED    = "PROPERTY_HIDED";
+    private static final String PROPERTY_VISIBLE  = "PROPERTY_VISIBLE";
+    private static final String PROPERTY_CHANGE   = "PROPERTY_CHANGE";
     
-    private final int id;    
-    private boolean sortable;
-    private boolean hided ;
-    private boolean visible;
-    private String tooltip;
+    public final class FlexiColumnProperty implements Entry<String, Object>, Cloneable, Serializable {
+        private final String propertyName;
+        private Object propertyValue;
+        
+        private FlexiColumnProperty(final String propertyName, final Object propertyValue) {
+            this.propertyName = propertyName;
+            this.propertyValue = propertyValue;
+        }
+        
+        @Override
+        public String getKey() {
+            return this.propertyName;
+        }
+
+        @Override
+        public Object getValue() {
+            return this.propertyValue;
+        }
+
+        @Override
+        public Object setValue(Object v) {
+            FlexiColumnProperty oldValue = this.clone();
+            this.propertyValue = v;
+            FlexiColumn.this.firePropertyChange(oldValue, this);
+            return v;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final FlexiColumnProperty other = (FlexiColumnProperty) obj;
+            if ((this.propertyName == null) ? (other.propertyName != null) : !this.propertyName.equals(other.propertyName)) {
+                return false;
+            }
+            if (this.propertyValue != other.propertyValue && (this.propertyValue == null || !this.propertyValue.equals(other.propertyValue))) {
+                return false;
+            }
+            return true;
+        }
+
+        @Override
+        protected FlexiColumnProperty clone() {
+          return new FlexiColumnProperty(propertyName, propertyValue);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[ FlexiColumnProperty:\n")
+            .append("- ColID: ").append(FlexiColumn.this.id).append("\n")
+            .append("- name: ").append(this.propertyName).append("\n")
+            .append("- value: ").append(propertyValue).append("]\n");
+            return sb.toString();
+        }
+    }
+    
+    private final int id;
+    private final FlexiCell cell;
+        
+    /** 
+     * The property change event dispatcher.
+     * This object is lazily instantiated. 
+     */
+    private PropertyChangeSupport componentChangeSupport;
+    private final FlexiColumnProperty tooltipProp;
+    private final FlexiColumnProperty sortableProp;
+    private final FlexiColumnProperty hidedProp;
+    private final FlexiColumnProperty visibleProp;
         
     public FlexiColumn(int id, String title) {
         this(id, title, null, true, false, true);
@@ -57,11 +132,6 @@ public class FlexiColumn implements Serializable {
     public FlexiColumn(int id, String title, String tooltip, boolean sortable, boolean hided, boolean visible) {
         this.id = id;
         cell = new FlexiCell(-1, id, title);
-        
-        this.tooltip = tooltip;
-        this.sortable = sortable;
-        this.hided = hided;
-        this.visible = visible;
         
         // set default props for LayoutData ...
         // ... if necessary, children will inherit
@@ -73,6 +143,15 @@ public class FlexiColumn implements Serializable {
         layoutData.setHeight(new Extent(25));
         
         cell.setLayoutData(layoutData);
+        
+        
+        
+        // * new version * //
+        // --------------- //
+        this.tooltipProp  = new FlexiColumnProperty(PROPERTY_TOOLTIP,  tooltip);
+        this.sortableProp = new FlexiColumnProperty(PROPERTY_SORTABLE, sortable);
+        this.hidedProp    = new FlexiColumnProperty(PROPERTY_HIDED,    hided);
+        this.visibleProp  = new FlexiColumnProperty(PROPERTY_VISIBLE,  visible);
     }
 
     public FlexiCell getCell() {
@@ -84,70 +163,109 @@ public class FlexiColumn implements Serializable {
     }
 
     public final boolean isSortable() {
-        return sortable;
+        return (Boolean) sortableProp.getValue();
     }
 
     public final boolean isHided() {
-        return hided;
+        return (Boolean) hidedProp.getValue();
     }
 
     public final boolean isVisible() {
-        return visible;
+        return (Boolean) visibleProp.getValue();
     }
 
     public final String getTooltip() {
-        return tooltip;
+        return (String) tooltipProp.getValue();
     }
-
+    
     public void setSortable(boolean sortable) {
-        this.sortable = sortable;
+        this.sortableProp.setValue(sortable);
     }
     
     public void hide() {
-        this.hided = true;
+       this.hidedProp.setValue(true);
     }
     
     public void show() {
-        this.hided = false;
+        this.hidedProp.setValue(false);
     }
 
     public void setVisible(boolean visible) {
-        this.visible = visible;
+        this.visibleProp.setValue(visible);
     }
-
+    
+    public void setTooltip(String tooltip) {
+        this.tooltipProp.setValue(tooltip);
+    }
+    
+    /**
+     * Adds a property change listener to this <code>FlexiColumn</code>.
+     *
+     * @param l the listener to add
+     */
+    public void addPropertyChangeListener(PropertyChangeListener l) {
+        if (componentChangeSupport == null) {
+            componentChangeSupport = new PropertyChangeSupport(this);
+        }
+        componentChangeSupport.addPropertyChangeListener(PROPERTY_CHANGE, l);
+    }
+    
+    /**
+     * Removes a property change listener from this <code>FlexiColumn</code>.
+     *
+     * @param l the listener to be removed
+     */
+    public void removeComponentChangeListener(PropertyChangeListener l) {
+        if (componentChangeSupport != null) {
+            componentChangeSupport.removePropertyChangeListener(PROPERTY_CHANGE, l);
+        }
+    }
+    
+    /**
+     * Reports a bound component change to <code>ComponentChangeListener</code>s
+     *
+     * @param oldValue the previous property
+     * @param newValue the present property
+     */
+    protected void firePropertyChange(FlexiColumnProperty oldValue, FlexiColumnProperty newValue) {
+        // Report to PropertyChangeListeners.
+        if (componentChangeSupport != null) {
+            componentChangeSupport.firePropertyChange(PROPERTY_CHANGE, oldValue, newValue);
+        }
+    }
+        
     @Override
     public int hashCode() {
         return this.id;
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
-      if (obj == null) {
-          return false;
-      }
-      if (getClass() != obj.getClass()) {
-          return false;
-      }
-      final FlexiColumn other = (FlexiColumn) obj;
-      if (this.cell != other.cell && (this.cell == null || !this.cell.equals(other.cell))) {
-          return false;
-      }
-      if (this.id != other.id) {
-          return false;
-      }
-      if (this.sortable != other.sortable) {
-          return false;
-      }
-      if (this.hided != other.hided) {
-          return false;
-      }
-      if (this.visible != other.visible) {
-          return false;
-      }
-      if ((this.tooltip == null) ? (other.tooltip != null) : !this.tooltip.equals(other.tooltip)) {
-          return false;
-      }
-      return true;
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final FlexiColumn other = (FlexiColumn) obj;
+        if (this.tooltipProp != other.tooltipProp && (this.tooltipProp == null || !this.tooltipProp.equals(other.tooltipProp))) {
+            return false;
+        }
+        if (this.sortableProp != other.sortableProp && (this.sortableProp == null || !this.sortableProp.equals(other.sortableProp))) {
+            return false;
+        }
+        if (this.hidedProp != other.hidedProp && (this.hidedProp == null || !this.hidedProp.equals(other.hidedProp))) {
+            return false;
+        }
+        if (this.visibleProp != other.visibleProp && (this.visibleProp == null || !this.visibleProp.equals(other.visibleProp))) {
+            return false;
+        }
+        if (this.cell != other.cell && (this.cell == null || !this.cell.equals(other.cell))) {
+            return false;
+        }
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
     }
 }

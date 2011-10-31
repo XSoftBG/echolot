@@ -43,28 +43,39 @@ public class FlexiTableModelEvent extends EventObject
     private static final long serialVersionUID = 20110101L;
 
     /** An event type indicating one or more table rows were inserted. */
-    public static final int INSERT = 1;
+    public static final int INSERT_ROWS = 1;
     
     /** An event type indicating one or more table rows were deleted. */
-    public static final int DELETE = 2;   
+    public static final int DELETE_ROWS = 2;   
+            
+    /** An event type indicating one or more table columns were added. */
+    public static final int INSERT_COLUMNS = 3;
     
-    /** An event type indicating the table structure was modified. */
-    public static final int STRUCTURE_CHANGED = 3;
-        
+    /** An event type indicating one or more table columns were deleted. */
+    public static final int DELETE_COLUMNS = 4;
+    
     private final int type;
-    private final int[] rowsIds;
+    private final int[] affectedIds;
     
     
-    public static FlexiTableModelEvent makeRowsInsertedEvent(FlexiTableModel source) {
-        return new FlexiTableModelEvent(source, FlexiTableModelEvent.INSERT);
+    public static FlexiTableModelEvent newRowsInsertedEvent(FlexiTableModel source) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.INSERT_ROWS);
     }
     
-    public static FlexiTableModelEvent makeRowsDeletedEvent(FlexiTableModel source, int... rowsIds) {
-        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE, rowsIds);
+    public static FlexiTableModelEvent newColumnsInsertedEvent(FlexiTableModel source) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.INSERT_COLUMNS);
     }
     
-    public static FlexiTableModelEvent makeStructureChangedEvent(FlexiTableModel source) {
-        return new FlexiTableModelEvent(source, FlexiTableModelEvent.STRUCTURE_CHANGED);
+    public static FlexiTableModelEvent newRowsDeletedEvent(FlexiTableModel source, int... rowsIds) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE_ROWS, rowsIds);
+    }
+    
+    public static FlexiTableModelEvent newColumnsDeletedEvent(FlexiTableModel source, int... colsIds) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE_ROWS, colsIds);
+    }
+    
+    public static FlexiTableModelEvent newStructureChangedEvent(FlexiTableModel source) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE_COLUMNS);
     }
     
     
@@ -78,16 +89,16 @@ public class FlexiTableModelEvent extends EventObject
      * @param type The type of change that occurred, one of the following 
      *        values:
      *        <ul>
-     *        <li>DELETE - indicates one or more rows were deleted.</li>
-     *        <li>INSERT - indicates one or more rows were inserted.</li>
-     *        <li>STRUCTURE_CHANGED - indicates that table structure was modified.</li>
+     *        <li>DELETE_ROWS - indicates one or more rows were deleted.</li>
+     *        <li>INSERT_ROWS - indicates one or more rows were inserted.</li>
+     *        <li>DELETE_COLUMNS - indicates that table structure was modified.</li>
      *        </ul>
      */
-    private FlexiTableModelEvent(FlexiTableModel source, int type, int... rowsIds) {
+    private FlexiTableModelEvent(FlexiTableModel source, int type, int... affectedIds) {
       super(source);      
       this.type = type;
-      this.rowsIds = rowsIds;
-      Arrays.sort(rowsIds);
+      this.affectedIds = affectedIds;
+      Arrays.sort(this.affectedIds);
     }
 
     /**
@@ -95,9 +106,9 @@ public class FlexiTableModelEvent extends EventObject
      *
      * @return the type of update that occurred, one of the following values:
      *         <ul>
-     *         <li>DELETE - indicates one or more rows were deleted.</li>
-     *         <li>INSERT - indicates one or more rows were inserted.</li>
-     *         <li>STRUCTURE_CHANGED - indicates that table structure was modified.</li>
+     *         <li>DELETE_ROWS - indicates one or more rows were deleted.</li>
+     *         <li>INSERT_ROWS - indicates one or more rows were inserted.</li>
+     *         <li>DELETE_COLUMNS - indicates that table structure was modified.</li>
      *         </ul>
      */
     public int getType() {
@@ -108,7 +119,7 @@ public class FlexiTableModelEvent extends EventObject
      * Return the efected rows' ids
      * @return rows' ids
      */
-    public int[] getRowsIds() {
-      return rowsIds;
+    public int[] getAffectedIds() {
+      return affectedIds;
     }
 }

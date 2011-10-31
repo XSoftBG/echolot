@@ -68,19 +68,26 @@ public abstract class AbstractFlexiTableModel implements FlexiTableModel {
     
     /** Notifies <code>FlexiTableModelListener</code>s that the rows were inserted */
     public void fireTableRowsInserted() {
-        fireTableChanged(FlexiTableModelEvent.makeRowsInsertedEvent(this));
+        fireTableChanged(FlexiTableModelEvent.newRowsInsertedEvent(this));
+    }
+    
+    /** Notifies <code>FlexiTableModelListener</code>s that the columns were inserted */
+    public void fireTableColumnsInserted() {
+        fireTableChanged(FlexiTableModelEvent.newColumnsInsertedEvent(this));
     }
         
     /** Notifies <code>FlexiTableModelListener</code>s that rows were deleted */
     public void fireTableRowsDeleted(int... rowsIds) {
         if(rowsIds.length != 0) {
-            fireTableChanged(FlexiTableModelEvent.makeRowsDeletedEvent(this, rowsIds));
+            fireTableChanged(FlexiTableModelEvent.newRowsDeletedEvent(this, rowsIds));
         }
     }
-        
-    /** Notifies <code>FlexiTableModelListener</code>s that column model were changed */
-    public void fireTableStructureChanged() {
-        fireTableChanged(FlexiTableModelEvent.makeStructureChangedEvent(this));
+    
+    /** Notifies <code>FlexiTableModelListener</code>s that columns were deleted */
+    public void fireTableColumnsDeleted(int... columnsIds) {
+        if(columnsIds.length != 0) {
+            fireTableChanged(FlexiTableModelEvent.newColumnsDeletedEvent(this, columnsIds));
+        }
     }
     
     /**

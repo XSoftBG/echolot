@@ -1347,12 +1347,11 @@
                         console.log(event.data.toString());
                     }
                     
-                    
-//                    if(event && !event.data.hasUpdatedProperties() &&
-//                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
-//                        !event.data.hasUpdatedLayoutDataChildren) {
-//                        return;
-//                    }
+                    if(event && !event.data.hasUpdatedProperties() &&
+                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
+                        !event.data.hasUpdatedLayoutDataChildren) {
+                        return;
+                    }
                     
                     var of = this.style.cssFloat;
                     this.style.cssFloat = 'left';

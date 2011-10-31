@@ -189,6 +189,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
     public FlexiGridPeer() {
         addOutputProperty(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION);
         addOutputProperty(FlexiGrid.PROPERTY_ACTIVE_PAGE);
+        addOutputProperty(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
       
         //* Event fired when ActivePage is changed */
         addEvent(new EventPeer(FlexiGrid.INPUT_ACTIVE_PAGE_CHANGED,
@@ -422,8 +423,12 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             return streamOut.toXML(((FlexiGrid) component).getSortingModel());
         } else if (FlexiGrid.PROPERTY_TABLE_ROW_SELECTION.equals(propertyName)) {
             return Arrays.toString(((FlexiGrid) component).getSelectedRowsIds());
-        }
-        
+        } else if (FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE.equals(propertyName)) {
+            ((FlexiGrid) component).get(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
+            String a = null;
+            a = "miro";
+            return a;
+        }        
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
 }

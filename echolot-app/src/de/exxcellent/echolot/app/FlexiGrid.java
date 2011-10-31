@@ -54,6 +54,8 @@ import de.exxcellent.echolot.listener.flexi.FlexiColumnToggleListener;
 import de.exxcellent.echolot.listener.flexi.FlexiRowSelectionListener;
 import de.exxcellent.echolot.listener.flexi.FlexiSortingChangeListener;
 
+import de.exxcellent.echolot.model.flexi.FlexiColumn.FlexiColumnProperty;
+import de.exxcellent.echolot.model.flexi.FlexiColumnsUpdate;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
@@ -258,6 +260,8 @@ public final class FlexiGrid extends Component implements Pane {
      * The name of the action event registered in the peer when action listeners are added or removed.
      */
     public static final String INPUT_TABLE_SORTING_CHANGE = "tableSortingChange";
+    
+    public static final String PROPERTY_FLEXICOLUMNS_UPDATE = "flexiColumnsUpdate";
 
     public static final String PROPERTY_LINE_IMG = "LINE_IMG";
     public static final String PROPERTY_HL_IMG = "HL_IMG";
@@ -344,13 +348,13 @@ public final class FlexiGrid extends Component implements Pane {
           switch(type) {
             // table has new rows
             // ------------------
-            case FlexiTableModelEvent.INSERT:
+            case FlexiTableModelEvent.INSERT_ROWS:
               setLastActivePage();
               break;
             // table has deleted rows
             // ----------------------
-            case FlexiTableModelEvent.DELETE:
-              int[] deletedRowsIds = event.getRowsIds();
+            case FlexiTableModelEvent.DELETE_ROWS:
+              int[] deletedRowsIds = event.getAffectedIds();
               for(int rowId : deletedRowsIds)
                 releaseRowResources(rowId);
               
@@ -361,9 +365,13 @@ public final class FlexiGrid extends Component implements Pane {
               }
               setActivePage(currentPageIdx);
               break;
+            case FlexiTableModelEvent.INSERT_COLUMNS:
+              validateColumnModel();
+              break;
             // column model is updated
             // -----------------------
-            case FlexiTableModelEvent.STRUCTURE_CHANGED:
+            case FlexiTableModelEvent.DELETE_COLUMNS:
+              int[] deletedColsIds = event.getAffectedIds();
               validateColumnModel();
               break;
             default:
@@ -373,6 +381,13 @@ public final class FlexiGrid extends Component implements Pane {
         
         private void releaseRowResources(int rowId) {
             ArrayList<Integer> rowComponents = rowsChilds.remove(rowId);
+            if(rowComponents != null) {
+                childsForReplace.addAll(rowComponents);
+            }
+        }
+        
+        private void releaseColumnResources(int columnID) {
+            ArrayList<Integer> rowComponents = columnsChilds.remove(columnID);
             if(rowComponents != null) {
                 childsForReplace.addAll(rowComponents);
             }
@@ -483,14 +498,29 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
     
+    private final class FlexiColumnPropertyChangeListener implements PropertyChangeListener, Serializable {
+        @Override
+        public void propertyChange(PropertyChangeEvent pce) {
+            FlexiColumn fc = (FlexiColumn) pce.getSource();
+            FlexiColumnProperty newProp = (FlexiColumnProperty) pce.getNewValue();
+            columnsUpdate.add(fc.getId(), newProp.getKey(), newProp.getValue());
+            //set(PROPERTY_FLEXICOLUMNS_UPDATE, columnsUpdate);
+            //firePropertyChange(PROPERTY_FLEXICOLUMNS_UPDATE, null, columnsUpdate);
+        }
+    }
+    
+    
     private final String renderId;
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
     private FlexiSortingModel sortingModel;
     
-    private final FlexiCellLayoutDataChangeListener FLEXICELL_LAYOUTDATA_CHANGE_LISTENER = new FlexiCellLayoutDataChangeListener();
+    private final FlexiCellLayoutDataChangeListener FLEXICELL_LAYOUTDATA_CHANGE_LISTENER = new FlexiCellLayoutDataChangeListener();    
     
-    private final FlexiCellComponentChangeListener FLEXICELL_COMPONENT_CHANGE_LISTENER = new FlexiCellComponentChangeListener();
+    private final FlexiCellComponentChangeListener FLEXICELL_COMPONENT_CHANGE_LISTENER   = new FlexiCellComponentChangeListener(); 
+    
+    private final FlexiColumnPropertyChangeListener FLEXICOLUMN_PROPERTY_CHANGE_LISTENER = new FlexiColumnPropertyChangeListener();    
+    private final FlexiColumnsUpdate columnsUpdate = new FlexiColumnsUpdate();
     
     /* Key: Row's ID -> Value: components' ids */
     private final HashMap<Integer, ArrayList<Integer>> rowsChilds = new HashMap<Integer, ArrayList<Integer>>();
@@ -498,7 +528,7 @@ public final class FlexiGrid extends Component implements Pane {
     /* Key: Column's ID -> Value: components' ids */
     private final HashMap<Integer, ArrayList<Integer>> columnsChilds = new HashMap<Integer, ArrayList<Integer>>();
     
-    /* Contains indeces of childs that are free to replace */
+    /* Contains indexes of childs that are free to replace */
     private final ArrayList<Integer> childsForReplace = new ArrayList<Integer>();
         
     /* Max width for each column | Key: ColumnID; Value: MaxWidth */
@@ -669,6 +699,7 @@ public final class FlexiGrid extends Component implements Pane {
             // set default columns widths
             // --------------------------
             maxColumnWidths.put(currentColumn.getId(), columnCell.getWidth());
+            columns[c].addPropertyChangeListener(FLEXICOLUMN_PROPERTY_CHANGE_LISTENER);
         }
         
         // set max height for each column from model
@@ -778,6 +809,9 @@ public final class FlexiGrid extends Component implements Pane {
                 // process FlexiColumn
                 // --------------
                 FlexiColumn column = tableModel.getColumnAt(currentColumn);
+                if (!column.isVisible()) {
+                  continue;
+                }                
                 int colID = column.getId();
                 FlexiCell columnCell = column.getCell();
                 

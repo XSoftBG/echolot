@@ -792,27 +792,23 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             
     _onChangePage : function(newPageNo) {
         // notify listeners
-        //this._disposeCurrentPageComponents();
+//        this._disposeCurrentPageComponents();
         this.component.doChangePage(newPageNo);
     },
             
-    //            _disposeCurrentPageComponents : function() {
-    //                if (Echo.Render._disposedComponents == null) {
-    //                    Echo.Render._disposedComponents = {};
-    //                }
-    //                
-    //                var currentPage = this._getActivePage();
-    //                for (r = 0; r < currentPage.rows.length; r++) {
-    //                    for (c = 0; c < currentPage.rows[r].cells.length; c++) {
-    //                        var componentIdx = currentPage.rows[r].cells[c].componentIdx;
-    //                        var component = this.component.getComponent(componentIdx);
-    //                        component.removeAllListeners('updated');
-    //                        component.removeAllListeners('property');
-    //                        Echo.Render.renderComponentDispose(new Echo.Update.ComponentUpdate(), component);                        
-    //                        console.log("DisposeComponent:" + componentIdx);
-    //                    }
-    //                }
-    //            },
+    _disposeCurrentPageComponents : function() {
+        if (Echo.Render._disposedComponents == null) {
+            Echo.Render._disposedComponents = {};
+        }
+        
+        var currentPage = this._getActivePage();
+        for (r = 0; r < currentPage.rows.length; r++) {
+            for (c = 0; c < currentPage.rows[r].cells.length; c++) {
+                var componentIdx = currentPage.rows[r].cells[c].componentIdx;
+                Echo.Render.renderComponentDispose(new Echo.Update.ComponentUpdate(), this.component.getComponent(componentIdx));
+            }
+        }
+    },
 
     /**
      * Method to process the event on selecting a row / rows.
