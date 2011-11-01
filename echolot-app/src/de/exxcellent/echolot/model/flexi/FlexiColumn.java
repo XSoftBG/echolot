@@ -45,11 +45,11 @@ import nextapp.echo.app.Insets;
 public class FlexiColumn implements Serializable {    
     private static final long serialVersionUID = 201110102l;
     
-    private static final String PROPERTY_TOOLTIP  = "PROPERTY_TOOLTIP";
-    private static final String PROPERTY_SORTABLE = "PROPERTY_SORTABLE";
-    private static final String PROPERTY_HIDED    = "PROPERTY_HIDED";
-    private static final String PROPERTY_VISIBLE  = "PROPERTY_VISIBLE";
-    private static final String PROPERTY_CHANGE   = "PROPERTY_CHANGE";
+    public static final String PROPERTY_TOOLTIP  = "PROPERTY_TOOLTIP";
+    public static final String PROPERTY_SORTABLE = "PROPERTY_SORTABLE";
+    public static final String PROPERTY_HIDED    = "PROPERTY_HIDED";
+    public static final String PROPERTY_VISIBLE  = "PROPERTY_VISIBLE";
+    public static final String PROPERTY_CHANGE   = "PROPERTY_CHANGE";
     
     public final class FlexiColumnProperty implements Entry<String, Object>, Cloneable, Serializable {
         private final String propertyName;

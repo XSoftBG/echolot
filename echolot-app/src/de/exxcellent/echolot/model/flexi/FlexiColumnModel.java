@@ -30,6 +30,7 @@
 package de.exxcellent.echolot.model.flexi;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  *
@@ -39,10 +40,10 @@ public class FlexiColumnModel implements Serializable {
     private final FlexiColumn[] columns;
 
     public FlexiColumnModel() {
-        columns = new FlexiColumn[0];
+        this(new FlexiColumn[0]);
     }
     
-    public FlexiColumnModel(FlexiColumn[] columns) {
+    public FlexiColumnModel(FlexiColumn[] columns) {        
         this.columns = columns;
     }
 
@@ -53,4 +54,19 @@ public class FlexiColumnModel implements Serializable {
     public FlexiColumn getColumnAt(int columnIndex) {
         return columns[columnIndex];
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final FlexiColumnModel other = (FlexiColumnModel) obj;
+        if (!Arrays.deepEquals(this.columns, other.columns)) {
+            return false;
+        }        
+        return true;
+  }
 }
