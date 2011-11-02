@@ -792,11 +792,12 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             
     _onChangePage : function(newPageNo) {
         // notify listeners
-//        this._disposeCurrentPageComponents();
-        this.component.doChangePage(newPageNo);
+        //this._removeDataComponents();
+        //this.component.doChangePage(newPageNo);
+        this.component.set(exxcellent.FlexiGrid.ACTIVE_PAGE, "miro" , true);
     },
             
-    _disposeCurrentPageComponents : function() {
+    _removeDataComponents : function() {
         if (Echo.Render._disposedComponents == null) {
             Echo.Render._disposedComponents = {};
         }
@@ -804,8 +805,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var currentPage = this._getActivePage();
         for (r = 0; r < currentPage.rows.length; r++) {
             for (c = 0; c < currentPage.rows[r].cells.length; c++) {
-                var componentIdx = currentPage.rows[r].cells[c].componentIdx;
-                Echo.Render.renderComponentDispose(new Echo.Update.ComponentUpdate(), this.component.getComponent(componentIdx));
+                this.component.remove(this.component.getComponentCount() - 1);
             }
         }
     },
@@ -867,7 +867,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     /**
      * Method to process the event ot changing the ResultsPerPageOption.
      */
-    _onRpChange : function(initialOption) {              
+    _onRpChange : function(initialOption) {
+        this._removeDataComponents();
         this.component.doChangeResultsPerPage(initialOption);
     },
 

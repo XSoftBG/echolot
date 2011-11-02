@@ -190,6 +190,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         addOutputProperty(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION);
         addOutputProperty(FlexiGrid.PROPERTY_ACTIVE_PAGE);
         addOutputProperty(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
+        addOutputProperty(FlexiGrid.PROPERTY_RESULTS_PER_PAGE_OPTION);
       
         //* Event fired when ActivePage is changed */
         addEvent(new EventPeer(FlexiGrid.INPUT_ACTIVE_PAGE_CHANGED,
@@ -254,10 +255,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             public void processEvent(Context context, Component component, Object eventData) {
                 final FlexiGrid flexigrid = (FlexiGrid) component;
                 final Integer initialOption = (Integer) eventData;
-                ResultsPerPageOption currentRPPO = flexigrid.getResultsPerPageOption();
-                flexigrid.setResultsPerPageOption(new ResultsPerPageOption(initialOption, currentRPPO.getPageOption()));
                 flexigrid.userResultsPerPageOptionChange(initialOption);
-                flexigrid.setActivePage(1);
             }
         });
         
@@ -431,4 +429,10 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         }        
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
+
+  @Override
+  public void storeInputProperty(Context cntxt, Component cmpnt, String string, int i, Object o)
+  {
+    super.storeInputProperty(cntxt, cmpnt, string, i, o);
+  }
 }
