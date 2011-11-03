@@ -67,10 +67,4 @@ public class FlexiColumnsUpdate implements Serializable {
     public final void clear() {
         updates.clear();
     }
-
-//    @Override
-//    public boolean equals(Object o) {
-//      // stupid hack for firePropertyChange ... :)
-//      return false;
-//    }
 }

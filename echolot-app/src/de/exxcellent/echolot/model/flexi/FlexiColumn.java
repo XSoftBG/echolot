@@ -45,11 +45,11 @@ import nextapp.echo.app.Insets;
 public class FlexiColumn implements Serializable {    
     private static final long serialVersionUID = 201110102l;
     
-    public static final String PROPERTY_TOOLTIP  = "PROPERTY_TOOLTIP";
-    public static final String PROPERTY_SORTABLE = "PROPERTY_SORTABLE";
-    public static final String PROPERTY_HIDED    = "PROPERTY_HIDED";
-    public static final String PROPERTY_VISIBLE  = "PROPERTY_VISIBLE";
-    public static final String PROPERTY_CHANGE   = "PROPERTY_CHANGE";
+    public static final String PROPERTY_COL_TOOLTIP     = "columnTooltip";
+    public static final String PROPERTY_COL_SORTABLE    = "columnSortable";
+    public static final String PROPERTY_COL_HIDED       = "columnHided";
+    public static final String PROPERTY_COL_VISIBLE     = "columnVisible";
+    public static final String COLUMN_PROPERTY_CHANGE   = "propertyColumnChange";
     
     public final class FlexiColumnProperty implements Entry<String, Object>, Cloneable, Serializable {
         private final String propertyName;
@@ -126,7 +126,7 @@ public class FlexiColumn implements Serializable {
     private final FlexiColumnProperty visibleProp;
         
     public FlexiColumn(int id, String title) {
-        this(id, title, null, true, false, true);
+        this(id, title, "", true, false, true);
     }
     
     public FlexiColumn(int id, String title, String tooltip, boolean sortable, boolean hided, boolean visible) {
@@ -148,10 +148,10 @@ public class FlexiColumn implements Serializable {
         
         // * new version * //
         // --------------- //
-        this.tooltipProp  = new FlexiColumnProperty(PROPERTY_TOOLTIP,  tooltip);
-        this.sortableProp = new FlexiColumnProperty(PROPERTY_SORTABLE, sortable);
-        this.hidedProp    = new FlexiColumnProperty(PROPERTY_HIDED,    hided);
-        this.visibleProp  = new FlexiColumnProperty(PROPERTY_VISIBLE,  visible);
+        this.tooltipProp  = new FlexiColumnProperty(PROPERTY_COL_TOOLTIP,  tooltip == null ? "" : tooltip);
+        this.sortableProp = new FlexiColumnProperty(PROPERTY_COL_SORTABLE, sortable);
+        this.hidedProp    = new FlexiColumnProperty(PROPERTY_COL_HIDED,    hided);
+        this.visibleProp  = new FlexiColumnProperty(PROPERTY_COL_VISIBLE,  visible);
     }
 
     public FlexiCell getCell() {
@@ -207,7 +207,7 @@ public class FlexiColumn implements Serializable {
         if (componentChangeSupport == null) {
             componentChangeSupport = new PropertyChangeSupport(this);
         }
-        componentChangeSupport.addPropertyChangeListener(PROPERTY_CHANGE, l);
+        componentChangeSupport.addPropertyChangeListener(COLUMN_PROPERTY_CHANGE, l);
     }
     
     /**
@@ -217,7 +217,7 @@ public class FlexiColumn implements Serializable {
      */
     public void removeComponentChangeListener(PropertyChangeListener l) {
         if (componentChangeSupport != null) {
-            componentChangeSupport.removePropertyChangeListener(PROPERTY_CHANGE, l);
+            componentChangeSupport.removePropertyChangeListener(COLUMN_PROPERTY_CHANGE, l);
         }
     }
     
@@ -230,7 +230,7 @@ public class FlexiColumn implements Serializable {
     protected void firePropertyChange(FlexiColumnProperty oldValue, FlexiColumnProperty newValue) {
         // Report to PropertyChangeListeners.
         if (componentChangeSupport != null) {
-            componentChangeSupport.firePropertyChange(PROPERTY_CHANGE, oldValue, newValue);
+            componentChangeSupport.firePropertyChange(COLUMN_PROPERTY_CHANGE, oldValue, newValue);
         }
     }
         

@@ -17,6 +17,12 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
                 
         RESULTS_PPAGE_OPTION: "resultsPerPageOption",                
         RESULTS_PPAGE_OPTION_CHANGED: "resultsPerPageOptionChanged",
+        
+        COLUMNS_UPDATE: "columnsUpdate",
+        COL_UPDATE_TOOLTIP: "columnTooltip",
+        COL_UPDATE_SORTABLE: "columnSortable",
+        COL_UPDATE_HIDED: "columnHided",
+        COL_UPDATE_VISIBLE: "columnVisible",
               
         HEIGHT_OFFSET: "heightOffset",                
         TABLE_COLUMN_TOGGLE: "tableColumnToggle",
@@ -495,6 +501,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 Echo.Render.renderComponentDispose(update, update.parent);
                 containerElement.removeChild(element);
                 this.renderAdd(update, containerElement);
+            } else if (updatedProperties.length == 1 && Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNS_UPDATE) == 0) {
+                var columnUpdates = update.getUpdatedProperty(exxcellent.FlexiGrid.COLUMNS_UPDATE);
+                this._flexigrid.flexUpdateColumns(this._fromJsonString(columnUpdates.newValue).columnsUpdate.updates);
             } else {
                 // * only reload the data rows
                 // ---------------------------
@@ -787,14 +796,13 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _onPopulateFinish : function() {
         this.client.removeInputRestriction(this._waitDialogHandle);
         this._waitDialogHandle = null;
-        this.component.set(exxcellent.FlexiGrid.ACTIVE_PAGE, null, true);
+        //this.component.set(exxcellent.FlexiGrid.ACTIVE_PAGE, null, true);
     },
             
     _onChangePage : function(newPageNo) {
         // notify listeners
-        //this._removeDataComponents();
-        //this.component.doChangePage(newPageNo);
-        this.component.set(exxcellent.FlexiGrid.ACTIVE_PAGE, "miro" , true);
+        this._removeDataComponents();
+        this.component.doChangePage(newPageNo);
     },
             
     _removeDataComponents : function() {

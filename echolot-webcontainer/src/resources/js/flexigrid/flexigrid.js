@@ -1475,26 +1475,26 @@
             for (var i = 0; i < p.colModel.length; i++) {
                 if(/^true$/i.test(p.colModel[i].visible)) {
                     var cm = p.colModel[i];
-                    var pth = document.createElement('th');
-                    //pth.id = 'col' + cm.id;                   
+                    var pth = document.createElement('th');             
 
                     if (cm.id !== null && cm.sortable) {
                         $(pth).attr('abbr', cm.id);
                     }
-                    if (cm.tooltip !== null) {
-                        $(pth).attr('title', cm.tooltip);
+                    
+                    $(pth).attr('title', cm.tooltip);
+                    $(pth).attr('axis', 'col' + i);
+
+                    if (cm.hide) {
+                        pth.hide = true;
+                    }
+                    
+                    if (cm.process) {
+                        pth.process = cm.process;
                     }
 
-                    $(pth).attr('axis','col'+i);
-
-                    if (cm.hide)
-                        pth.hide = true;
-
-                    if (cm.process)
-                        pth.process = cm.process;
-
                     // store the data index using jquery
-                    $(pth).data( {
+                    $(pth).data({
+                        'ID': cm.id,
                         'rowDataIndex': i, 
                         'componentIdx': cm.cell.componentIdx
                     }); // sets the value of userid & component index
@@ -2064,18 +2064,15 @@
             var cn = 0;
 
 
-            $('th div',g.hDiv).each
-            (
-                function ()
-                {
-                    var kcol = $("th[axis='col" + cn + "']",g.hDiv)[0];
-                    var chk = 'checked="checked"';
-                    if (kcol.style.display=='none') chk = '';
-
-                    $('tbody',g.nDiv).append('<tr><td class="ndcol1"><input type="checkbox" '+ chk +' class="togCol" value="'+ cn +'" /></td><td class="ndcol2">'+this.innerHTML+'</td></tr>');
-                    cn++;
+            $('th div',g.hDiv).each(function () {
+                var kcol = $("th[axis='col" + cn + "']",g.hDiv)[0];
+                var chk = 'checked="checked"';
+                if (kcol.style.display == 'none') {
+                    chk = '';
                 }
-                );
+                $('tbody',g.nDiv).append('<tr><td class="ndcol1"><input type="checkbox" '+ chk +' class="togCol" value="'+ cn +'" /></td><td class="ndcol2">'+this.innerHTML+'</td></tr>');
+                cn++;
+            });
 
             if ($.browser.msie&&$.browser.version<7.0)
                 $('tr',g.nDiv).hover
@@ -2088,7 +2085,7 @@
                     }
                     );
 
-            $('td.ndcol2',g.nDiv).click
+            $('td.ndcol2', g.nDiv).click
             (
                 function ()
                 {
@@ -2097,7 +2094,7 @@
                 }
                 );
 
-            $('input.togCol',g.nDiv).click
+            $('input.togCol', g.nDiv).click
             (
                 function ()
                 {
@@ -2716,6 +2713,39 @@
             };
         });
     };
+    
+    $.fn.flexUpdateColumns = function(updates) {
+        return this.each( function() {
+            if (this.grid) {
+                for (u = 0; u < updates.length; u++) {
+                    var qth = $("th[abbr='" + updates[u].ID + "']", this.grid.hDiv);
+                    for (p = 0; p < updates[u].props.length; p++) {
+                        var propName = updates[u].props[p][0];
+                        var propValue = updates[u].props[p][1];                        
+                        switch(propName) {
+                            case exxcellent.FlexiGrid.COL_UPDATE_TOOLTIP:
+                                qth.attr('title', propValue);
+                                break;
+                            case exxcellent.FlexiGrid.COL_UPDATE_SORTABLE:
+                                break;
+                            case exxcellent.FlexiGrid.COL_UPDATE_HIDED:
+                                var qndcol = $($('td.ndcol2', this.grid.nDiv)[qth.index()]);
+                                var currentState = qndcol.prev().find('input')[0].checked;
+                                if (currentState == propValue) {
+                                    qndcol.trigger('click');
+                                }
+                                break;
+                            case exxcellent.FlexiGrid.COL_UPDATE_VISIBLE:
+                                break;
+                            default:
+                                throw new Error("Unsupported column update property: " + propName);
+                                break;                                
+                        }
+                    }
+                }
+            };
+        });
+    };
 
     $.fn.fixID = function(ID) {
         return ID.replace(/(:|\.)/g,'\\$1');
@@ -2728,8 +2758,6 @@
            var index = this.index();
            return $('tr:eq(0) > th:eq(' + index + ')', $('#' + $.fn.fixID('HEADER.C.FG0')));
        }
-//        var headerId = $.fn.fixID(this.attr('id').replace(/^cell_C\.fc_(\d)+/, "cell_C.fc_H"));         
-//        return $('#' + headerId);
     };
 
     //* Plugin for unslectable elements */

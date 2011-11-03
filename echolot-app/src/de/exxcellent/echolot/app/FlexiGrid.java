@@ -263,7 +263,7 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public static final String INPUT_TABLE_SORTING_CHANGE = "tableSortingChange";
     
-    public static final String PROPERTY_FLEXICOLUMNS_UPDATE = "flexiColumnsUpdate";
+    public static final String PROPERTY_FLEXICOLUMNS_UPDATE = "columnsUpdate";
 
     public static final String PROPERTY_LINE_IMG = "LINE_IMG";
     public static final String PROPERTY_HL_IMG = "HL_IMG";
@@ -454,6 +454,7 @@ public final class FlexiGrid extends Component implements Pane {
         setMinimalColumnHeight(80);
         setNoWrap(Boolean.TRUE);
         setSingleSelect(Boolean.TRUE);
+        set(PROPERTY_FLEXICOLUMNS_UPDATE, new FlexiColumnsUpdate());
 
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);

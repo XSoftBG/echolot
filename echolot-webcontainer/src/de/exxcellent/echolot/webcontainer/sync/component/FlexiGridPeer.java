@@ -48,8 +48,11 @@ import de.exxcellent.echolot.app.FlexiGrid;
 import de.exxcellent.echolot.model.flexi.FlexiCell;
 import de.exxcellent.echolot.model.flexi.FlexiColumn;
 import de.exxcellent.echolot.model.flexi.FlexiColumnModel;
+import de.exxcellent.echolot.model.flexi.FlexiColumnsUpdate;
 import de.exxcellent.echolot.model.flexi.FlexiPage;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import nextapp.echo.app.Component;
 import nextapp.echo.app.util.Context;
 import nextapp.echo.webcontainer.AbstractComponentSynchronizePeer;
@@ -117,6 +120,10 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.setValue(Boolean.toString(column.isVisible()));
             w.endNode();
             
+            w.startNode("tooltip", String.class);
+            w.setValue(column.getTooltip());
+            w.endNode();
+            
             w.startNode("cell", FlexiCell.class);
             mc.convertAnother(column.getCell());
             w.endNode();
@@ -174,7 +181,73 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             return type == FlexiCell.class;
         }        
     }
+       
+    private static class ColumnUpdate {
+        final int colId;
+        final HashMap<String, Object> props;
+
+        public ColumnUpdate(int colId, HashMap<String, Object> props) {
+            this.colId = colId;
+            this.props = props;
+        }
+    }
+    
+    // * FlexiColumnsUpdate converter
+    // ----------------------
+    private final class FlexiColumnsUpdateConverter implements Converter {
+        private final FlexiGrid fg;
+        private final Converter cupc;
         
+        public FlexiColumnsUpdateConverter(FlexiGrid fg) {
+            this.fg = fg;
+            this.cupc = new Converter() {
+                @Override
+                public void marshal(Object o, HierarchicalStreamWriter writer, MarshallingContext mc) {
+                      PathTrackingWriter w = (PathTrackingWriter) writer;
+                      ColumnUpdate up = (ColumnUpdate) o;
+                      w.startNode("ID", int.class);
+                      w.setValue(Integer.toString(up.colId));
+                      w.endNode();
+
+                      w.startNode("props", HashMap.class);
+                      mc.convertAnother(up.props);
+                      w.endNode();
+                }
+
+                @Override
+                public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext uc) {
+                    throw new UnsupportedOperationException("Not supported yet.");
+                }
+
+                @Override
+                public boolean canConvert(Class type) {
+                    return type == ColumnUpdate.class;
+                }
+            };
+        }
+        
+        @Override
+        public void marshal(Object o, HierarchicalStreamWriter writer, MarshallingContext mc) {
+            PathTrackingWriter w = (PathTrackingWriter) writer;
+            HashMap<Integer, HashMap<String, Object>> updates = (HashMap<Integer, HashMap<String, Object>>) o;
+            for (Entry<Integer, HashMap<String, Object>> colUpdates : updates.entrySet()) {
+                w.startNode("", ColumnUpdate.class);
+                mc.convertAnother(new ColumnUpdate(colUpdates.getKey(), colUpdates.getValue()), cupc);
+                w.endNode();
+            }
+        }
+
+        @Override
+        public Object unmarshal(HierarchicalStreamReader reader, UnmarshallingContext uc) {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+
+        @Override
+        public boolean canConvert(Class type) {
+            return type == HashMap.class;
+        }        
+    }
+    
     
     // * The serializer used to serialize model instances.
     // ---------------------------------------------------
@@ -182,6 +255,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
     private final XStream streamIn = new XStream(new JettisonMappedXmlDriver());    
     private FlexiCellConverter cellConverter = null;
     private FlexiColumnConverter columnConverter = null;
+    private FlexiColumnsUpdateConverter columnsUpdateConverter = null;
         
     /**
      * Default constructor for a {@link FlexiGridPeer}. Registers an event peer for client events.
@@ -346,7 +420,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         // * Configure input / output streams
         // ----------------------------------
         cellConverter = new FlexiCellConverter((FlexiGrid) component);
-        columnConverter = new FlexiColumnConverter((FlexiGrid) component);   
+        columnConverter = new FlexiColumnConverter((FlexiGrid) component);
+        columnsUpdateConverter = new FlexiColumnsUpdateConverter((FlexiGrid) component);
         
         // * JAVA to JSON
         // --------------        
@@ -358,12 +433,15 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         streamOut.alias("resultsPerPageOption", ResultsPerPageOption.class);
         streamOut.alias("sortingModel",         FlexiSortingModel.class);
         streamOut.alias("sortingColumn",        FlexiSortingColumn.class);
+        streamOut.alias("columnsUpdate",        FlexiColumnsUpdate.class);
+        streamOut.registerLocalConverter(FlexiColumnsUpdate.class, "updates", columnsUpdateConverter);
                 
         streamOut.processAnnotations(FlexiColumnModel.class);         
         streamOut.processAnnotations(FlexiPage.class);
         streamOut.processAnnotations(ResultsPerPageOption.class);
         streamOut.processAnnotations(FlexiSortingModel.class);
         streamOut.processAnnotations(FlexiSortingColumn.class);
+        streamOut.processAnnotations(FlexiColumnsUpdate.class);
         
         // * JSON to JAVA
         // --------------
@@ -372,11 +450,12 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         streamIn.alias("columnVisibility",     FlexiColumnVisibility.class);        
         streamIn.alias("sortingModel",         FlexiSortingModel.class);
         streamIn.alias("sortingColumn",        FlexiSortingColumn.class);
+        streamIn.alias("columnsUpdate",        FlexiColumnsUpdate.class);
                         
-        streamIn.addImplicitArray(FlexiRowSelection.class,         "allSelectedRowsIds",   "asr");
-        streamIn.addImplicitArray(FlexiRowSelection.class,         "oldSelectedRowsIds",   "osr");
-        streamIn.addImplicitArray(FlexiRowSelection.class,         "newSelectedRowsIds",   "nsr");
-        streamIn.addImplicitArray(FlexiRowSelection.class,         "newUnselectedRowsIds", "nur");
+        streamIn.addImplicitArray(FlexiRowSelection.class,    "allSelectedRowsIds",   "asr");
+        streamIn.addImplicitArray(FlexiRowSelection.class,    "oldSelectedRowsIds",   "osr");
+        streamIn.addImplicitArray(FlexiRowSelection.class,    "newSelectedRowsIds",   "nsr");
+        streamIn.addImplicitArray(FlexiRowSelection.class,    "newUnselectedRowsIds", "nur");
         streamIn.addImplicitArray(ResultsPerPageOption.class, "pageOptions",          int.class);
         
         streamIn.processAnnotations(FlexiRowSelection.class);
@@ -384,6 +463,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         streamIn.processAnnotations(FlexiSortingModel.class);
         streamIn.processAnnotations(FlexiSortingColumn.class);
         streamIn.processAnnotations(ResultsPerPageOption.class);
+        streamIn.processAnnotations(FlexiColumnsUpdate.class);
         streamIn.setMode(XStream.NO_REFERENCES);
     }
     
@@ -422,17 +502,23 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         } else if (FlexiGrid.PROPERTY_TABLE_ROW_SELECTION.equals(propertyName)) {
             return Arrays.toString(((FlexiGrid) component).getSelectedRowsIds());
         } else if (FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE.equals(propertyName)) {
-            ((FlexiGrid) component).get(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
-            String a = null;
-            a = "miro";
-            return a;
+            FlexiColumnsUpdate updates = (FlexiColumnsUpdate) component.get(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
+            String json = streamOut.toXML(updates);
+            updates.clear();
+            return json;            
         }        
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
 
-  @Override
-  public void storeInputProperty(Context cntxt, Component cmpnt, String string, int i, Object o)
-  {
-    super.storeInputProperty(cntxt, cmpnt, string, i, o);
-  }
+//  @Override
+//  public void storeInputProperty(Context cntxt, Component cmpnt, String string, int i, Object o)
+//  {
+//    super.storeInputProperty(cntxt, cmpnt, string, i, o);
+//  }
+//
+//  @Override
+//  public Class getInputPropertyClass(String string)
+//  {
+//    return super.getInputPropertyClass(string);
+//  }
 }
