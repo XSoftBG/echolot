@@ -42,7 +42,7 @@ public final class SharedService {
 
     /** Add the {@link #ECHOCOMPONENTS_SERVICE} to the service registry. */
     static {
-        JQUERY_SERVICE = JavaScriptService.forResource("jq", "js/jquery/jquery-1.3.2.js");
+        JQUERY_SERVICE = JavaScriptService.forResource("jq", "js/jquery/jquery-min.js");
         ECHOCOMPONENTS_SERVICE = JavaScriptService.forResource("echocomponents.Boot", "js/ComponentsCommon.js");
 
         // Register services in the web container servlet.
@@ -51,7 +51,8 @@ public final class SharedService {
 
         WebContainerServlet.getResourceRegistry().addPackage("echocomponents", "resource/");
     }
-
+    
     private SharedService() {
+      super();
     }
 }
