@@ -489,10 +489,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      */
     renderUpdate: function(update) {
         console.log('FG renderUpdate: ' + update.toString());
-
         if (update.hasUpdatedProperties()) {
-            var updatedProperties = update.getUpdatedPropertyNames(); 
-            
+            var updatedProperties = update.getUpdatedPropertyNames();            
             if (Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
                 // * destroy the container and add it again
                 // ----------------------------------------
@@ -501,6 +499,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 Echo.Render.renderComponentDispose(update, update.parent);
                 containerElement.removeChild(element);
                 this.renderAdd(update, containerElement);
+                return false;
             } else if (updatedProperties.length == 1 && Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNS_UPDATE) == 0) {
                 var columnUpdates = update.getUpdatedProperty(exxcellent.FlexiGrid.COLUMNS_UPDATE);
                 this._flexigrid.flexUpdateColumns(this._fromJsonString(columnUpdates.newValue).columnsUpdate.updates);
@@ -510,43 +509,44 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 var options = this._renderUpdateOptions();
                 this._flexigrid.flexOptions(options);
                 this._flexigrid.flexReload();
+                return false;
             }
-        } else {
-            var iterator = Core.method(this, function(updatedChilds) {
-                var result = [];
-                for (c = 0; c < updatedChilds.length; c++) {
-                    var child = activePageCells[updatedChilds[c].renderId] || columnModelCells[updatedChilds[c].renderId];
-                    if (child) {
-                        result.push(child);
-                    }
-                }
-                return result;
-            });             
-            
-            var activePageCells = this._getActivePage().cells;
-            var columnModelCells = this._getColumnModel().cells;
-            var cells = [];
-                        
-            if (update.hasAddedChildren() && update.hasRemovedChildren) {
-                var added = update.getAddedChildren();
-                var removed = update.getRemovedChildren();
-                
-                // * stupid if ... :)
-                // -----------------
-                if (added.length == removed.length) {
-                    cells = iterator(added);
-                    if(cells.length != 0) {
-                        this._flexigrid.flexRenderChilds(cells);
-                    }
+        }
+        
+        var iterator = Core.method(this, function(updatedChilds) {
+            var result = [];
+            for (c = 0; c < updatedChilds.length; c++) {
+                var child = activePageCells[updatedChilds[c].renderId] || columnModelCells[updatedChilds[c].renderId];
+                if (child) {
+                    result.push(child);
                 }
             }
-            
-            if (update.hasUpdatedLayoutDataChildren()) {
-                var updated = update.getUpdatedLayoutDataChildren();
-                cells = iterator(updated);
+            return result;
+        });
+
+        var activePageCells = this._getActivePage().cells;
+        var columnModelCells = this._getColumnModel().cells;
+        var cells = [];
+
+        if (update.hasAddedChildren() && update.hasRemovedChildren) {
+            var added = update.getAddedChildren();
+            var removed = update.getRemovedChildren();
+
+            // * stupid if ... :)
+            // -----------------
+            if (added.length == removed.length) {
+                cells = iterator(added);
                 if(cells.length != 0) {
-                    this._flexigrid.flexRenderLayoutChilds(cells);
+                    this._flexigrid.flexRenderChilds(cells);
                 }
+            }
+        }
+
+        if (update.hasUpdatedLayoutDataChildren()) {
+            var updated = update.getUpdatedLayoutDataChildren();
+            cells = iterator(updated);
+            if(cells.length != 0) {
+                this._flexigrid.flexRenderLayoutChilds(cells);
             }
         }
         
