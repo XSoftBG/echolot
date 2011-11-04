@@ -441,7 +441,7 @@ public final class FlexiGrid extends Component implements Pane {
         setCSS(CSS_REFERENCE);
         setHeight(-1);
         setWidth(-1);
-        setTitle("false");
+        setTitle("");
         setShowTableToggleButton(Boolean.TRUE);
         setShowPager(Boolean.FALSE);
         setShowResultsPerPage(Boolean.FALSE);
