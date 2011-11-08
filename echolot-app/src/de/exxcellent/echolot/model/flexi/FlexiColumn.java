@@ -37,6 +37,7 @@ import java.util.Map.Entry;
 import nextapp.echo.app.Alignment;
 import nextapp.echo.app.Extent;
 import nextapp.echo.app.Insets;
+import nextapp.echo.app.Label;
 
 /**
  *
@@ -126,10 +127,14 @@ public class FlexiColumn implements Serializable {
     private final FlexiColumnProperty visibleProp;
         
     public FlexiColumn(int id, String title) {
-        this(id, title, "", true, false, true);
+        this(id, new Label(title), null, true, false, true);
     }
     
     public FlexiColumn(int id, String title, String tooltip, boolean sortable, boolean hided, boolean visible) {
+        this(id, new Label(title), tooltip, sortable, hided, visible);
+    }
+    
+    public FlexiColumn(int id, Label title, String tooltip, boolean sortable, boolean hided, boolean visible) {
         this.id = id;
         cell = new FlexiCell(-1, id, title);
         
@@ -238,34 +243,19 @@ public class FlexiColumn implements Serializable {
     public int hashCode() {
         return this.id;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FlexiColumn other = (FlexiColumn) obj;
-        if (this.tooltipProp != other.tooltipProp && (this.tooltipProp == null || !this.tooltipProp.equals(other.tooltipProp))) {
-            return false;
-        }
-        if (this.sortableProp != other.sortableProp && (this.sortableProp == null || !this.sortableProp.equals(other.sortableProp))) {
-            return false;
-        }
-        if (this.hidedProp != other.hidedProp && (this.hidedProp == null || !this.hidedProp.equals(other.hidedProp))) {
-            return false;
-        }
-        if (this.visibleProp != other.visibleProp && (this.visibleProp == null || !this.visibleProp.equals(other.visibleProp))) {
-            return false;
-        }
-        if (this.cell != other.cell && (this.cell == null || !this.cell.equals(other.cell))) {
-            return false;
-        }
-        if (this.id != other.id) {
-            return false;
-        }
-        return true;
+      if (obj == null) {
+          return false;
+      }
+      if (getClass() != obj.getClass()) {
+          return false;
+      }
+      final FlexiColumn other = (FlexiColumn) obj;
+      if (this.id != other.id) {
+          return false;
+      }
+      return true;
     }
 }

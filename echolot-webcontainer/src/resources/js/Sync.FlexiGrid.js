@@ -562,6 +562,10 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
             var options = this._renderOptions();
             this._flexigrid = $(this._table).flexigrid(options);
+//            console.log('first start');
+//            var label = new Echo.Label();
+//            this.component.add(label);
+//            console.log(label);
         }
     },
 
@@ -711,6 +715,25 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 }
             }
         }
+        
+        
+//        var counterComponent = this.component.getComponent(0);
+//        var lsd = counterComponent.getLocalStyleData();
+//
+//        var start = this._activePage.rows[0].cells.length;
+//        var end = start * this._activePage.rows.length;
+//        var step = this._activePage.rows[0].cells.length;
+//        while (start <= end) {
+//            c = this.component.getComponent(start);
+//            ct = c.get('text');
+//            
+//            for (p in lsd) {
+//                c.set(p, lsd[p]);
+//            }
+//              
+//            c.set('text', ct);            
+//            start += step;
+//        }
                 
         return this._activePage;
     },

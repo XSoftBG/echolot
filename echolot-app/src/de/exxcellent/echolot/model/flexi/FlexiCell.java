@@ -48,6 +48,7 @@ import nextapp.echo.app.Label;
 public class FlexiCell implements Serializable, Cloneable {    
     private static final long serialVersionUID = 201110101l;
     private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
+    private static final String PROPERTY_LAYOUTDATA_CHANGE = "PROPERTY_LAYOUTDATA_CHANGE";
     
     /** 
      * The property change event dispatcher.
@@ -92,7 +93,9 @@ public class FlexiCell implements Serializable, Cloneable {
     }
 
     void setLayoutData(FlexiCellLayoutData layoutData) {
+      Object oldLayoutData = component.getLayoutData();
       this.component.setLayoutData(layoutData);
+      firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, layoutData);
     }
 
     /**
@@ -114,7 +117,7 @@ public class FlexiCell implements Serializable, Cloneable {
         Component oldComponent = this.component;
         this.component = newComponent;
         this.component.setLayoutData(layoutData);
-        fireComponentChange(oldComponent, this.component);
+        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, this.component);
     }
     
     /**
@@ -132,7 +135,7 @@ public class FlexiCell implements Serializable, Cloneable {
      */
     public boolean setWidth(Extent newWidth) {
         Extent currentWidth = getWidth();        
-        if (currentWidth != null && currentWidth.compareTo(newWidth) == 0) {
+        if ((currentWidth == null && newWidth == null) || (currentWidth != null && currentWidth.compareTo(newWidth) == 0)) {
             return false;
         }
         
@@ -157,7 +160,7 @@ public class FlexiCell implements Serializable, Cloneable {
      */
     public boolean setHeight(Extent newHeight) {
         Extent currentHeight = getHeight();
-        if (currentHeight != null && currentHeight.compareTo(newHeight) == 0) {
+        if ((currentHeight == null && newHeight == null) || (currentHeight != null && currentHeight.compareTo(newHeight) == 0)) {
             return false;
         }
       
@@ -181,14 +184,13 @@ public class FlexiCell implements Serializable, Cloneable {
      * @return success of the operation.
      */
     public boolean setAlignment(Alignment newAlignment) {      
-        if (newAlignment.equals(getAlignment())) {
-            return false;
+        boolean result = equalsProps(getAlignment(), newAlignment);
+        if (!result) {
+            FlexiCellLayoutData cloned = getLayoutData().clone();
+            cloned.setAlignment(newAlignment);
+            setLayoutData(cloned);
         }
-        
-        FlexiCellLayoutData cloned = getLayoutData().clone();
-        cloned.setAlignment(newAlignment);
-        setLayoutData(cloned);
-        return true;
+        return !result;
     }
     
     /**
@@ -205,14 +207,13 @@ public class FlexiCell implements Serializable, Cloneable {
      * @return success of the operation.
      */
     public boolean setInsets(Insets newInsets) {
-        if (newInsets.equals(getInsets())) {
-            return false;
+        boolean result = equalsProps(getInsets(), newInsets);
+        if (!result) {
+            FlexiCellLayoutData cloned = getLayoutData().clone();
+            cloned.setInsets(newInsets);
+            setLayoutData(cloned);
         }
-        
-        FlexiCellLayoutData cloned = getLayoutData().clone();
-        cloned.setInsets(newInsets);
-        setLayoutData(cloned);
-        return true;
+        return !result;
     }
     
     /**
@@ -229,14 +230,13 @@ public class FlexiCell implements Serializable, Cloneable {
      * @return success of the operation.
      */
     public boolean setBackground(Color newBackground) {
-        if (newBackground.equals(getBackground())) {
-            return false;
+        boolean result = equalsProps(getBackground(), newBackground);
+        if (!result) {
+            FlexiCellLayoutData cloned = getLayoutData().clone();
+            cloned.setBackground(newBackground);
+            setLayoutData(cloned);
         }
-      
-        FlexiCellLayoutData cloned = getLayoutData().clone();
-        cloned.setBackground(newBackground);
-        setLayoutData(cloned);
-        return true;
+        return !result;
     }
     
     /**
@@ -253,14 +253,22 @@ public class FlexiCell implements Serializable, Cloneable {
      * @return success of the operation.
      */        
     public boolean setBackgroundImage(FillImage newBackgroundImage) {
-        if(newBackgroundImage.equals(getBackgroundImage())) {
+        boolean result = equalsProps(getBackgroundImage(), newBackgroundImage);
+        if (!result) {
+            FlexiCellLayoutData cloned = getLayoutData().clone();
+            cloned.setBackgroundImage(newBackgroundImage);
+            setLayoutData(cloned);
+        }
+        return !result;
+    }
+    
+    
+    private boolean equalsProps(Object oldValue, Object newValue) {
+        if ((oldValue == null && newValue == null) || (oldValue != null && oldValue.equals(newValue))) {
+            return true;
+        } else {
             return false;
         }
-        
-        FlexiCellLayoutData cloned = getLayoutData().clone();
-        cloned.setBackgroundImage(newBackgroundImage);
-        setLayoutData(cloned);
-        return true;
     }
     
     /**
@@ -300,10 +308,7 @@ public class FlexiCell implements Serializable, Cloneable {
      * @param l the listener to add
      */
     public void addComponentChangeListener(PropertyChangeListener l) {
-        if (componentChangeSupport == null) {
-            componentChangeSupport = new PropertyChangeSupport(this);
-        }
-        componentChangeSupport.addPropertyChangeListener(PROPERTY_COMPONENT_CHANGE, l);
+        addListener(PROPERTY_COMPONENT_CHANGE, l);
     }
     
     /**
@@ -312,21 +317,63 @@ public class FlexiCell implements Serializable, Cloneable {
      * @param l the listener to be removed
      */
     public void removeComponentChangeListener(PropertyChangeListener l) {
+        removeListener(PROPERTY_COMPONENT_CHANGE, l);
+    }
+    
+    
+    /**
+     * Adds a layoutdata change listener to this <code>FlexiCell</code>.
+     *
+     * @param l the listener to add
+     */
+    public void addLayoutDataChangeListener(PropertyChangeListener l) {
+        addListener(PROPERTY_LAYOUTDATA_CHANGE, l);
+    }
+    
+    /**
+     * Removes a layoutdata change listener from this <code>FlexiCell</code>.
+     *
+     * @param l the listener to be removed
+     */
+    public void removeLayoutDataChangeListener(PropertyChangeListener l) {
+        removeListener(PROPERTY_LAYOUTDATA_CHANGE, l);
+    }
+    
+    /**
+     * Base method for add listener.
+     * @param propertyName the name of the changed property
+     * @param l listener
+     */
+    private void addListener(String propertyName, PropertyChangeListener l) {
+        if (componentChangeSupport == null) {
+            componentChangeSupport = new PropertyChangeSupport(this);
+        }
+        componentChangeSupport.addPropertyChangeListener(propertyName, l);
+    }
+       
+    /**
+     * Base method for remove listener.
+     * @param propertyName the name of the changed property
+     * @param l listener
+     */
+    private void removeListener(String propertyName, PropertyChangeListener l) {
         if (componentChangeSupport != null) {
-            componentChangeSupport.removePropertyChangeListener(PROPERTY_COMPONENT_CHANGE, l);
+            componentChangeSupport.removePropertyChangeListener(propertyName, l);
         }
     }
     
     /**
-     * Reports a bound component change to <code>ComponentChangeListener</code>s
+     * Reports a bound property change to <code>PropertyChangeListener</code>s
+     * and to the <code>ApplicationInstance</code>'s update management system.
      *
-     * @param oldValue the previous component
-     * @param newValue the present component
+     * @param propertyName the name of the changed property
+     * @param oldValue the previous value of the property
+     * @param newValue the present value of the property
      */
-    protected void fireComponentChange(Component oldValue, Component newValue) {
+    protected void firePropertyChange(String propertyName, Object oldValue, Object newValue) {
         // Report to PropertyChangeListeners.
         if (componentChangeSupport != null) {
-            componentChangeSupport.firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldValue, newValue);
+            componentChangeSupport.firePropertyChange(propertyName, oldValue, newValue);
         }
     }
     

@@ -701,11 +701,10 @@
                                 // Add each cell for each header column (rowDataIndex)
                                 var colCount = headers.length;
                                 for (var idx = 0; idx < colCount; idx++) {
-                                    var th = headers[idx];
-                                    var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
-
+                                    var th = headers[idx];                                    
                                     var td = document.createElement('td');
-                                    qtr.append(td);
+                                    qtr.append(td);                                    
+                                    var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
                                     g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
                                 }                                
                                 g.addRowProp(qtr);
@@ -1331,12 +1330,18 @@
                }
             },
             
-            renderCell: function(index, div, td) {
+            renderCell: function(componentOrIndex, div, td) {
                 if (Echo.Render._disposedComponents == null) {
                     Echo.Render._disposedComponents = {};
                 }
                 
-                var component = p.owner.component.getComponent(index);
+                var component = null;
+                if (typeof componentOrIndex == "number") {
+                    component = p.owner.component.getComponent(componentOrIndex);
+                } else {
+                    component = componentOrIndex;
+                }
+                
                 td.id = 'CELL.' + component.renderId;
                 
                 g.renderCellLayoutData(component, div, td);
@@ -1496,6 +1501,7 @@
 
                     // store the data index using jquery
                     $(pth).data({
+                        //'rowDataIndex': counter ? i-1 : i, 
                         'rowDataIndex': i, 
                         'componentIdx': cm.cell.componentIdx,
                         'visible': cm.visible
@@ -2322,8 +2328,8 @@
             return tableModel;
 
             /**
-	  		 * A method to sort rows using multiple columns.
-	  		 */
+             * A method to sort rows using multiple columns.
+             */
             function multiSorter (columns, rows) {
                 if (p.debug) {
                     var startTime = new Date();
