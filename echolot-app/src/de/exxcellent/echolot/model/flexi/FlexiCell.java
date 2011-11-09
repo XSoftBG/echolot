@@ -45,7 +45,7 @@ import nextapp.echo.app.Label;
  *
  * @author sieskei (XSoft Ltd.)
  */
-public class FlexiCell implements Serializable, Cloneable {    
+public class FlexiCell implements Serializable, Comparable<FlexiCell> {    
     private static final long serialVersionUID = 201110101l;
     private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
     private static final String PROPERTY_LAYOUTDATA_CHANGE = "PROPERTY_LAYOUTDATA_CHANGE";
@@ -377,14 +377,15 @@ public class FlexiCell implements Serializable, Cloneable {
         }
     }
     
-    /**
-     * @see java.lang.Object#hashCode()
-     */
-    @Override
-    public int hashCode() {
-        return (this.rowId << 16) | this.colId;
-    }
+//    /**
+//     * @see java.lang.Object#hashCode()
+//     */
+//    @Override
+//    public int hashCode() {
+//        return (this.rowId << 16) | (this.colId & 0xFFFF);
+//    }
 
+        
     /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -412,12 +413,28 @@ public class FlexiCell implements Serializable, Cloneable {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[ FlexiCell:\n")
+        sb.append("[ FlexiCell:\n")        
         .append("- ID: ").append(component.getId()).append("\n")
         .append("- RenderID: ").append(component.getRenderId()).append("\n")
         .append("- Component: ").append(component).append("\n")
         .append("- RowID: ").append(rowId).append("\n")
-        .append("- ColID: ").append(colId).append(" ]\n");
+        .append("- ColID: ").append(colId).append("\n")
+        .append("- Hash: ").append(hashCode()).append(" ]\n");
         return sb.toString();
+    }
+
+    @Override
+    public int compareTo(FlexiCell t) {
+        final int BEFORE = -1;
+        final int EQUAL = 0;
+        final int AFTER = 1;
+
+        if(this.hashCode() < t.hashCode()) {
+            return BEFORE;
+        } else if(this.hashCode() > t.hashCode()) {
+            return AFTER;
+        } else {
+            return EQUAL;
+        }
     }
 }

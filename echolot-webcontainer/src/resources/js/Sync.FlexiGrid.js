@@ -824,7 +824,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             
     _onChangePage : function(newPageNo) {
         // notify listeners
-        this._removeDataComponents();
+        // this._removeDataComponents();
         this.component.doChangePage(newPageNo);
     },
             
@@ -899,7 +899,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Method to process the event ot changing the ResultsPerPageOption.
      */
     _onRpChange : function(initialOption) {
-        this._removeDataComponents();
+        // this._removeDataComponents();
         this.component.doChangeResultsPerPage(initialOption);
     },
 
