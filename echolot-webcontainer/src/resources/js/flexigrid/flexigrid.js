@@ -2567,9 +2567,11 @@
     }; //end flexToggleCol
 
     $.fn.flexAddData = function(data) { // function to add data to grid
-
         return this.each( function() {
-            if (this.grid) this.grid.addData(data);
+            if (this.grid) {
+                this.grid.setBusy(true);
+                this.grid.addData(data);
+            }
         });
 
     };
@@ -2675,13 +2677,13 @@
                 this.grid.setBusy(true);    
                 var cc = 0;
                 var rendererMethod = Core.method(this, function() {
-                    var cellsPerBatch = 20;
+                    var cellsPerBatch = 50;
                     do {
                         cellsPerBatch--;                        
                         if (cc < childs.length) {
                             var cell = document.getElementById(childs[cc]);
                             var childDiv = document.createElement("div");
-                            this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0], childDiv, cell);
+                            this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0] * 1, childDiv, cell);
                             $(cell).empty().append(childDiv);
                             if (cellsPerBatch <= 0) {
                                 setTimeout(rendererMethod, 1);
@@ -2708,7 +2710,7 @@
                     do {
                         cellsPerBatch--;                        
                         if (cc < childs.length) {
-                            var component = this.p.owner.component.getComponent(/(\d*)$/.exec(childs[cc])[0]);
+                            var component = this.p.owner.component.getComponent(/(\d*)$/.exec(childs[cc])[0] * 1);
                             var cell = document.getElementById(childs[cc++]);
                             this.grid.renderCellLayoutData(component, cell.firstChild, cell);                            
                             if (cellsPerBatch <= 0) {
