@@ -1347,25 +1347,26 @@
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
-                var autoResizeMethod = Core.method(div, function(event) {
-                    if (event) {
-                        console.log(event.data.toString());
-                    }
-                    
+                var autoResizeMethod = Core.method(div, function(event) {                  
                     if(event && !event.data.hasUpdatedProperties() &&
                         !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
                         !event.data.hasUpdatedLayoutDataChildren) {
                         return;
                     }
                     
-                    var of = this.style.cssFloat;
+                    var f = this.style.cssFloat;
                     this.style.cssFloat = 'left';
                     this.style.width = '';
                     this.style.height = '';
                     var bounds = new Core.Web.Measure.Bounds(this);
+                    
+                    var cn = this.childNodes[0];
+                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
+                    console.log('ECHO All:' + bounds.width);
+                    
                     this.style.width = bounds.width + 'px';
                     //this.style.height = bounds.height + 'px';
-                    this.style.cssFloat = of;
+                    this.style.cssFloat = f;
                 });
                 
                 autoResizeMethod();
@@ -1466,6 +1467,16 @@
                     g.renderCellBackground(td, layoutData.background);
                     g.renderCellBackgroundImage(div, layoutData.backgroundImage);
                 }
+            },
+            
+            textNodeWidth: function(elem) {
+              var calc = document.createElement('span');
+              calc.style.display = 'none';
+              calc.innerHTML = elem.innerHTML;
+              $('body').append(calc);
+              var width = $(calc).outerWidth();
+              $(calc).remove();
+              return width;
             }
         }; // --- EOF Grid Declaration (g)
 
