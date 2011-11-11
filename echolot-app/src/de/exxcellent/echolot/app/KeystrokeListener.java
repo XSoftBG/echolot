@@ -43,7 +43,8 @@ import nextapp.echo.app.event.ActionListener;
  */
 public class KeystrokeListener extends Component {
     /** the renderId of the component this listener is binded to. */
-    public static final String PROPERTY_TARGET_RENDERID = "targetRenderId";
+    public static final String PROPERTY_TARGET_RENDERID = "targetRenderId";    
+    public static final String PROPERTY_TARGET_GLOBALLY = "targetGlobally";
     /** the actionCommand contains the name of the triggered action. */
     public static final String PROPERTY_ACTION_COMMAND = "actionCommand";
     /** the keyCode is the key combination this component will listen to. */
@@ -59,6 +60,8 @@ public class KeystrokeListener extends Component {
      * Default empty constructor.
      */
     public KeystrokeListener() {
+      super();
+      
     }
 
     /**
@@ -69,10 +72,11 @@ public class KeystrokeListener extends Component {
      * @param actionCommand the name of the action triggered.
      * @param targetRenderId the renderId of the component this component will be applied to and listen.
      */
-    public KeystrokeListener(final String keyCode, final String actionCommand, final String targetRenderId) {
+    public KeystrokeListener(final String keyCode, final String actionCommand, final String targetRenderId) {      
         setKeyCode(keyCode);
         setActionCommand(actionCommand);
         setTargetRenderId(targetRenderId);
+        set(PROPERTY_TARGET_GLOBALLY, true);
     }
 
     /**
@@ -161,6 +165,32 @@ public class KeystrokeListener extends Component {
      */
     public String getTargetRenderId() {
         return (String) get(PROPERTY_TARGET_RENDERID);
+    }
+    
+    
+    /**
+     * <b>If PROPERTY_TARGET_RENDERID is NULL or CAN'T BE FOUND (in DOM):</b>
+     * <br />
+     * <ul>
+     * <li><b>true</b> - target is document</li>
+     * <li><b>false</b> - target is parent</li>
+     * </ul>
+     * 
+     * @param globally 'priority' flag
+     */
+    public void setGlobally(final boolean globally) {
+        set(PROPERTY_TARGET_GLOBALLY, globally);
+    }
+    
+    /**
+     * Indicates whether the target is the parent or the entire document.
+     * <br />
+     * 
+     * <b>ONLY IF PROPERTY_TARGET_RENDERID is NULL OR CAN'T BE FOUND (in DOM) !!!</b>
+     * @return 
+     */
+    public boolean isGlobally() {
+        return (Boolean) get(PROPERTY_TARGET_GLOBALLY);
     }
 
     /**
