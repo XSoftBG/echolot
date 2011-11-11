@@ -11,6 +11,7 @@ exxcellent.KeystrokeListener = Core.extend(Echo.Component, {
   $static : {
     DEBUG: "debug",
     TARGET_RENDERID: "targetRenderId",
+    TARGET_GLOBALLY: "targetGlobally",
     KEY_CODE: "keyCode",
     ACTION_COMMAND: "actionCommand",
     KEYSTROKE_ACTION: "action"
@@ -119,11 +120,12 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
 
   add_shortcut: function(shortcut_combination, actionCommand, opt) {
     //Provide a set of default options
+    var isGlobally = this.component.render(exxcellent.KeystrokeListener.TARGET_GLOBALLY, true);
     var default_options = {
       'type':'keydown',
       'propagate':false,
       'disable_in_input':false,
-      'target':document,
+      'target': isGlobally ? document : document.getElementById(this.component.parent.renderId),
       'keycode':false
     };
     if (!opt){
@@ -137,15 +139,15 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
       }
     }
 
-    var ele;
-    if (opt.target == "null" || opt.target == null) {
-      ele = document;
-    } else if (typeof opt.target == 'string') {
-      ele = document.getElementById(opt.target);
+    var targetElement;    
+    if (typeof opt.target == 'string') {
+      targetElement = document.getElementById(opt.target);
     }
-    if (!ele) {
-      ele = opt.target;
+    
+    if (!targetElement) {
+      targetElement = opt.target;
     }
+    
     shortcut_combination = shortcut_combination.toLowerCase();
 
     //The function to be called at keypress
@@ -370,15 +372,15 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
     }
     this._all_shortcuts[shortcut_combination] = {
       'callback':onKeyEventFunction,
-      'target':ele,
+      'target':targetElement,
       'event': opt.type
     };
     //Attach the function with the event
-    Core.Web.Event.add(ele, opt.type, onKeyEventFunction, false);
+    Core.Web.Event.add(targetElement, opt.type, onKeyEventFunction, false);
     if (this._debug && window.console && window.console.log) {
       console.log('Registering event: ' + opt.type + '('
         + shortcut_combination + '->' + actionCommand + ')'
-        + ' for element:' + ele.id + '(type: ' + typeof ele + ')');
+        + ' for element:' + targetElement + '(type: ' + typeof ele + ')');
     }
   /*if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
          else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
