@@ -378,7 +378,7 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
     if (this._debug && window.console && window.console.log) {
       console.log('Registering event: ' + opt.type + '('
         + shortcut_combination + '->' + actionCommand + ')'
-        + ' for element:' + ele + '(type: ' + typeof ele + ')');
+        + ' for element:' + ele.id + '(type: ' + typeof ele + ')');
     }
   /*if(ele.addEventListener) ele.addEventListener(opt['type'], func, false);
          else if(ele.attachEvent) ele.attachEvent('on'+opt['type'], func);
