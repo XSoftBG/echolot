@@ -254,6 +254,7 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
         'multiply':106,
         'add':107,
         'subtract':109,
+        'dot':110,
         'divide':111,
 
         'f1':112,
