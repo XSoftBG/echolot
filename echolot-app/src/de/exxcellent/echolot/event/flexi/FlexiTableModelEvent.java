@@ -66,8 +66,8 @@ public class FlexiTableModelEvent extends EventObject
         return new FlexiTableModelEvent(source, FlexiTableModelEvent.INSERT_COLUMNS);
     }
     
-    public static FlexiTableModelEvent newRowsDeletedEvent(FlexiTableModel source, int... rowsIds) {
-        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE_ROWS, rowsIds);
+    public static FlexiTableModelEvent newRowsDeletedEvent(FlexiTableModel source) {
+        return new FlexiTableModelEvent(source, FlexiTableModelEvent.DELETE_ROWS);
     }
     
     public static FlexiTableModelEvent newColumnsDeletedEvent(FlexiTableModel source, int... colsIds) {

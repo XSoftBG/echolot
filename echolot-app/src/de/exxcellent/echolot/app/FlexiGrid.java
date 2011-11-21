@@ -29,7 +29,6 @@
 
 package de.exxcellent.echolot.app;
 
-import com.sun.corba.se.spi.ior.MakeImmutable;
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 
 import de.exxcellent.echolot.model.flexi.FlexiCell;
@@ -63,19 +62,13 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.SortedSet;
 import nextapp.echo.app.*;
 
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.TreeSet;
-import java.util.concurrent.TimeUnit;
-import nextapp.echo.app.update.UpdateManager;
 
 /**
  * The {@link FlexiGrid} is a component using the <a href="http://www.flexigrid.info/">flexigrid jquery
@@ -360,78 +353,12 @@ public final class FlexiGrid extends Component implements Pane {
         }
     };
     
-    private final FlexiTableModelListener FLEX_TABLE_MODEL_LISTENER = new FlexiTableModelListener() {
-        @Override
-        public void flexTableChanged(FlexiTableModelEvent event) {
-          final int type = event.getType();
-          switch(type) {
-            // table has new rows
-            // ------------------
-            case FlexiTableModelEvent.INSERT_ROWS:
-              setLastActivePage();
-              break;
-            // table has deleted rows
-            // ----------------------
-            case FlexiTableModelEvent.DELETE_ROWS:
-              int[] deletedRowsIds = event.getAffectedIds();
-              for(int rowId : deletedRowsIds)
-                releaseRowResources(rowId);
-              
-              final int lastPageIdx = FlexiGrid.this.getTotalPageCount();
-              int currentPageIdx = activePageIdx;              
-              if(currentPageIdx > lastPageIdx) {
-                  currentPageIdx = lastPageIdx;
-              }
-              setActivePage(currentPageIdx);
-              break;
-            case FlexiTableModelEvent.INSERT_COLUMNS:
-              //processColumnModel();
-              break;
-            // column model is updated
-            // -----------------------
-            case FlexiTableModelEvent.DELETE_COLUMNS:
-              int[] deletedColsIds = event.getAffectedIds();
-              //processColumnModel();
-              break;
-            default:
-              throw new Error("Unsupported FlexTableModelEvent type!");
-          }
-        }
-        
-        private void releaseRowResources(int rowId) {
-        }
-        
-        private void releaseColumnResources(int columnID) {
-        }
-    };
-    
-    
     private final String renderId;
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
     private FlexiSortingModel sortingModel;
-    
-//    private final FlexiCellLayoutDataChangeListener FLEXICELL_LAYOUTDATA_CHANGE_LISTENER = new FlexiCellLayoutDataChangeListener();
-    
-//    private final FlexiCellComponentChangeListener FLEXICELL_COMPONENT_CHANGE_LISTENER   = new FlexiCellComponentChangeListener(); 
-    
     private final FlexiColumnPropertyChangeListener FLEXICOLUMN_PROPERTY_CHANGE_LISTENER = new FlexiColumnPropertyChangeListener();    
     private final FlexiColumnsUpdate columnsUpdate = new FlexiColumnsUpdate();
-    
-//    /* Key: Row's ID -> Value: components' ids */
-//    private final HashMap<Integer, ArrayList<Integer>> rowsChilds = new HashMap<Integer, ArrayList<Integer>>();
-//    
-//    /* Key: Column's ID -> Value: components' ids */
-//    private final HashMap<Integer, ArrayList<Integer>> columnsChilds = new HashMap<Integer, ArrayList<Integer>>();
-//    
-//    /* Contains indexes of childs that are free to replace */
-//    private final ArrayList<Integer> childsForReplace = new ArrayList<Integer>();
-//        
-//    /* Max width for each column | Key: ColumnID; Value: MaxWidth */
-//    private HashMap<Integer, Extent> maxColumnWidths = new HashMap<Integer, Extent>();
-//    
-//    /* Max height for each row | Key: RowID; Value: MaxHeight */
-//    private HashMap<Integer, Extent> maxRowHeights = new HashMap<Integer, Extent>();
     
     /**
      * Default constructor for a {@link FlexiGrid}. Sets the several default values.
@@ -607,6 +534,9 @@ public final class FlexiGrid extends Component implements Pane {
      * @param page
      */
     public void setActivePage(int page) {
+        if (page == -1) {
+            return;
+        }        
         activePageIdx = page;
         FlexiPage requestedPage = null;
         if(tableModel == null) {
@@ -1404,10 +1334,6 @@ public final class FlexiGrid extends Component implements Pane {
         return getEventListenerList().getListenerCount(FlexiRPPOListener.class) > 0;
     }
     
-    
-    // *** new child management ***
-    
-    
     // KEY -> ROW ID | VALUE -> CELLS
     private final HashMap<Integer, ArrayList<FlexiCell>> row2cells = new HashMap<Integer, ArrayList<FlexiCell>>();
     
@@ -1425,29 +1351,7 @@ public final class FlexiGrid extends Component implements Pane {
     private final FCLayoutDataChangeListener FC_LAYOUTDATA_CHANGE_LISTENER = new FCLayoutDataChangeListener();    
     private final FCComponentChangeListener FC_COMPONENT_CHANGE_LISTENER   = new FCComponentChangeListener();
     
-//    private void removeDataComponents() {
-//        int f = 0;
-//        if (columnModel != null) {
-//            f = columnModel.getColumns().length;
-//        }
-//        removeComponents(f);
-//    }
-//    
-//    private void removeComponents(final int fromIndex) {
-//        int componentsCounter = getComponentCount();
-//        if(componentsCounter == 0) {
-//            return;
-//        }
-//        while (fromIndex <= --componentsCounter) {
-//          Component component = getComponent(componentsCounter);
-//          unbindComponent(component);
-//          remove(component);
-//        }
-//    }
-    
-    private FlexiPage constructPage(int page) {
-        long start = System.nanoTime();
-        
+    private FlexiPage constructPage(int page) {        
         int maxCompIndex = -1;
             
         // if column model is marked as invalid
@@ -1597,6 +1501,8 @@ public final class FlexiGrid extends Component implements Pane {
             addCell(it.next());
         }
         
+        // get max component index ...
+        // ... remove all components greater than the index.
         for (int r = 0; r < rows.length; r++) {
             FlexiCell[] cells = rows[r].getCells();
             for (int c = 0; c < cells.length; c++) {
@@ -1608,8 +1514,6 @@ public final class FlexiGrid extends Component implements Pane {
         }
         
         removeUnusedComponents(maxCompIndex);
-        
-        System.out.println("Time: " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
         
         // return new page
         // ---------------
@@ -1781,7 +1685,6 @@ public final class FlexiGrid extends Component implements Pane {
         // ----------------------------
         invalidColumnModel = true;
         setActivePage(activePageIdx);
-        
     }
     
     public FlexiColumn getCounterColumn() {
@@ -1875,4 +1778,36 @@ public final class FlexiGrid extends Component implements Pane {
             firePropertyChange(PROPERTY_FLEXICOLUMNS_UPDATE, null, columnsUpdate);
         }
     }
+    
+    private final FlexiTableModelListener FLEX_TABLE_MODEL_LISTENER = new FlexiTableModelListener() {
+        @Override
+        public void flexTableChanged(FlexiTableModelEvent event) {
+          final int type = event.getType();
+          switch(type) {
+            // table has new rows
+            // ------------------
+            case FlexiTableModelEvent.INSERT_ROWS:
+              setLastActivePage();
+              break;
+            // table has deleted rows
+            // ----------------------
+            case FlexiTableModelEvent.DELETE_ROWS:
+              final int lastPageIdx = FlexiGrid.this.getTotalPageCount();
+              int currentPageIdx = activePageIdx;              
+              if(currentPageIdx > lastPageIdx) {
+                  currentPageIdx = lastPageIdx;
+              }
+              setActivePage(currentPageIdx);
+              break;
+            case FlexiTableModelEvent.INSERT_COLUMNS:
+              // nothing at now ...
+              break;
+            case FlexiTableModelEvent.DELETE_COLUMNS:
+              // nothing at now ...
+              break;
+            default:
+              throw new Error("Unsupported FlexTableModelEvent type!");
+          }
+        }
+    };
 }

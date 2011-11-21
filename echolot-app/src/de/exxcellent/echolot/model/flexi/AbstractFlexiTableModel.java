@@ -77,10 +77,8 @@ public abstract class AbstractFlexiTableModel implements FlexiTableModel {
     }
         
     /** Notifies <code>FlexiTableModelListener</code>s that rows were deleted */
-    public void fireTableRowsDeleted(int... rowsIds) {
-        if(rowsIds.length != 0) {
-            fireTableChanged(FlexiTableModelEvent.newRowsDeletedEvent(this, rowsIds));
-        }
+    public void fireTableRowsDeleted() {
+        fireTableChanged(FlexiTableModelEvent.newRowsDeletedEvent(this));
     }
     
     /** Notifies <code>FlexiTableModelListener</code>s that columns were deleted */

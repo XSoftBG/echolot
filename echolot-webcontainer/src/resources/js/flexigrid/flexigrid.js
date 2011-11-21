@@ -1161,7 +1161,7 @@
             },
   
             processSelection: function(qrow, e) {
-                var rowId = qrow.attr('id').substr(3) * 1;
+                var rowId = /(\d*)$/.exec(qrow.attr('id'))[0] * 1;
                 if(p.singleSelect) {
                     if(e.ctrlKey) {
                         if(qrow.is('.trSelected')) {
@@ -1275,8 +1275,8 @@
         
             },
 
-            addRowProp: function(qrow) {
-                var rowId = qrow.attr('id').substr(3) * 1;
+            addRowProp: function(qrow) {              
+                var rowId = /(\d*)$/.exec(qrow.attr('id'))[0] * 1;
                 if($.inArray(rowId, p.asr) != -1)
                     qrow.addClass('trSelected');
                 
@@ -1350,19 +1350,19 @@
                 var autoResizeMethod = Core.method(div, function(event) {                  
                     if(event && !event.data.hasUpdatedProperties() &&
                         !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
-                        !event.data.hasUpdatedLayoutDataChildren) {
+                        !event.data.hasUpdatedLayoutDataChildren()) {
                         return;
                     }
-                    
+                                        
                     var f = this.style.cssFloat;
                     this.style.cssFloat = 'left';
                     this.style.width = '';
                     this.style.height = '';
                     var bounds = new Core.Web.Measure.Bounds(this);
                     
-                    var cn = this.childNodes[0];
-                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
-                    console.log('ECHO All:' + bounds.width);
+//                    var cn = this.childNodes[0];
+//                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
+//                    console.log('ECHO All:' + bounds.width);
                     
                     this.style.width = bounds.width + 'px';
                     //this.style.height = bounds.height + 'px';
