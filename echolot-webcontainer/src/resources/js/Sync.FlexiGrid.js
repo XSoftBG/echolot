@@ -494,28 +494,31 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var hasAddedChildren = update.hasAddedChildren();
         var hasRemovedChildren = update.hasRemovedChildren();
         var hasUpdatedLayoutDatas = update.hasUpdatedLayoutDataChildren();
-        
+          
         var activePageCells = this._getActivePage().cells;
         var columnModelCells = this._getColumnModel().cells;
+        
+        var dataNotRendered = true;
                 
         if (hasUpdatedProps) {
-            var updatedProperties = update.getUpdatedPropertyNames();            
-            if (Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
+            var updatedProps = update.getUpdatedPropertyNames();            
+            if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
                 // * destroy the container and add it again
                 // ----------------------------------------
                 var element = this._div;
                 var containerElement = element.parentNode;
                 Echo.Render.renderComponentDispose(update, update.parent);
-                console.log('dispose ...');
                 containerElement.removeChild(element);
                 Echo.Render.renderComponentAdd(update, this.component, containerElement);
                 return true;
             } else {
+                dataNotRendered = false;
+                
                 var options = this._renderUpdateOptions();
                 this._flexigrid.flexOptions(options);
                 this._flexigrid.flexReload();
                 
-                if (Core.Arrays.indexOf(updatedProperties, exxcellent.FlexiGrid.COLUMNS_UPDATE) == 0) {
+                if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.COLUMNS_UPDATE) >= 0) {
                     var columnUpdates = update.getUpdatedProperty(exxcellent.FlexiGrid.COLUMNS_UPDATE);
                     this._flexigrid.flexUpdateColumns(this._fromJsonString(columnUpdates.newValue).columnsUpdate.updates);
                 }
@@ -525,7 +528,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var processor = Core.method(this, function(updatedChilds) {
             var result = [];
             for (c = 0; c < updatedChilds.length; c++) {
-                var child = activePageCells[updatedChilds[c].renderId] || columnModelCells[updatedChilds[c].renderId];
+                var child = (dataNotRendered && activePageCells[updatedChilds[c].renderId]) || columnModelCells[updatedChilds[c].renderId];
                 if (child) {
                     result.push(child);
                 }
@@ -536,16 +539,26 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var cells = [];
 
         if (hasAddedChildren && hasRemovedChildren) {
+            // new added children
+            // ------------------
             var added = update.getAddedChildren();
+            var addedRenderIds = [];
+            for (c = 0; c < added.length; c++)
+                addedRenderIds.push(added[c].renderId);
+                        
+            // new removed children
+            // --------------------
             var removed = update.getRemovedChildren();
+            var removedRenderIds = [];
+            for (c = 0; c < removed.length; c++)
+                removedRenderIds.push(removed[c].renderId);
 
-            //if (Core.Arrays.containsAll(added, removed, true)) {
-                console.log('rerender cells');
+            if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
                 cells = processor(added);
                 if(cells.length != 0) {
                     this._flexigrid.flexRenderChilds(cells);
                 }
-            //}
+            }
         }
 
         if (hasUpdatedLayoutDatas) {
@@ -556,7 +569,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             }
         }
         
-        return false;
+        return true;
     },
 
     /**
@@ -712,8 +725,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             for (r = 0; r < this._activePage.rows.length; r++) {
                 for (c = 0; c < this._activePage.rows[r].cells.length; c++) {
                     var cell = this._activePage.rows[r].cells[c];
-                    var child = this.component.getComponent(cell.componentIdx);
-                    this._activePage.cells[child.renderId] = "CELL." + child.renderId;
+                    var apc = this.component.getComponent(cell.componentIdx);
+                    this._activePage.cells[apc.renderId] = "CELL." + apc.renderId;
                 }
             }
         }
@@ -794,8 +807,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             this._columnModel.cells = [];
             for (c = 0; c < this._columnModel.columns.length; c++) {
                 var cell = this._columnModel.columns[c].cell;
-                var child = this.component.getComponent(cell.componentIdx);
-                this._columnModel.cells[child.renderId] = "CELL." + child.renderId;
+                var cmc = this.component.getComponent(cell.componentIdx);
+                this._columnModel.cells[cmc.renderId] = "CELL." + cmc.renderId;
             }
         }
         
