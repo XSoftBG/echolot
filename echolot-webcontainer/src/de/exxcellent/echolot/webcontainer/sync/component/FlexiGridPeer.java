@@ -86,7 +86,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         WebContainerServlet.getServiceRegistry().add(FLEXIGRID_SYNC_SERVICE);
 
         WebContainerServlet.getResourceRegistry().addPackage("FlexiGridStylesheet", FLEXIGRID_STYLESHEET);
-        WebContainerServlet.getResourceRegistry().add("FlexiGridStylesheet", "flexigrid-template-min.css", ContentType.TEXT_CSS);
+        WebContainerServlet.getResourceRegistry().add("FlexiGridStylesheet", "flexigrid-template.css", ContentType.TEXT_CSS);
 
     }
     
@@ -163,11 +163,11 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             w.endNode();  
             
             w.startNode("renderId", String.class);
-            w.setValue("C." + cell.getComponent().getRenderId());
+            w.setValue("C." + cell.getVisibleComponent().getRenderId());
             w.endNode();
             
             w.startNode("componentIdx", Integer.class);
-            w.setValue(cell.getComponent().getId());
+            w.setValue(cell.getVisibleComponent().getId());
             w.endNode();
         }
 

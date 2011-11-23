@@ -1477,7 +1477,13 @@
               var width = $(calc).outerWidth();
               $(calc).remove();
               return width;
-            }
+            },
+            
+             reloadPositions: function() {
+                g.hDiv.style.top = g.mDiv.offsetHeight + 'px';
+                g.bDiv.style.top = (g.hDiv.offsetTop + g.hDiv.offsetHeight) + 'px';
+                g.bDiv.style.bottom = g.pDiv.offsetHeight + 'px';
+             }
         }; // --- EOF Grid Declaration (g)
 
         // -----------------------------------------------------------------------------------------------------------
@@ -1546,7 +1552,10 @@
 
         //set gDiv
         g.gDiv.className = 'flexigrid';
-        if (p.width!='auto') g.gDiv.style.width = p.width + 'px';
+        //$(g.gDiv).css({ height: '100%', width: '100%'});
+        
+        //if (p.width!='auto')
+        //    g.gDiv.style.width = p.width;
 
         //add conditional classes
         if ($.browser.msie)
@@ -1789,15 +1798,14 @@
         g.bDiv.className = 'bDiv';
         $(t).before(g.bDiv);
 
-        $(g.bDiv).css({
-            height: (p.height=='auto') ? '50 px' : p.height+"px"
-        })
-        .scroll(function (e) {
+//        $(g.bDiv).css({
+//            height: (p.height=='auto') ? '50 px' : p.height
+//        })
+        
+        $(g.bDiv).scroll(function (e) {
             g.scroll();
             return true;
-        })
-        .append(t)
-        ;
+        }).append(t);
 
         if (p.height == 'auto')
         {
@@ -2033,8 +2041,12 @@
                 (
                     function ()
                     {
-                        $(g.gDiv).toggleClass('hideBody');
-                        $(this).toggleClass('vsble');
+                      $(g.hDiv).toggle();
+                      $(g.bDiv).toggle();
+                      $(g.pDiv).toggle();
+                      
+                      $(g.gDiv).toggleClass('hideBody');
+                      $(this).toggleClass('vsble');
                     }
                     );
             }
@@ -2522,6 +2534,9 @@
             // Start the pseudo asynchron iteration.
             setTimeout(doRow, 1);
         }
+        
+        g.reloadPositions();
+        
         return t;
     };
 
@@ -2613,8 +2628,6 @@
             });
 
         } else {
-
-
             return this.each(function ()
             {
                 if ($.browser.msie||$.browser.safari) $(this).unbind('selectstart');
@@ -2705,6 +2718,7 @@
                         }
                     } while (cellsPerBatch > 0);                    
                     this.grid.setBusy(false);
+                    this.grid.reloadPositions();
                 });                
                 setTimeout(rendererMethod, 1);
             };
@@ -2733,6 +2747,7 @@
                         }
                     } while (cellsPerBatch > 0);                    
                     this.grid.setBusy(false);
+                    this.grid.reloadPositions();
                 });                
                 setTimeout(rendererMethod, 1);
             };
@@ -2782,6 +2797,8 @@
                         }
                     }
                 }
+                
+                this.grid.reloadPositions();
             };
         });
     };

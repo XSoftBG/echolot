@@ -422,7 +422,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
          * div elements.
          */
         this._div = document.createElement("div");
-                
+        this._div.id = this.component.renderId;
+        
         /**
          * set tabindex="0", otherwise its non-focusable component.
          * @see: http://echo.nextapp.com/site/node/5979
@@ -431,7 +432,12 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         this._div.style.outlineStyle = "none";
         this._div.style.overflow = "hidden";
 
-        this._div.id = this.component.renderId;
+        /**
+         * set grid dimensions
+         */
+        Echo.Sync.Extent.render(this.component.render(exxcellent.FlexiGrid.WIDTH, "100%"), this._div, "width", true, true);
+        Echo.Sync.Extent.render(this.component.render(exxcellent.FlexiGrid.HEIGHT, "100%"), this._div, "height", false, true);
+        
         this._table = document.createElement("table");
         this._div.appendChild(this._table);
 
@@ -611,8 +617,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             sortModel: this._getSortingModel(),
             colModel : this._getColumnModel().columns,
             showPageStat: this.component.render(exxcellent.FlexiGrid.SHOW_PAGE_STAT),
-            width: (!gridWidth || gridWidth === -1) ? 'auto' : gridWidth * 1,
-            height: (!gridHeight || gridHeight === -1) ? 'auto' : gridHeight * 1,
+            width: gridWidth ? Echo.Sync.Extent.toCssValue(gridWidth, true, true) : 'auto',
+            height: gridHeight ? Echo.Sync.Extent.toCssValue(gridHeight, false, true) : 'auto',
             showTableToggleBtn: this.component.render(exxcellent.FlexiGrid.SHOWTABLE_TOGGLE),
             title: this.component.render(exxcellent.FlexiGrid.TITLE),
             usepager: this.component.render(exxcellent.FlexiGrid.SHOW_PAGER),

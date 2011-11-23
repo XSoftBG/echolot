@@ -9,6 +9,8 @@
     border: 0px solid #eee;
     overflow: hidden;
     color: #000;
+    width: 100%;
+    height: 100%;
 }
 
 .flexigrid.hideBody
@@ -46,7 +48,7 @@
     padding-right: 40px;
 }
 
-.flexigrid div.hDivBox table:first-child
+.flexigrid div.hDivBox>table:first-child
 {
     table-layout: fixed;
     width: 0px;
@@ -61,6 +63,10 @@
 {
     border-bottom: 0px;
     margin-bottom: 0px;
+}
+
+.flexigrid div.bDiv>table:first-child
+{
     float: left;
     width: 0px;
     table-layout: fixed;
@@ -143,7 +149,12 @@
     display: block;
     overflow: hidden;
     white-space: nowrap;
-    position: relative;
+    /* position: relative; */
+    
+    position: absolute;
+    float: none;
+    left: 0;
+    right: 0;
 }
 
 .flexigrid div.mDiv div
@@ -277,11 +288,17 @@
 
 .flexigrid div.hDiv
 {
-    background: #fafafa url(FHBG_IMG) repeat-x bottom;
-    position: relative;
+    background: #fafafa url(FHBG_IMG) repeat-x bottom;    
     border: 1px solid #ccc;
     border-bottom: 0px;
     overflow: hidden;
+    /* position: relative; */
+    
+    position: absolute;
+    float: none;
+    left: 0;
+    right: 0;
+    top: 0;
 }	
 
 .flexigrid div.hDiv table
@@ -343,7 +360,12 @@
     border-top: 0px;
     background: #fff;
     overflow: auto;
-    position: relative;
+    /* position: relative; */
+    
+    position: absolute;
+    float: none;
+    left: 0;
+    right: 0;
 }
 
 .flexigrid div.bDiv table
@@ -618,9 +640,16 @@ div.colCopy {
     background: url(WBG_IMG) repeat-x 0 -1px;
     border: 1px solid #ccc;
     border-top: 0px;
-    overflow: hidden;
-    white-space: nowrap;
-    position: relative;
+    /*overflow: hidden;*/
+    overflow: auto;
+    white-space: nowrap;    
+    /* position: relative; */
+    
+    position: absolute;
+    float: none;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 .flexigrid div.pDiv div.pDiv2
@@ -628,7 +657,7 @@ div.colCopy {
     margin: 3px;
     margin-left: -2px;
     float: left;
-    width: 1024px;
+    /*width: 1024px;*/
 }	
 
 div.pGroup
