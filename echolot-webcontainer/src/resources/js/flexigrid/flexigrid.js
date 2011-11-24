@@ -2698,29 +2698,23 @@
     $.fn.flexRenderChilds = function(childs) {
         return this.each( function() {
             if (this.grid) {
-                this.grid.setBusy(true);    
-                var cc = 0;
-                var rendererMethod = Core.method(this, function() {
+                this.grid.setBusy(true);                                
+                var cc = 0;                
+                Core.Web.Scheduler.run(Core.method(this, function() {
                     var cellsPerBatch = 50;
                     do {
-                        cellsPerBatch--;                        
-                        if (cc < childs.length) {
-                            var cell = document.getElementById(childs[cc]);
-                            var childDiv = document.createElement("div");
-                            this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0] * 1, childDiv, cell);
-                            $(cell).empty().append(childDiv);
-                            if (cellsPerBatch <= 0) {
-                                setTimeout(rendererMethod, 1);
-                                return;
-                            }
-                        } else {
-                            cellsPerBatch = 0;
-                        }
-                    } while (cellsPerBatch > 0);                    
-                    this.grid.setBusy(false);
-                    this.grid.reloadPositions();
-                });                
-                setTimeout(rendererMethod, 1);
+                        var cell = document.getElementById(childs[cc]);
+                        var childDiv = document.createElement("div");
+                        this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0] * 1, childDiv, cell);
+                        $(cell).empty().append(childDiv);
+                    } while(cellsPerBatch-- >= 0 && cc < childs.length);
+                    
+                    if (cc == childs.length) {
+                        Core.Web.Scheduler.remove(arguments.callee);
+                        this.grid.setBusy(false);
+                        this.grid.reloadPositions();
+                    }
+                }), 1, true);
             };
         });
     };

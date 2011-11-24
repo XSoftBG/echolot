@@ -1803,34 +1803,34 @@ public final class FlexiGrid extends Component implements Pane {
     private final FlexiTableModelListener FLEX_TABLE_MODEL_LISTENER = new FlexiTableModelListener() {
         @Override
         public void flexTableChanged(FlexiTableModelEvent event) {
-          final int type = event.getType();
-          switch(type) {
-            // table has new rows
-            // ------------------
-            case FlexiTableModelEvent.INSERT_ROWS:
-              setLastActivePage();
-              break;
-            // table has deleted rows
-            // ----------------------
-            case FlexiTableModelEvent.DELETE_ROWS:
-              final int lastPageIdx = FlexiGrid.this.getTotalPageCount();
-              int currentPageIdx = activePageIdx;              
-              if(currentPageIdx > lastPageIdx) {
-                  currentPageIdx = lastPageIdx;
-              }
-              setActivePage(currentPageIdx);
-              break;
-            case FlexiTableModelEvent.INSERT_COLUMNS:
-              // nothing at now ...
-              break;
-            case FlexiTableModelEvent.DELETE_COLUMNS:
-              // nothing at now ...
-              break;
-            default:
-              throw new Error("Unsupported FlexTableModelEvent type!");
-          }
+            final int type = event.getType();
+            switch(type) {
+              // table has new rows
+              // ------------------
+              case FlexiTableModelEvent.INSERT_ROWS:
+                  setLastActivePage();
+                  break;
+              // table has deleted rows
+              // ----------------------
+              case FlexiTableModelEvent.DELETE_ROWS:
+                  final int lastPageIdx = FlexiGrid.this.getTotalPageCount();
+                  int currentPageIdx = activePageIdx;              
+                  if(currentPageIdx > lastPageIdx) {
+                      currentPageIdx = lastPageIdx;
+                  }
+                  setActivePage(currentPageIdx);
+                  break;
+              case FlexiTableModelEvent.INSERT_COLUMNS:
+                  // nothing at now ...
+                  break;
+              case FlexiTableModelEvent.DELETE_COLUMNS:
+                  // nothing at now ...
+                  break;
+              default:
+                  throw new Error("Unsupported FlexTableModelEvent type!");
+            }
         }
-    };
+  };
 
   @Override
   public void remove(Component cmpnt)

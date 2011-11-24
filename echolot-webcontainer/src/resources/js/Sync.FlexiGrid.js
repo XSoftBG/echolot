@@ -501,9 +501,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var hasRemovedChildren = update.hasRemovedChildren();
         var hasUpdatedLayoutDatas = update.hasUpdatedLayoutDataChildren();
           
-        var activePageCells = this._getActivePage().cells;
-        var columnModelCells = this._getColumnModel().cells;
-        
         var dataNotRendered = true;
                 
         if (hasUpdatedProps) {
@@ -530,18 +527,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 }
             }
         }
-        
-        var processor = Core.method(this, function(updatedChilds) {
-            var result = [];
-            for (c = 0; c < updatedChilds.length; c++) {
-                var child = (dataNotRendered && activePageCells[updatedChilds[c].renderId]) || columnModelCells[updatedChilds[c].renderId];
-                if (child) {
-                    result.push(child);
-                }
-            }
-            return result;
-        });
 
+        var activePageCells = this._getActivePage().cells;
+        var columnModelCells = this._getColumnModel().cells;
         var cells = [];
 
         if (hasAddedChildren && hasRemovedChildren) {
@@ -560,7 +548,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 removedRenderIds.push(removed[c].renderId);
 
             if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
-                cells = processor(added);
+                cells = this._renderUpdateChildIterator(added, dataNotRendered, activePageCells, columnModelCells);
                 if(cells.length != 0) {
                     this._flexigrid.flexRenderChilds(cells);
                 }
@@ -569,13 +557,28 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
         if (hasUpdatedLayoutDatas) {
             var updated = update.getUpdatedLayoutDataChildren();
-            cells = processor(updated);
+            cells = this._renderUpdateChildIterator(updated, dataNotRendered, activePageCells, columnModelCells);
             if(cells.length != 0) {
                 this._flexigrid.flexRenderLayoutChilds(cells);
             }
         }
         
-        return true;
+        if (!hasUpdatedProps && !hasAddedChildren && !hasRemovedChildren && !hasUpdatedLayoutDatas) {
+            return false;
+        } else {
+            return true;
+        }
+    },
+    
+    _renderUpdateChildIterator : function(updatedChilds, dataNotRendered, activePageCells, columnModelCells) {
+        var result = [];
+        for (c = 0; c < updatedChilds.length; c++) {
+            var child = (dataNotRendered && activePageCells[updatedChilds[c].renderId]) || columnModelCells[updatedChilds[c].renderId];
+            if (child) {
+                result.push(child);
+            }
+        }
+        return result;
     },
 
     /**
