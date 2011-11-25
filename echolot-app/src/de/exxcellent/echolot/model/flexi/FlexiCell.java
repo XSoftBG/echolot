@@ -60,6 +60,8 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private final int rowId;
     private final int colId;
     
+    private boolean internalSetLayoutData;
+    
     private final Label EMPTY_LABEL;
     private Component component;
     private PropertyChangeListener componentVisibleChanged = new PropertyChangeListener() {
@@ -73,17 +75,37 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
             }
         }
     };
+    
+    private PropertyChangeListener externalComponentLDChanged = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent pce) {
+            if (!internalSetLayoutData) {
+                try {
+                    FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
+                    FlexiCellLayoutData oldLayoutData = (FlexiCellLayoutData) pce.getOldValue();
+                    EMPTY_LABEL.setLayoutData(newLayoutData);
+                    firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, newLayoutData);
+                } catch (ClassCastException ex) {
+                    throw new Error("Unsupported layoutData for FlexiCell component: " + pce.getSource());
+                }
+            }
+            internalSetLayoutData = false;
+        }
+    };
             
     public FlexiCell(final int rowId, final int colId, final Component component) {
         this.rowId = rowId;
         this.colId = colId;
         this.component = component;
-        FlexiCellLayoutData layoutData = new FlexiCellLayoutData();
+        
+        this.internalSetLayoutData = true;
+        FlexiCellLayoutData layoutData = new FlexiCellLayoutData();        
         this.component.setLayoutData(layoutData);
-        this.component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
         
         EMPTY_LABEL = new Label();
         EMPTY_LABEL.setLayoutData(layoutData);
+        
+        bindComponent();
     }
     
     public FlexiCell(final int rowId, final int colId, final String content) {
@@ -111,6 +133,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
 
     void setLayoutData(FlexiCellLayoutData layoutData) {
+      this.internalSetLayoutData = true;
       Object oldLayoutData = component.getLayoutData();
       this.component.setLayoutData(layoutData);
       this.EMPTY_LABEL.setLayoutData(layoutData);
@@ -140,12 +163,12 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
+        unbindComponent();
         FlexiCellLayoutData layoutData = getLayoutData();
-        Component oldComponent = this.component;
-        oldComponent.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);        
+        Component oldComponent = this.component;     
         this.component = newComponent;
         this.component.setLayoutData(layoutData);
-        this.component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
+        bindComponent();
         firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, this.component);
     }
     
@@ -406,14 +429,15 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     }
     
-//    /**
-//     * @see java.lang.Object#hashCode()
-//     */
-//    @Override
-//    public int hashCode() {
-//        return (this.rowId << 16) | (this.colId & 0xFFFF);
-//    }
-
+    private void bindComponent() {
+        this.component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
+        this.component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
+    }
+        
+    private void unbindComponent() {
+        this.component.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
+        this.component.removePropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
+    }
         
     /**
      * @see java.lang.Object#equals(java.lang.Object)

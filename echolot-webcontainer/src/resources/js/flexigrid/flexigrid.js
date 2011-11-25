@@ -367,7 +367,6 @@
                 if (this.colresize)
                 {
                     g.setBusy(true);
-                    console.log('col idx:' + this.colresize.n);
                     var n = this.colresize.n;// index of column
                     var nw = this.colresize.nw;// new width of column
 
@@ -377,23 +376,16 @@
                     
                     var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
                     var rc = 0;
-                    function resizeRows() {
-                        var rowsPerBatch = 20;
-                        do {
-                            rowsPerBatch--;                        
-                            if (rc < rows.length) {
-                                $(rows[rc++]).children('td:visible:eq(' + n + ')').css('width', nw);                                
-                                if (rowsPerBatch <= 0) {
-                                    setTimeout(resizeRows, 1);
-                                    return;
-                                }
-                            } else {
-                                rowsPerBatch = 0;
-                            }
-                        } while (rowsPerBatch > 0);                    
-                        g.setBusy(false);
-                    }
-                    setTimeout(resizeRows, 1);
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                        var rowsPerBatch = 50;
+                        while(rowsPerBatch-- > 0 && rc < rows.length) {
+                            $(rows[rc++]).children('td:visible:eq(' + n + ')').css('width', nw);
+                        }                         
+                        if (rc == rows.length) {
+                            Core.Web.Scheduler.remove(runnable);
+                            g.setBusy(false);
+                        }
+                    }), 1, true);
                     
                     // synchronize the header and the body while scrolling
                     this.hDiv.scrollLeft = this.bDiv.scrollLeft;
@@ -657,7 +649,6 @@
                         var nowTime = new Date();
                         console.log('Duration of rendering data of type "' + p.dataType + '": ' + (nowTime - startTime) + 'ms');
                     }
-                    return false;
                 }
                 // We will need the header cell at this point more times.
                 // So we do better to store it not for further usages.
@@ -673,63 +664,52 @@
                     // Prepare the looping parameters.
                     var ji = 0;
                     var row = null;
-
-                    /**
+                    
+                    /**                     
+                     * Start the pseudo asynchron iteration.
+                     * Processing the JSON input may take some time esp. on crappy MSIEs.
+                     * Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
+                     * 
                      * Processes a data row in the JSON data stream
-                     * @return true if data was processed, false otherwise (no more data)
                      */
-                    function doJsonRow() {
-                        // Let's try to process this amount of rows per "timeout" cycle
-                        // Hopefully MSIE will be fast enough.
-                        var rowsPerBatch = 20;
-
-                        do {
-                            rowsPerBatch--;
-                            // Only if there are more rows we will render a next row.
-                            if (data && data.rows.length > ji && data.rows[ji]) {
-                                row = data.rows[ji];
-                                var tr = document.createElement('tr');
-                                var qtr = $(tr);
-                                if (ji % 2 && p.striped) {
-                                    tr.className = 'erow';
-                                }
-                                if (row.id === null) {
-                                // nothing to do.
-                                } else {
-                                    tr.id = p.ownerId + '.ROW.' + row.id;
-                                }
-                                // Add each cell for each header column (rowDataIndex)
-                                var colCount = headers.length;
-                                for (var idx = 0; idx < colCount; idx++) {
-                                    var th = headers[idx];                                    
-                                    var td = document.createElement('td');
-                                    qtr.append(td);                                    
-                                    var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
-                                    g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
-                                }                                
-                                g.addRowProp(qtr);
-                                qtbody.append(tr);
-                                // Prepare the next step.
-                                ji++;
-                                if (rowsPerBatch <= 0) {
-                                    setTimeout(doJsonRow, 1);
-                                    return true;
-                                }
-                            } else {
-                                rowsPerBatch = 0;
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                        var rowsPerBatch = 20;                        
+                        while (data && data.rows.length > ji && data.rows[ji] && rowsPerBatch > 0) {
+                            row = data.rows[ji];
+                            var tr = document.createElement('tr');
+                            var qtr = $(tr);
+                            if (ji % 2 && p.striped) {
+                                tr.className = 'erow';
                             }
-                        } while (rowsPerBatch > 0);
-
-                        // No more data? Finalize
-                        finalizeRendering();
-                        return false;
-                    }
-
-                    // Start the pseudo asynchron iteration.
-                    // Processing the JSON input may take some time esp. on crappy MSIEs.
-                    // Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
-                    setTimeout(doJsonRow, 1);
-
+                            if (row.id !== null) {
+                                tr.id = p.ownerId + '.ROW.' + row.id;
+                            } else {
+                                console.log('nqma id');
+                            }
+                            // Add each cell for each header column (rowDataIndex)
+                            var colCount = headers.length;
+                            for (var idx = 0; idx < colCount; idx++) {
+                                var th = headers[idx];
+                                var td = document.createElement('td');
+                                qtr.append(td);
+                                var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
+                                g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
+                            }                                
+                            g.addRowProp(qtr);
+                            qtbody.append(tr);
+                            
+                            // Prepare the next step.
+                            ji++;
+                            rowsPerBatch--;
+                        }
+                        
+                        if (ji == data.rows.length) {
+                            Core.Web.Scheduler.remove(runnable);
+                            // No more data? Finalize
+                            finalizeRendering();
+                        }
+                    }), 1, true);
+                                        
                 } else if (p.dataType=='xml') {
                     // Prepare the looping parameters.
                     var index = 1;
@@ -877,36 +857,28 @@
                     }
                 } 
                 
-                var rc = 0;
                 var qData = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
-                function renderRows() {
-                    var rowsPerBatch = 20;
-                    do {
-                        rowsPerBatch--;                        
-                        if (rc < clonedData.rows.length) {
-                            var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc++].id));
-                            qrow.children().each(addRowChildProp);
-
-                            if (rc % 2 == 0 && p.striped) {
-                                qrow.addClass('erow');
-                            } else {
-                                qrow.removeClass('erow');
-                            }
-                            
-                            qData.append(qrow)
-                            
-                            if (rowsPerBatch <= 0) {
-                                setTimeout(renderRows, 1);
-                                return;
-                            }
+                var rc = 0;
+                var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                    var rowsPerBatch = 50;
+                    while(rowsPerBatch > 0 && clonedData.rows.length > rc) {
+                        var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc].id));
+                        qrow.children().each(addRowChildProp);
+                        if (rc % 2 == 0 && p.striped) {
+                            qrow.addClass('erow');
                         } else {
-                            rowsPerBatch = 0;
+                            qrow.removeClass('erow');
                         }
-                    } while (rowsPerBatch > 0);
-                    g.setBusy(false);
-                }
-                
-                setTimeout(renderRows, 1);
+                        qData.append(qrow);
+                        rowsPerBatch--;
+                        rc++;
+                    }
+                    
+                    if (rc == clonedData.rows.length) {
+                        Core.Web.Scheduler.remove(runnable);
+                        g.setBusy(false);
+                    }
+                }), 1, true);
                 
                 if (p.onChangeSort){
                     /* ECHO3 we need the owner of the object as 'this'. */
@@ -931,7 +903,7 @@
                 var r1 = (p.page-1) * p.rp + 1;
                 var r2 = r1 + p.rp - 1;
                 if (p.total < r2) {
-                  r2 = p.total;
+                    r2 = p.total;
                 }
                 
                 var stat = p.pagestat;
@@ -978,7 +950,7 @@
                         var qstatus = $('.pPageStat', this.pDiv);
                         if (qstatus.html() == p.procmsg) {
                             pstat.html(pstat.data('content'));                            
-                            //$('.pPageStat',this.pDiv).text('');
+                        //$('.pPageStat',this.pDiv).text('');
                         }
                         $('.pReload',this.pDiv).removeClass('loading');
                         if (p.hideOnSubmit) {
@@ -997,9 +969,6 @@
 
             //* Get latest data */
             populate: function () {
-                
-                console.log('populate start ...');
-                
                 if (this.loading) return true;
 
                 if (p.onSubmit) {
@@ -1044,16 +1013,11 @@
                 }
                 /* COMMENT-ECHO3: We need to use echo3 calls instead of ajax URL based approach. */
                 data = p.onPopulateCallback.call(p.owner, data);
-                console.log('addData start ...');
-                g.addData(data);
-                console.log('addData finish ...');
-                if (data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {
-                    console.log('multiSort start ...');
-                    this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
-                    console.log('multiSort finish ...');
-                }
-                
                 this.data = data;
+                g.addData(data);
+                if (data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {                
+                    this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
+                }
                 
                 /* COMMENT-ECHO3: Notify for selection */
                 g.notifyForSelection();
@@ -1323,11 +1287,11 @@
             pager: 0,
             
             getCellHeader: function(cell) {
-               if (cell.is('th')) {
-                   return cell;
-               } else {
-                   return $('tr:eq(0) > th:eq(' + cell.index() + ')', $('#' + $.fn.fixID('HEADER.' + p.ownerId)));
-               }
+                if (cell.is('th')) {
+                    return cell;
+                } else {
+                    return $('tr:eq(0) > th:eq(' + cell.index() + ')', $('#' + $.fn.fixID('HEADER.' + p.ownerId)));
+                }
             },
             
             renderCell: function(componentOrIndex, div, td) {
@@ -1360,9 +1324,9 @@
                     this.style.height = '';
                     var bounds = new Core.Web.Measure.Bounds(this);
                     
-//                    var cn = this.childNodes[0];
-//                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
-//                    console.log('ECHO All:' + bounds.width);
+                    //                    var cn = this.childNodes[0];
+                    //                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
+                    //                    console.log('ECHO All:' + bounds.width);
                     
                     this.style.width = bounds.width + 'px';
                     //this.style.height = bounds.height + 'px';
@@ -1448,7 +1412,14 @@
                 Echo.Sync.FillImage.render(backgroundImage, td);
             },
             
-            renderCellLayoutData: function(component, div, td) {
+            renderCellLayoutData: function(componentOrIndex, div, td) {                
+                var component = null;
+                if (typeof componentOrIndex == "number") {
+                    component = p.owner.component.getComponent(componentOrIndex);
+                } else {
+                    component = componentOrIndex;
+                }
+                
                 var layoutData = component.render("layoutData");
                 if (layoutData) {                    
                     if (layoutData.width) {
@@ -1470,20 +1441,20 @@
             },
             
             textNodeWidth: function(elem) {
-              var calc = document.createElement('span');
-              calc.style.display = 'none';
-              calc.innerHTML = elem.innerHTML;
-              $('body').append(calc);
-              var width = $(calc).outerWidth();
-              $(calc).remove();
-              return width;
+                var calc = document.createElement('span');
+                calc.style.display = 'none';
+                calc.innerHTML = elem.innerHTML;
+                $('body').append(calc);
+                var width = $(calc).outerWidth();
+                $(calc).remove();
+                return width;
             },
             
-             reloadPositions: function() {
+            reloadPositions: function() {
                 g.hDiv.style.top = g.mDiv.offsetHeight + 'px';
                 g.bDiv.style.top = (g.hDiv.offsetTop + g.hDiv.offsetHeight) + 'px';
                 g.bDiv.style.bottom = g.pDiv.offsetHeight + 'px';
-             }
+            }
         }; // --- EOF Grid Declaration (g)
 
         // -----------------------------------------------------------------------------------------------------------
@@ -1495,37 +1466,37 @@
             var tr = document.createElement('tr');
 
             for (var i = 0; i < p.colModel.length; i++) {
-//                if(/^true$/i.test(p.colModel[i].visible)) {
-                    var cm = p.colModel[i];
-                    var pth = document.createElement('th');
+                //                if(/^true$/i.test(p.colModel[i].visible)) {
+                var cm = p.colModel[i];
+                var pth = document.createElement('th');
 
-                    if (cm.id !== null) {
-                        $(pth).attr('cmid', cm.id);
-                        if (cm.sortable) {
-                            $(pth).attr('abbr', cm.id);
-                        }
+                if (cm.id !== null) {
+                    $(pth).attr('cmid', cm.id);
+                    if (cm.sortable) {
+                        $(pth).attr('abbr', cm.id);
                     }
+                }
                     
-                    $(pth).attr('title', cm.tooltip);
+                $(pth).attr('title', cm.tooltip);
                     
-                    if (cm.hide || !cm.visible) {
-                        pth.hide = true;
-                    }
+                if (cm.hide || !cm.visible) {
+                    pth.hide = true;
+                }
                     
-                    if (cm.process) {
-                        pth.process = cm.process;
-                    }
+                if (cm.process) {
+                    pth.process = cm.process;
+                }
 
-                    // store the data index using jquery
-                    $(pth).data({
-                        //'rowDataIndex': counter ? i-1 : i, 
-                        'rowDataIndex': i, 
-                        'componentIdx': cm.cell.componentIdx,
-                        'visible': cm.visible
-                    }); // sets the value of userid & component index
+                // store the data index using jquery
+                $(pth).data({
+                    //'rowDataIndex': counter ? i-1 : i, 
+                    'rowDataIndex': i, 
+                    'componentIdx': cm.cell.componentIdx,
+                    'visible': cm.visible
+                }); // sets the value of userid & component index
 
-                    $(tr).append(pth);
-//                }
+                $(tr).append(pth);
+            //                }
             }
             $(thead).append(tr);
             $(t).prepend(thead);
@@ -1798,9 +1769,9 @@
         g.bDiv.className = 'bDiv';
         $(t).before(g.bDiv);
 
-//        $(g.bDiv).css({
-//            height: (p.height=='auto') ? '50 px' : p.height
-//        })
+        //        $(g.bDiv).css({
+        //            height: (p.height=='auto') ? '50 px' : p.height
+        //        })
         
         $(g.bDiv).scroll(function (e) {
             g.scroll();
@@ -2041,12 +2012,12 @@
                 (
                     function ()
                     {
-                      $(g.hDiv).toggle();
-                      $(g.bDiv).toggle();
-                      $(g.pDiv).toggle();
+                        $(g.hDiv).toggle();
+                        $(g.bDiv).toggle();
+                        $(g.pDiv).toggle();
                       
-                      $(g.gDiv).toggleClass('hideBody');
-                      $(this).toggleClass('vsble');
+                        $(g.gDiv).toggleClass('hideBody');
+                        $(this).toggleClass('vsble');
                     }
                     );
             }
@@ -2101,7 +2072,7 @@
                                 
                 var tr = document.createElement('tr');
                 if (!qth.data('visible')) {
-                  $(tr).css('display', 'none');
+                    $(tr).css('display', 'none');
                 }
                 
                 $('tbody', g.nDiv).append(tr);
@@ -2700,17 +2671,20 @@
             if (this.grid) {
                 this.grid.setBusy(true);                                
                 var cc = 0;                
-                Core.Web.Scheduler.run(Core.method(this, function() {
+                var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
                     var cellsPerBatch = 50;
-                    do {
-                        var cell = document.getElementById(childs[cc]);
+                    while (cellsPerBatch > 0 && cc < childs.length) {
+                        var ID = childs[cc];
+                        var cell = document.getElementById(ID);
                         var childDiv = document.createElement("div");
-                        this.grid.renderCell(/(\d*)$/.exec(childs[cc++])[0] * 1, childDiv, cell);
+                        this.grid.renderCell(/(\d*)$/.exec(ID)[0] * 1, childDiv, cell);
                         $(cell).empty().append(childDiv);
-                    } while(cellsPerBatch-- >= 0 && cc < childs.length);
+                        cc++;
+                        cellsPerBatch--;
+                    }
                     
                     if (cc == childs.length) {
-                        Core.Web.Scheduler.remove(arguments.callee);
+                        Core.Web.Scheduler.remove(runnable);
                         this.grid.setBusy(false);
                         this.grid.reloadPositions();
                     }
@@ -2723,27 +2697,23 @@
         return this.each( function() {
             if (this.grid) {
                 this.grid.setBusy(true);    
-                var cc = 0;
-                var rendererMethod = Core.method(this, function() {
-                    var cellsPerBatch = 20;
-                    do {
-                        cellsPerBatch--;                        
-                        if (cc < childs.length) {
-                            var component = this.p.owner.component.getComponent(/(\d*)$/.exec(childs[cc])[0] * 1);
-                            var cell = document.getElementById(childs[cc++]);
-                            this.grid.renderCellLayoutData(component, cell.firstChild, cell);                            
-                            if (cellsPerBatch <= 0) {
-                                setTimeout(rendererMethod, 1);
-                                return;
-                            }
-                        } else {
-                            cellsPerBatch = 0;
-                        }
-                    } while (cellsPerBatch > 0);                    
-                    this.grid.setBusy(false);
-                    this.grid.reloadPositions();
-                });                
-                setTimeout(rendererMethod, 1);
+                var cc = 0;                
+                var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                    var cellsPerBatch = 50;
+                    while (cellsPerBatch > 0 && cc < childs.length) {
+                      var ID = childs[cc];
+                      var cell = document.getElementById(ID);
+                      this.grid.renderCellLayoutData(/(\d*)$/.exec(ID)[0] * 1, cell.firstChild, cell);
+                      cc++;
+                      cellsPerBatch--;
+                    }
+                    
+                    if (cc == childs.length) {
+                        Core.Web.Scheduler.remove(runnable);
+                        this.grid.setBusy(false);
+                        this.grid.reloadPositions();
+                    }
+                }), 1, true);
             };
         });
     };
@@ -2805,11 +2775,11 @@
     $.fn.unselectable = function() {
         return this.each(function() {
             $(this)
-            .css('-moz-user-select', 'none')		// FF
-            .css('-khtml-user-select', 'none')		// Safari, Google Chrome
-            .css('user-select', 'none');			// CSS 3
+            .css('-moz-user-select', 'none')	// FF
+            .css('-khtml-user-select', 'none')	// Safari, Google Chrome
+            .css('user-select', 'none');	// CSS 3
 
-            if ($.browser.msie) {						// IE
+            if ($.browser.msie) {		// IE
                 $(this).each(function() {
                     this.ondrag = function() {
                         return false;

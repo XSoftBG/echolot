@@ -495,7 +495,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      */
     renderUpdate: function(update) {
         console.log('FG renderUpdate: ' + update.toString());
-        
+                
         var hasUpdatedProps = update.hasUpdatedProperties();
         var hasAddedChildren = update.hasAddedChildren();
         var hasRemovedChildren = update.hasRemovedChildren();
@@ -532,6 +532,22 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var columnModelCells = this._getColumnModel().cells;
         var cells = [];
 
+        if (hasAddedChildren) {
+            console.log('Components Count: ' + this.component.getComponentCount());
+            
+            var onlyAdded = update.getAddedChildren();
+            console.log('Prev index: ' + (/(\d*)$/.exec(onlyAdded[0].renderId)[0] * 1));
+            console.log('Index Of: ' + this.component.indexOf(onlyAdded[0]));
+            console.log('Component renderID: ' + this.component.getComponent(this.component.indexOf(onlyAdded[0]) + 1).renderId);
+            this.component.remove(this.component.indexOf(onlyAdded[0]) + 1);
+            
+            console.log('Current Childs:');
+            for (i = 0; i < this.component.getComponentCount(); i++) {
+              console.log(this.component.getComponent(i).renderId);
+            }
+        }
+
+
         if (hasAddedChildren && hasRemovedChildren) {
             // new added children
             // ------------------
@@ -563,11 +579,13 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             }
         }
         
-        if (!hasUpdatedProps && !hasAddedChildren && !hasRemovedChildren && !hasUpdatedLayoutDatas) {
-            return false;
-        } else {
-            return true;
-        }
+        return false;
+        
+//        if (!hasUpdatedProps && !hasAddedChildren && !hasRemovedChildren && !hasUpdatedLayoutDatas) {
+//            return false;
+//        } else {
+//            return true;
+//        }
     },
     
     _renderUpdateChildIterator : function(updatedChilds, dataNotRendered, activePageCells, columnModelCells) {

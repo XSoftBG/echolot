@@ -1346,6 +1346,8 @@ public final class FlexiGrid extends Component implements Pane {
     // KEY -> ROW ID | VALUE -> CELLS
     private final HashMap<Integer, ArrayList<FlexiCell>> row2cells = new HashMap<Integer, ArrayList<FlexiCell>>();
     
+    private final ArrayList<Integer> columnPositions = new ArrayList<Integer>();
+    
     private final TreeSet<Integer> markedForReplace = new TreeSet<Integer>();
     
     private final HashMap<Integer, Extent> maxW = new HashMap<Integer, Extent>();
@@ -1560,7 +1562,7 @@ public final class FlexiGrid extends Component implements Pane {
             ID = Integer.toString(ci);
             rID = genRenderId(ci);
         }
-                
+        
         c.setRenderId(rID);
         c.setId(ID);
         add(c, ci);
@@ -1572,13 +1574,14 @@ public final class FlexiGrid extends Component implements Pane {
         cell.addLayoutDataChangeListener(FC_LAYOUTDATA_CHANGE_LISTENER);      
         cell.addComponentChangeListener(FC_COMPONENT_CHANGE_LISTENER);
         
-        int rowID = cell.getRowId();          
+        int rowID = cell.getRowId();
+        int colID = cell.getColId();
         ArrayList<FlexiCell> rowCells = row2cells.get(rowID);
         if (rowCells == null) {
             rowCells = new ArrayList<FlexiCell>();
             row2cells.put(rowID, rowCells);
         }
-        rowCells.add(cell);
+        rowCells.add(columnPositions.indexOf(colID), cell);
     }
     
     private void unbindCell(FlexiCell cell) {
@@ -1622,31 +1625,38 @@ public final class FlexiGrid extends Component implements Pane {
         // header max height
         Extent maxHeight = new Extent(0);
         
+        // clear column positions
+        columnPositions.clear();
+        
         // columns for new model
         ArrayList<FlexiColumn> newColumns = new ArrayList<FlexiColumn>();
         
         // current columns
-        HashSet<FlexiColumn> currentColumns = new HashSet<FlexiColumn>();
-        if (columnModel != null) {
-            currentColumns.addAll(Arrays.asList(columnModel.getColumns()));
-        }
+        HashSet<FlexiColumn> currentColumns = columnModel == null ? new HashSet<FlexiColumn>() : new HashSet<FlexiColumn>(Arrays.asList(columnModel.getColumns()));
         
         if (counterColumn != null) {
             FlexiCell c = counterColumn.getCell();            
+            int colID = counterColumn.getId();
+            columnPositions.add(colID);
+            
             if (!currentColumns.contains(counterColumn)) {
                 addCell(c);
                 counterColumn.addPropertyChangeListener(FLEXICOLUMN_PROPERTY_CHANGE_LISTENER);
-            }          
-            maxHeight = c.getHeight();
-            maxW.put(counterColumn.getId(), c.getWidth());
+            }            
             newColumns.add(counterColumn);
+            
+            maxHeight = c.getHeight();
+            maxW.put(colID, c.getWidth());
         }
         
         int columnCount = tableModel.getColumnCount();        
         for (int c = 0; c < columnCount; c++) {
             FlexiColumn currentColumn = tableModel.getColumnAt(c);
             FlexiCell columnCell = currentColumn.getCell();
-                        
+            
+            int colID = currentColumn.getId();
+            columnPositions.add(colID);
+            
             if (!currentColumns.contains(currentColumn)) {                
                 // add column cell to FlexiGrid
                 // ---------------------------- 
@@ -1656,6 +1666,7 @@ public final class FlexiGrid extends Component implements Pane {
                 // ---------------------------------------
                 currentColumn.addPropertyChangeListener(FLEXICOLUMN_PROPERTY_CHANGE_LISTENER);
             }
+            newColumns.add(currentColumn);
             
             // check for max height
             // --------------------
@@ -1667,8 +1678,6 @@ public final class FlexiGrid extends Component implements Pane {
             // set default columns widths
             // --------------------------
             maxW.put(currentColumn.getId(), columnCell.getWidth());
-
-            newColumns.add(currentColumn);
         }
         
         // set max height for each column from model
@@ -1710,6 +1719,13 @@ public final class FlexiGrid extends Component implements Pane {
     
     public FlexiColumn getCounterColumn() {
         return counterColumn;
+    }
+    
+    
+    private final class CounterFlexiCell extends FlexiCell {
+      private CounterFlexiCell() {
+          super(-1, -1, "");
+      }
     }
     
     private final class FCLayoutDataChangeListener implements PropertyChangeListener, Serializable {
@@ -1760,6 +1776,8 @@ public final class FlexiGrid extends Component implements Pane {
                     Collection<ArrayList<FlexiCell>> rowsCells = row2cells.values();
                     for (ArrayList<FlexiCell> rowCells : rowsCells) {                      
                         rowCells.get(position).setWidth(newWidth);
+                        System.out.println(rowCells.get(position));
+                        System.out.println(rowCells.get(position).getWidth());
                     }                    
                     maxW.put(colID, newWidth);
                 }
@@ -1830,15 +1848,25 @@ public final class FlexiGrid extends Component implements Pane {
                   throw new Error("Unsupported FlexTableModelEvent type!");
             }
         }
-  };
+    };
 
-  @Override
-  public void remove(Component cmpnt)
-  {
-    super.remove(cmpnt);
-  }
-  
-  private void internalRemove(int idx) {
-      super.remove(idx);
-  }
+    @Override
+    public void remove(Component cmpnt) { externalRemove(cmpnt); }
+    
+    private void internalRemove(int idx) { super.remove(getComponent(idx)); }
+    
+    private void externalRemove(Component component) {
+        super.remove(component);
+        
+        Label emptyLabel = new Label();
+        emptyLabel.setRenderId("REM_" + component.getRenderId());
+        String ID = component.getId();
+        emptyLabel.setId(ID);
+        emptyLabel.setLayoutData(component.getLayoutData());
+        
+        component.setRenderId(null);
+        component.setId(null);
+        
+        add(emptyLabel, Integer.parseInt(ID));
+    }
 }
