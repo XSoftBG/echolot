@@ -50,12 +50,8 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private static final long serialVersionUID = 201110101l;
     private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
     private static final String PROPERTY_LAYOUTDATA_CHANGE = "PROPERTY_LAYOUTDATA_CHANGE";
-    
-    
-    private abstract class PCL implements PropertyChangeListener, Serializable {
-      
-    }
-    
+        
+    private abstract class PCL implements PropertyChangeListener, Serializable { }
     
     /** 
      * The property change event dispatcher.
