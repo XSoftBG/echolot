@@ -51,6 +51,12 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
     private static final String PROPERTY_LAYOUTDATA_CHANGE = "PROPERTY_LAYOUTDATA_CHANGE";
     
+    
+    private abstract class PCL implements PropertyChangeListener, Serializable {
+      
+    }
+    
+    
     /** 
      * The property change event dispatcher.
      * This object is lazily instantiated. 
@@ -61,10 +67,11 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private final int colId;
     
     private boolean internalSetLayoutData;
+    private boolean valid = true;
     
     private final Label EMPTY_LABEL;
     private Component component;
-    private PropertyChangeListener componentVisibleChanged = new PropertyChangeListener() {
+    private PropertyChangeListener componentVisibleChanged = new PCL() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {          
             Boolean visible = (Boolean) pce.getNewValue();
@@ -76,7 +83,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     };
     
-    private PropertyChangeListener externalComponentLDChanged = new PropertyChangeListener() {
+    private PropertyChangeListener externalComponentLDChanged = new PCL() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
             if (!internalSetLayoutData) {
@@ -94,6 +101,11 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     };
             
     public FlexiCell(final int rowId, final int colId, final Component component) {
+        Component parent = component.getParent();
+        if (parent != null) {
+            parent.remove(component);
+        }
+        
         this.rowId = rowId;
         this.colId = colId;
         this.component = component;
@@ -153,6 +165,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @return current visible cell component.
      */
     public Component getVisibleComponent() {
+        validate();
         return component.isVisible() ? component : EMPTY_LABEL;
     }
     
@@ -163,9 +176,13 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
+        Component parent = newComponent.getParent();
+        if (parent != null) {
+            parent.remove(newComponent);
+        }
         unbindComponent();
         FlexiCellLayoutData layoutData = getLayoutData();
-        Component oldComponent = this.component;     
+        Component oldComponent = this.component;
         this.component = newComponent;
         this.component.setLayoutData(layoutData);
         bindComponent();
@@ -437,6 +454,20 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private void unbindComponent() {
         this.component.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
         this.component.removePropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
+    }
+    
+    public void invalidate() {
+        if (valid) {
+            firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY_LABEL);
+            valid = false;
+        }
+    }
+    
+    public void validate() {
+        if (!valid) {
+            firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
+            valid = true;
+        }
     }
         
     /**

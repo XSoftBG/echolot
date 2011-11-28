@@ -415,7 +415,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     /**
      * Describes how a component is initially built.
      */
-    renderAdd: function(update, parentElement) {                
+    renderAdd: function(update, parentElement) {
+        console.log('FG: renderAdd: ' + this.component.renderId);
+        
         /**
          * the root div with and table inside.
          * The table will be manipulated by the flexigrid plugin by adding surrounding
@@ -466,6 +468,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component is destroyed.
      */
     renderDispose: function() {
+        console.log('FG renderDispose: ' + this.component.renderId);
         // These cleanup things are CRUCICAL to avoid DRASTIC memory leaks.
         //
         // Remove out attached keylisteners from the DIV
@@ -494,8 +497,12 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        console.log('FG renderUpdate: ' + update.toString());
-                
+        console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
+        
+        if (this._renderRequired) {
+            return true;
+        }
+        
         var hasUpdatedProps = update.hasUpdatedProperties();
         var hasAddedChildren = update.hasAddedChildren();
         var hasRemovedChildren = update.hasRemovedChildren();
@@ -532,22 +539,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var columnModelCells = this._getColumnModel().cells;
         var cells = [];
 
-        if (hasAddedChildren) {
-            console.log('Components Count: ' + this.component.getComponentCount());
-            
-            var onlyAdded = update.getAddedChildren();
-            console.log('Prev index: ' + (/(\d*)$/.exec(onlyAdded[0].renderId)[0] * 1));
-            console.log('Index Of: ' + this.component.indexOf(onlyAdded[0]));
-            console.log('Component renderID: ' + this.component.getComponent(this.component.indexOf(onlyAdded[0]) + 1).renderId);
-            this.component.remove(this.component.indexOf(onlyAdded[0]) + 1);
-            
-            console.log('Current Childs:');
-            for (i = 0; i < this.component.getComponentCount(); i++) {
-              console.log(this.component.getComponent(i).renderId);
-            }
-        }
-
-
         if (hasAddedChildren && hasRemovedChildren) {
             // new added children
             // ------------------
@@ -580,12 +571,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         }
         
         return false;
-        
-//        if (!hasUpdatedProps && !hasAddedChildren && !hasRemovedChildren && !hasUpdatedLayoutDatas) {
-//            return false;
-//        } else {
-//            return true;
-//        }
     },
     
     _renderUpdateChildIterator : function(updatedChilds, dataNotRendered, activePageCells, columnModelCells) {
@@ -603,6 +588,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component renders itself.
      */
     renderDisplay: function() {
+        console.log('FG: renderDisplay ' + this.component.renderId);
         if (this._renderRequired) {
             this._renderRequired = false;
 

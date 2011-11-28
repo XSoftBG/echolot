@@ -510,15 +510,18 @@ public final class FlexiGrid extends Component implements Pane {
     }
         
     public int getTotalPageCount() {
+        int result = 1;
         final int rowsPerPageCount = this.getRowsPerPageCount();
         if(rowsPerPageCount == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE)
-          return 1;
-
+          return result;
+        
         final int totalRowCount = tableModel.getRowCount();
         if((totalRowCount % rowsPerPageCount) == 0)
-            return totalRowCount / rowsPerPageCount;
+            result = totalRowCount / rowsPerPageCount;
         else
-            return totalRowCount / rowsPerPageCount + 1;
+            result = totalRowCount / rowsPerPageCount + 1;
+        
+        return result == 0 ? 1 : result;
     }
     
     public void setLastActivePage() {
@@ -1343,14 +1346,52 @@ public final class FlexiGrid extends Component implements Pane {
         return getEventListenerList().getListenerCount(FlexiRPPOListener.class) > 0;
     }
     
-    // KEY -> ROW ID | VALUE -> CELLS
+    /**
+     * The content of each rendered row.
+     * <ul>
+     * <li><b>Key:</b> FlexiRow's ID</li>
+     * <li><b>Value:</b> All FlexiCells in FlexiRow</li>
+     * </ul>
+     */
     private final HashMap<Integer, ArrayList<FlexiCell>> row2cells = new HashMap<Integer, ArrayList<FlexiCell>>();
     
+    /**
+     * Contains current rendered components.
+     * <ul>
+     * <li><b>Key:</b>Echo.Component</li>
+     * <li><b>Value:</b>Echo.Component's owner (FlexiCell)</li>
+     * </ul>
+     */
+    private final HashMap<Component, FlexiCell> component2cell = new HashMap<Component, FlexiCell>();
+    
+    /**
+     * The position of each column.
+     * <br />
+     * [4, 2, 1, 3] - FlexiColumns IDs
+     */
     private final ArrayList<Integer> columnPositions = new ArrayList<Integer>();
     
+    /**
+     * Contains the positions of components (unusable components) that can be overwritten.
+     */
     private final TreeSet<Integer> markedForReplace = new TreeSet<Integer>();
     
+    /**
+     * Contains width for each column.
+     * <ul>
+     * <li><b>Key:</b>FlexiColumn's ID</li>
+     * <li><b>Value:</b>Width (Extent)</li>
+     * </ul>
+     */
     private final HashMap<Integer, Extent> maxW = new HashMap<Integer, Extent>();
+    
+    /**
+     * Contains height for each row.
+     * <ul>
+     * <li><b>Key:</b>FlexiRow's ID</li>
+     * <li><b>Value:</b>Height (Extent)</li>
+     * </ul>
+     */
     private final HashMap<Integer, Extent> maxH = new HashMap<Integer, Extent>();
     
     private int currentPageFirstRow;
@@ -1362,7 +1403,7 @@ public final class FlexiGrid extends Component implements Pane {
     private final FCLayoutDataChangeListener FC_LAYOUTDATA_CHANGE_LISTENER = new FCLayoutDataChangeListener();    
     private final FCComponentChangeListener FC_COMPONENT_CHANGE_LISTENER   = new FCComponentChangeListener();
     
-    private FlexiPage constructPage(int page) {        
+    private FlexiPage constructPage(int page) {
         int maxCompIndex = -1;
             
         // if column model is marked as invalid
@@ -1372,11 +1413,8 @@ public final class FlexiGrid extends Component implements Pane {
         }
       
         // cerrent cells
-        // -------------
-        ArrayList<FlexiCell> currentCells = new ArrayList<FlexiCell>();
-        for (ArrayList<FlexiCell> cells : row2cells.values()) {
-            currentCells.addAll(cells);
-        }
+        // -------------        
+        ArrayList<FlexiCell> currentCells = new ArrayList<FlexiCell>(component2cell.values());
         
         // new cells ... add header's cells
         // --------------------------------
@@ -1417,7 +1455,18 @@ public final class FlexiGrid extends Component implements Pane {
         int rowCounter = 0;
         for (int currentRow = currentPageFirstRow; currentRow < currentPageLastRow; currentRow++) {
             FlexiCell[] rowCells = new FlexiCell[amountOfColumns];
-            int rowID = tableModel.getRowAt(currentRow).getId();
+            
+            int rowID = -1;
+            try
+            {
+              rowID = tableModel.getRowAt(currentRow).getId();
+            } catch (NullPointerException ex) {
+              tableModel.getRowAt(currentRow);
+              System.out.println("Page:" + page);
+              System.out.println("Row Index:" + currentRow);
+              System.out.println("FR:" + currentPageFirstRow);
+              System.out.println("LR:" + currentPageLastRow);
+            }
             Extent rowMaxHeight = new Extent(0);
             for (int currentColumn = 0; currentColumn < amountOfColumns; currentColumn++) {
                 
@@ -1582,6 +1631,7 @@ public final class FlexiGrid extends Component implements Pane {
             row2cells.put(rowID, rowCells);
         }
         rowCells.add(columnPositions.indexOf(colID), cell);
+        component2cell.put(cell.getVisibleComponent(), cell);
     }
     
     private void unbindCell(FlexiCell cell) {
@@ -1600,6 +1650,7 @@ public final class FlexiGrid extends Component implements Pane {
         } else {
             row2cells.remove(rowID);
         }
+        component2cell.remove(cell.getVisibleComponent());
     }
     
     private void unbindColumn(FlexiColumn column) {
@@ -1720,14 +1771,7 @@ public final class FlexiGrid extends Component implements Pane {
     public FlexiColumn getCounterColumn() {
         return counterColumn;
     }
-    
-    
-    private final class CounterFlexiCell extends FlexiCell {
-      private CounterFlexiCell() {
-          super(-1, -1, "");
-      }
-    }
-    
+        
     private final class FCLayoutDataChangeListener implements PropertyChangeListener, Serializable {
         private boolean inProcess = false;
         
@@ -1762,7 +1806,7 @@ public final class FlexiGrid extends Component implements Pane {
                 final int rowID = source.getRowId();
                 final int colID = source.getColId();
                 
-                ArrayList<FlexiCell> sourceRowCells = FlexiGrid.this.row2cells.get(rowID);
+                ArrayList<FlexiCell> sourceRowCells = row2cells.get(rowID);
                 
                 if (hResult != 0) {
                     for (FlexiCell cell : sourceRowCells) {
@@ -1790,12 +1834,16 @@ public final class FlexiGrid extends Component implements Pane {
     
     private final class FCComponentChangeListener implements PropertyChangeListener, Serializable {
         @Override
-        public void propertyChange(PropertyChangeEvent pce) {
+        public void propertyChange(PropertyChangeEvent pce) {            
             /* get data from old component */
             Component oldComponent = (Component) pce.getOldValue();
                         
             /* set data to new component */
             Component newComponent = (Component) pce.getNewValue();
+            Component ncParent = newComponent.getParent();
+            if (ncParent != null) {
+                ncParent.remove(newComponent);
+            }
             newComponent.setId(oldComponent.getId());
             newComponent.setRenderId(oldComponent.getRenderId());
             
@@ -1803,6 +1851,9 @@ public final class FlexiGrid extends Component implements Pane {
             Integer componentIdx = Integer.valueOf(oldComponent.getId());
             FlexiGrid.this.internalRemove(componentIdx);
             FlexiGrid.this.add(newComponent, componentIdx);
+                        
+            component2cell.remove(oldComponent);
+            component2cell.put(newComponent, (FlexiCell) pce.getSource());
         }
     }
     
@@ -1832,7 +1883,7 @@ public final class FlexiGrid extends Component implements Pane {
               // ----------------------
               case FlexiTableModelEvent.DELETE_ROWS:
                   final int lastPageIdx = FlexiGrid.this.getTotalPageCount();
-                  int currentPageIdx = activePageIdx;              
+                  int currentPageIdx = activePageIdx;
                   if(currentPageIdx > lastPageIdx) {
                       currentPageIdx = lastPageIdx;
                   }
@@ -1856,17 +1907,13 @@ public final class FlexiGrid extends Component implements Pane {
     private void internalRemove(int idx) { super.remove(getComponent(idx)); }
     
     private void externalRemove(Component component) {
-        super.remove(component);
-        
-        Label emptyLabel = new Label();
-        emptyLabel.setRenderId("REM_" + component.getRenderId());
-        String ID = component.getId();
-        emptyLabel.setId(ID);
-        emptyLabel.setLayoutData(component.getLayoutData());
-        
-        component.setRenderId(null);
-        component.setId(null);
-        
-        add(emptyLabel, Integer.parseInt(ID));
+        FlexiCell cell = component2cell.get(component);
+        if (cell != null) {
+            cell.invalidate();
+            component.setRenderId(null);
+            component.setId(null);
+        } else {
+            System.out.println(component);
+        }
     }
 }
