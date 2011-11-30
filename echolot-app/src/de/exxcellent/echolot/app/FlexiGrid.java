@@ -218,10 +218,12 @@ public final class FlexiGrid extends Component implements Pane {
      * <code>true</code> if no wrap is enabled
      */
     public static final String PROPERTY_NO_WRAP = "noWrap";
-    /**
-     * if <code>true</code> the selection is switched to single select otherwise multiselect
-     */
-    public static final String PROPERTY_SINGLE_SELECT = "singleSelect";
+    
+    public static final int DISABLE_SELECTION_MODE = 0;
+    public static final int SINGLE_SELECTION_MODE = 1;
+    public static final int MULTI_SELECTION_MODE = 2;
+    public static final String PROPERTY_SELECTION_MODE = "selectionMode";
+    
     // ** Active Page Properties */
     public static final String PROPERTY_ACTIVE_PAGE = "activePage";
     public static final String INPUT_ACTIVE_PAGE_CHANGED = "activePageChanged";
@@ -366,7 +368,7 @@ public final class FlexiGrid extends Component implements Pane {
         setMinimalColumnWidth(30);
         setMinimalColumnHeight(80);
         setNoWrap(Boolean.TRUE);
-        setSingleSelect(Boolean.TRUE);
+        setSelectionMode(MULTI_SELECTION_MODE);
         set(PROPERTY_FLEXICOLUMNS_UPDATE, new FlexiColumnsUpdate());
 
         /* images */
@@ -653,23 +655,15 @@ public final class FlexiGrid extends Component implements Pane {
         set(PROPERTY_CSS, newValue);
     }
 
-    /**
-     * Returns <code>true</code> the selection is switched to single select otherwise multiple selection is used.
-     *
-     * @return <code>true</code> single select, otherwise multiple selection of rows
-     */
-    public Boolean getSingleSelect() {
-        return (Boolean) get(PROPERTY_SINGLE_SELECT);
+    public int getSelectionMode() {
+        return (Integer) get(PROPERTY_SELECTION_MODE);
     }
 
-    /**
-     * Sets the selection mode. The selection is switched to single select with <code>true</code> otherwise multiple
-     * selection is used.
-     *
-     * @param newValue the state of single selection/ or multiple selection
-     */
-    public void setSingleSelect(Boolean newValue) {
-        set(PROPERTY_SINGLE_SELECT, newValue);
+    public void setSelectionMode(int selectionMode) {
+        if (selectionMode < DISABLE_SELECTION_MODE || selectionMode > MULTI_SELECTION_MODE) {
+            throw new Error("FlexiGrid Error: Try to set invalid selection mode !!!");
+        }
+        set(PROPERTY_SELECTION_MODE, selectionMode);
     }
 
     /**

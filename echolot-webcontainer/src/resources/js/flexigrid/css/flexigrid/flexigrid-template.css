@@ -130,7 +130,7 @@
     float: none;
     margin: auto;
     background: url(DDN_IMG) no-repeat center;
-    
+
 }		
 
 .flexigrid div.nBtn.srtd
@@ -150,7 +150,7 @@
     overflow: hidden;
     white-space: nowrap;
     /* position: relative; */
-    
+
     position: absolute;
     float: none;
     left: 0;
@@ -293,7 +293,7 @@
     border-bottom: 0px;
     overflow: hidden;
     /* position: relative; */
-    
+
     position: absolute;
     float: none;
     left: 0;
@@ -361,7 +361,7 @@
     background: #fff;
     overflow: auto;
     /* position: relative; */
-    
+
     position: absolute;
     float: none;
     left: 0;
@@ -644,7 +644,7 @@ div.colCopy {
     overflow: auto;
     white-space: nowrap;    
     /* position: relative; */
-    
+
     position: absolute;
     float: none;
     left: 0;

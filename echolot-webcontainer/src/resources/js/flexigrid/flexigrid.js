@@ -1125,70 +1125,58 @@
             },
   
             processSelection: function(qrow, e) {
+                // if selection mode is disabled ...
+                if (p.selectionMode == 0) {
+                    return;
+                }
+                
                 var rowId = /(\d*)$/.exec(qrow.attr('id'))[0] * 1;
-                if(p.singleSelect) {
+                if(p.selectionMode == 1) {
                     if(e.ctrlKey) {
                         if(qrow.is('.trSelected')) {
-                            //g._newUnselectedRows.push(rowId);
                             p.nur.push(rowId);
                             qrow.toggleClass('trSelected');
-                        }
-                        else {
-                            //g._newSelectedRows.push(rowId);
+                        } else {
                             p.nsr.push(rowId);
                             qrow.toggleClass('trSelected');
-                            //if(g._oldSelectedRows.length != 0) {
                             if(p.osr.length != 0) {
-                                //g._newUnselectedRows.push(g._oldSelectedRows[0]);
                                 p.nur.push(p.osr[0]);
-                                //$('#row' + g._oldSelectedRows[0]).toggleClass('trSelected');
                                 $('#row' + p.osr[0]).toggleClass('trSelected');
                             }
                         }
-                    }
-                    else {
+                    } else {
                         if(qrow.is('.trSelected')) {
                             return;
-                        }
-                        else {
-                            //g._newSelectedRows.push(rowId);
+                        } else {
                             p.nsr.push(rowId);
                             qrow.toggleClass('trSelected');
-                            //if(g._oldSelectedRows.length != 0) {
                             if(p.osr.length != 0) {
-                                //g._newUnselectedRows.push(g._oldSelectedRows[0]);
                                 p.nur.push(p.osr[0]);
-                                //$('#row' + g._oldSelectedRows[0]).toggleClass('trSelected');
                                 $('#row' + p.osr[0]).toggleClass('trSelected');
                             }
                         }
                     }
+                    qrow.siblings().removeClass('trSelected');
                     g.notifyForSelection();
                 }
-                else {
+                else if(p.selectionMode == 2) {
                     if(e.ctrlKey) {
                         var idx = null;            
                         if(qrow.is('.trSelected')) {
-                            //idx = $.inArray(rowId, g._newSelectedRows);
                             idx = $.inArray(rowId, p.nsr);
                             if(idx != -1) {
-                                //g._newSelectedRows.splice(idx, 1);
                                 p.nsr.splice(idx, 1);
                             }
                             else {
-                                //g._newUnselectedRows.push(rowId);
                                 p.nur.push(rowId);
                             }
                         }
                         else {
-                            //idx = $.inArray(rowId, g._newUnselectedRows);
                             idx = $.inArray(rowId, p.nur);
                             if(idx != -1) {
-                                //g._newUnselectedRows.splice(idx, 1);
                                 p.nur.splice(idx, 1);
                             }
                             else {
-                                //g._newSelectedRows.push(rowId);
                                 p.nsr.push(rowId);
                             }
                         }
@@ -1196,15 +1184,11 @@
                     }
                     else {
                         if(qrow.is('.trSelected')) {
-                            //g._newUnselectedRows = $.merge([], g._oldSelectedRows);
                             p.nur = $.makeArray(p.osr);
-                            //g._newUnselectedRows.splice($.inArray(rowId, g._newUnSelectedRows), 1);
                             p.nur.splice($.inArray(rowId, p.nur), 1);
                         }
                         else {
-                            //g._newSelectedRows.push(rowId);
                             p.nsr.push(rowId);
-                            //g._newUnselectedRows = $.merge([], g._oldSelectedRows);
                             p.nur = $.makeArray(p.osr);
                         }
                         qrow.addClass('trSelected');
