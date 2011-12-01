@@ -255,6 +255,7 @@ public final class FlexiGrid extends Component implements Pane {
     public static final String PROPERTY_FLEXICOLUMNS_UPDATE = "columnsUpdate";
     public static final String PROPERTY_LINE_IMG = "LINE_IMG";
     public static final String PROPERTY_HL_IMG = "HL_IMG";
+    public static final String PROPERTY_HL_COLOR = "HL_COLOR";
     public static final String PROPERTY_FHBG_IMG = "FHBG_IMG";
     public static final String PROPERTY_DDN_IMG = "DDN_IMG";
     public static final String PROPERTY_WBG_IMG = "WBG_IMG";
@@ -269,9 +270,11 @@ public final class FlexiGrid extends Component implements Pane {
     public static final String PROPERTY_LAST_IMG = "LAST_IMG";
     public static final String PROPERTY_LOAD_IMG = "LOAD_IMG";
     public static final String PROPERTY_LOAD_BTN_IMG = "LOAD_BTN_IMG";
-    private static final ImageReference LINE_IMG =
-            new ResourceImageReference("js/flexigrid/css/flexigrid/images/line.gif");
+    private static final ImageReference LINE_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/line.gif");
+    
     private static final ImageReference HL_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/hl.png");
+    private static final Color HL_COLOR = new Color(252, 210, 126);
+    
     private static final ImageReference FHBG_IMG =
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/fhbg.gif");
     private static final ImageReference DDN_IMG =
@@ -299,8 +302,9 @@ public final class FlexiGrid extends Component implements Pane {
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/load.png");
     private static final ImageReference LOAD_BTN_IMG =
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/load.gif");
-    private static final String FLEXI_CELL_COMPONENT_PROPS = "_FLEXIGRID_CHILDS_PROPS";
+    
     private static long nextID = 0;
+    
     /**
      * This is due to the lack of knowledge how to force a sync on the client.
      */
@@ -360,7 +364,6 @@ public final class FlexiGrid extends Component implements Pane {
         setShowTableToggleButton(Boolean.TRUE);
         setShowPager(Boolean.FALSE);
         setShowResultsPerPage(Boolean.FALSE);
-        //setResultsPerPageOption(null);
         setMessageNoItems(noItemsMsg);
         setMessageProcessing(processingMsg);
         setMessagePageStatistics(pageStatisticsMsg);
@@ -374,6 +377,7 @@ public final class FlexiGrid extends Component implements Pane {
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
         set(PROPERTY_HL_IMG, HL_IMG);
+        set(PROPERTY_HL_COLOR, HL_COLOR);
         set(PROPERTY_FHBG_IMG, FHBG_IMG);
         set(PROPERTY_DDN_IMG, DDN_IMG);
         set(PROPERTY_WBG_IMG, WBG_IMG);
@@ -665,7 +669,23 @@ public final class FlexiGrid extends Component implements Pane {
         }
         set(PROPERTY_SELECTION_MODE, selectionMode);
     }
+    
+    public void setSelectionBackground(Color color) {
+        set(PROPERTY_HL_COLOR, color);
+    }
+    
+    public Color getSelectionBackground() {
+      return (Color) get(PROPERTY_HL_COLOR);
+    }
 
+    public void setSelectionBackgroundImage(ResourceImageReference imageReference) {
+        set(PROPERTY_HL_IMG, imageReference);
+    }
+    
+    public ResourceImageReference getSelectionBackgroundImage(ResourceImageReference imageReference) {
+        return (ResourceImageReference) get(PROPERTY_HL_IMG);
+    }
+    
     /**
      * Returns <code>true</code> if no wrap is enabled.
      *
@@ -1814,7 +1834,7 @@ public final class FlexiGrid extends Component implements Pane {
             /* remove old component & add new */
             Integer componentIdx = Integer.valueOf(oldComponent.getId());
             FlexiGrid.this.internalRemove(componentIdx);
-            FlexiGrid.this.add(newComponent, componentIdx);
+            FlexiGrid.this.internalAdd(newComponent, componentIdx);
 
             component2cell.remove(oldComponent);
             component2cell.put(newComponent, (FlexiCell) pce.getSource());

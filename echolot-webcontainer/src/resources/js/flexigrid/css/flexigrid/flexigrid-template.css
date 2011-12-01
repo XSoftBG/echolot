@@ -81,7 +81,8 @@
 
 .flexigrid div.nDiv tr:hover td, .flexigrid div.nDiv tr.ndcolover td
 {
-    background: #d5effc url(HL_IMG) repeat-x top;
+    background: HL_COLOR url(HL_IMG) repeat-x top;
+    background-size: 100% 100%;
     border: 1px solid #a8d8eb;
 }
 
@@ -569,7 +570,7 @@ div.colCopy {
 .flexigrid div.bDiv tr.trOver td.sorted, 
 .flexigrid div.bDiv tr.trOver td
 {
-    background: #d9ebf5;
+    background: HL_COLOR;
     border-left: 1px solid #eef8ff;
     border-bottom: 1px dotted #a8d8eb;
 }
@@ -581,10 +582,11 @@ div.colCopy {
 .flexigrid tr.trSelected td.sorted, 
 .flexigrid tr.trSelected td
 {
-    background: #d5effc url(HL_IMG) repeat-x top;
+    background: HL_COLOR url(HL_IMG) repeat-x top;
+    background-size: 100% 100%;
     border-right: 1px solid #d2e3ec;
     border-left: 1px solid #eef8ff;
-    border-bottom: 1px solid #a8d8eb;
+    border-bottom: 1px solid #fcc24c;
 }
 
 /* novstripe adjustments */
