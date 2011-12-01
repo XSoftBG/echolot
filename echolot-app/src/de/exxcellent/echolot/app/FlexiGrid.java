@@ -371,7 +371,7 @@ public final class FlexiGrid extends Component implements Pane {
         setMinimalColumnWidth(30);
         setMinimalColumnHeight(80);
         setNoWrap(Boolean.TRUE);
-        setSelectionMode(MULTI_SELECTION_MODE);
+        setSelectionMode(FlexiGrid.MULTI_SELECTION_MODE);
         set(PROPERTY_FLEXICOLUMNS_UPDATE, new FlexiColumnsUpdate());
 
         /* images */

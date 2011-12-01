@@ -178,11 +178,11 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
         unbindComponent();
         FlexiCellLayoutData layoutData = getLayoutData();
-        Component oldComponent = this.component;
+        Component oldComponent = getVisibleComponent();
         this.component = newComponent;
         this.component.setLayoutData(layoutData);
         bindComponent();
-        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, this.component);
+        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, newComponent);
     }
     
     /**
@@ -454,6 +454,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     
     public void invalidate() {
         if (valid) {
+            unbindComponent();
             firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY_LABEL);
             valid = false;
         }
@@ -461,6 +462,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     
     public void validate() {
         if (!valid) {
+            bindComponent();
             firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
             valid = true;
         }
