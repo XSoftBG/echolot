@@ -41,6 +41,7 @@ import nextapp.echo.app.Extent;
 import nextapp.echo.app.FillImage;
 import nextapp.echo.app.Insets;
 import nextapp.echo.app.Label;
+import nextapp.echo.app.LayoutData;
 
 /**
  *
@@ -62,7 +63,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private final int rowId;
     private final int colId;
     
-    private boolean internalSetLayoutData;
+    private boolean internalSetLayoutData = true;
     private boolean valid = true;
     
     private final Label EMPTY_LABEL;
@@ -106,12 +107,14 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         this.colId = colId;
         this.component = component;
         
-        this.internalSetLayoutData = true;
-        FlexiCellLayoutData layoutData = new FlexiCellLayoutData();        
-        this.component.setLayoutData(layoutData);
+        LayoutData orignalLayoutData = this.component.getLayoutData();
+        if (!(orignalLayoutData instanceof FlexiCellLayoutData)) {
+            FlexiCellLayoutData layoutData = new FlexiCellLayoutData();
+            this.component.setLayoutData(layoutData);
+        }
         
         EMPTY_LABEL = new Label();
-        EMPTY_LABEL.setLayoutData(layoutData);
+        EMPTY_LABEL.setLayoutData(this.component.getLayoutData());
         
         bindComponent();
     }

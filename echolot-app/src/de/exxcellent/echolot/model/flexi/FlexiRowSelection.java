@@ -86,19 +86,27 @@ public class FlexiRowSelection implements Serializable {
     public Integer[] getAllSelectedRowsIds() {
         return allSelectedRowsIds;
     }
+    
+    public boolean hasSelected() {
+      return allSelectedRowsIds.length != 0;
+    }
         
     /**
      * @return array that contains all selected rows BEFORE new selection
      */
     public Integer[] getOldSelectedRowsIds() {
         return oldSelectedRowsIds;
-    }
+    }    
         
     /**
      * @return array that contains all selected rows not contained in _oldSelectedRows AFTER new selection
      */
     public Integer[] getNewSelectedRowsIds() {
         return newSelectedRowsIds;
+    }
+        
+    public boolean hasNewSelected() {
+      return newSelectedRowsIds.length != 0;
     }
     
     /**
@@ -108,6 +116,10 @@ public class FlexiRowSelection implements Serializable {
         return newUnselectedRowsIds;
     }
     
+    public boolean hasNewUnselected() {
+      return newUnselectedRowsIds.length != 0;
+    }
+        
     /**
      * Prevents from null arrays.
      * 

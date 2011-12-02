@@ -1760,6 +1760,9 @@ public final class FlexiGrid extends Component implements Pane {
 
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
+            if (!isRenderVisible())
+              return;
+          
             if (this.inProcess || activePageIdx == -1) {
                 return;
             } else {
@@ -1767,8 +1770,11 @@ public final class FlexiGrid extends Component implements Pane {
 
                 // prev layoutData ...
                 FlexiCellLayoutData oldLayoutData = (FlexiCellLayoutData) pce.getOldValue();
-                Extent oldWidth = oldLayoutData.getWidth() == null ? new Extent(0) : oldLayoutData.getWidth();
-                Extent oldHeight = oldLayoutData.getHeight() == null ? new Extent(0) : oldLayoutData.getHeight();
+                
+                Extent oldWidth = oldLayoutData.getWidth();
+                if (oldWidth == null) oldWidth = new Extent(0);
+                Extent oldHeight = oldLayoutData.getHeight();
+                if (oldHeight == null) oldHeight = new Extent(0);
 
                 // new layoutData ...
                 FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
