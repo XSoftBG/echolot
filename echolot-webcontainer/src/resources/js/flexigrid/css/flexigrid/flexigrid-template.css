@@ -3,8 +3,8 @@
 
 .flexigrid
 {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 11px;
+/*    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;*/
     position: relative;
     border: 0px solid #eee;
     overflow: hidden;
@@ -52,24 +52,6 @@
 {
     table-layout: fixed;
     width: 0px;
-}
-
-/*.flexigrid div.bDiv table
-{
-    margin-bottom: 10px;
-}*/
-
-.flexigrid div.bDiv table.autoht
-{
-    border-bottom: 0px;
-    margin-bottom: 0px;
-}
-
-.flexigrid div.bDiv>table:first-child
-{
-    float: left;
-    width: 0px;
-    table-layout: fixed;
 }
 
 .flexigrid div.nDiv td
@@ -355,25 +337,6 @@
     background: none;
 }			
 
-.flexigrid div.bDiv
-{
-    border: 1px solid #ccc;
-    border-top: 0px;
-    background: #fff;
-    overflow: auto;
-    /* position: relative; */
-
-    position: absolute;
-    float: none;
-    left: 0;
-    right: 0;
-}
-
-.flexigrid div.bDiv table
-{
-    border-bottom: 1px solid #ccc;
-}
-
 .flexigrid div.hGrip
 {
     position: absolute;
@@ -416,19 +379,12 @@
     background: none;
 }
 
-.flexigrid div.hDiv th, .flexigrid  div.bDiv td  /* common cell properties*/
+.flexigrid div.hDiv th
 {
     text-align: left;
     border-right: 1px solid #ddd;
     border-left: 1px solid #fff;
     overflow: hidden;
-    /*vertical-align: top !important;*/
-}
-
-.flexigrid div.hDiv th div, .flexigrid  div.bDiv td  div, div.colCopy div/* common inner cell properties*/
-{
-    /*padding: 5px;*/
-    border-left: 0px solid #fff;
 }
 
 .flexigrid div.hDiv th, div.colCopy
@@ -498,13 +454,6 @@ div.colCopy {
     background: url(UP_IMG) no-repeat center top;
 }	
 
-.flexigrid div.bDiv td
-{
-    border-bottom: 1px solid #fff;
-    vertical-align: top;
-    white-space: nowrap;
-}
-
 .flexigrid div.hDiv th div
 {
 }
@@ -529,14 +478,6 @@ div.colCopy {
     float: right;
 }
 
-
-.flexigrid div.bDiv td div
-{
-    border-top: 0px solid #fff;
-    /*padding-bottom: 4px;*/
-}
-
-
 .flexigrid tr td.sorted
 {
     background: #f3f3f3;
@@ -549,7 +490,7 @@ div.colCopy {
 }
 
 
-.flexigrid tr.erow td
+.flexigrid tr.erow > td
 {
     background: #f7f7f7;
     border-bottom: 1px solid #f7f7f7;
@@ -561,81 +502,9 @@ div.colCopy {
     border-bottom: 1px solid #e3e3e3;
 }						
 
-.flexigrid tr.erow td.sorted div
+.flexigrid tr.erow td.sorted > div
 {
 }
-
-.flexigrid div.bDiv tr:hover td, 
-.flexigrid div.bDiv tr:hover td.sorted,
-.flexigrid div.bDiv tr.trOver td.sorted, 
-.flexigrid div.bDiv tr.trOver td
-{
-    background: HL_COLOR;
-    border-left: 1px solid #eef8ff;
-    border-bottom: 1px dotted #a8d8eb;
-}
-
-.flexigrid div.bDiv tr.trSelected:hover td, 
-.flexigrid div.bDiv tr.trSelected:hover td.sorted,
-.flexigrid div.bDiv tr.trOver.trSelected td.sorted, 
-.flexigrid div.bDiv tr.trOver.trSelected td,
-.flexigrid tr.trSelected td.sorted, 
-.flexigrid tr.trSelected td
-{
-    background: HL_COLOR url(HL_IMG) repeat-x top;
-    background-size: 100% 100%;
-    border-right: 1px solid #d2e3ec;
-    border-left: 1px solid #eef8ff;
-    border-bottom: 1px solid #fcc24c;
-}
-
-/* novstripe adjustments */
-
-.flexigrid.novstripe .bDiv table
-{
-    border-bottom: 1px solid #ccc;
-    border-right: 1px solid #ccc;
-}
-
-.flexigrid.novstripe  div.bDiv td  
-{
-    border-right-color: #fff;
-}
-
-.flexigrid.novstripe div.bDiv tr.erow td.sorted
-{
-    border-right-color: #e3e3e3;
-}
-
-.flexigrid.novstripe div.bDiv tr td.sorted
-{
-    border-right-color: #f3f3f3;
-}
-
-.flexigrid.novstripe  div.bDiv tr.erow td  
-{
-    border-right-color: #f7f7f7;
-    border-left-color: #f7f7f7;
-}
-
-.flexigrid.novstripe div.bDiv tr.trSelected:hover td, 
-.flexigrid.novstripe div.bDiv tr.trSelected:hover td.sorted,
-.flexigrid.novstripe div.bDiv tr.trOver.trSelected td.sorted, 
-.flexigrid.novstripe div.bDiv tr.trOver.trSelected td,
-.flexigrid.novstripe tr.trSelected td.sorted, 
-.flexigrid.novstripe tr.trSelected td
-{
-    border-right: 1px solid #0066FF;
-    border-left: 1px solid #0066FF;
-}		
-
-.flexigrid.novstripe div.bDiv tr.trOver td, .flexigrid.novstripe div.bDiv tr:hover td
-{
-    border-left-color: #d9ebf5;
-    border-right-color: #d9ebf5;
-}
-
-/* end novstripe */
 
 .flexigrid div.pDiv
 {
@@ -755,9 +624,145 @@ div.pGroup
     background: url(LOAD_BTN_IMG) no-repeat center;
 }															
 
-/* ie adjustments */
 
+
+
+
+
+
+
+.flexigrid div.hDiv th div, div.colCopy div /* common inner cell properties*/
+{
+    /*padding: 5px;*/
+    border-left: 0px solid #fff;
+}
+
+
+
+/* ------------------------------------------------ */
+/* ---------------- START BODY DIV ---------------- */
+/* ------------------------------------------------ */
+
+.flexigrid div.bDiv
+{
+    border: 1px solid #ccc;
+    border-top: 0px;
+    background: #fff;
+    overflow: auto;    
+    position: absolute;
+    float: none;
+    left: 0;
+    right: 0;
+}
+
+.flexigrid div.bDiv table.autoht
+{
+    border-bottom: 0px;
+    margin-bottom: 0px;
+}
+
+.flexigrid div.bDiv > table:first-child
+{
+    border-bottom: 1px solid #ccc;
+    float: left;
+    width: 0px;
+    table-layout: fixed;
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr > td
+{
+    border-bottom: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-right: 1px solid #ddd;
+
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr > td > div
+{
+    border-left: 0px solid #fff;
+    white-space: normal;
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td, 
+.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td.sorted,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td.sorted
+{
+    background: HL_COLOR;
+    border-left: 1px solid #eef8ff;
+    border-bottom: 1px dotted #a8d8eb;
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td, 
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td.sorted,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td.sorted
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td.sorted, 
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td
+{
+    background: HL_COLOR url(HL_IMG) repeat-x top;
+    background-size: 100% 100%;
+    border-right: 1px solid #d2e3ec;
+    border-left: 1px solid #eef8ff;
+    border-bottom: 1px solid #fcc24c;
+}
+
+/* novstripe adjustments */
+
+.flexigrid.novstripe .bDiv table
+{
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+}
+
+.flexigrid.novstripe  div.bDiv td  
+{
+    border-right-color: #fff;
+}
+
+.flexigrid.novstripe div.bDiv tr.erow td.sorted
+{
+    border-right-color: #e3e3e3;
+}
+
+.flexigrid.novstripe div.bDiv tr td.sorted
+{
+    border-right-color: #f3f3f3;
+}
+
+.flexigrid.novstripe div.bDiv tr.erow td  
+{
+    border-right-color: #f7f7f7;
+    border-left-color: #f7f7f7;
+}
+
+.flexigrid.novstripe div.bDiv tr.trSelected:hover td, 
+.flexigrid.novstripe div.bDiv tr.trSelected:hover td.sorted,
+.flexigrid.novstripe div.bDiv tr.trOver.trSelected td.sorted, 
+.flexigrid.novstripe div.bDiv tr.trOver.trSelected td,
+.flexigrid.novstripe tr.trSelected td.sorted, 
+.flexigrid.novstripe tr.trSelected td
+{
+    border-right: 1px solid #0066FF;
+    border-left: 1px solid #0066FF;
+}		
+
+.flexigrid.novstripe div.bDiv tr.trOver td, .flexigrid.novstripe div.bDiv tr:hover td
+{
+    border-left-color: #d9ebf5;
+    border-right-color: #d9ebf5;
+}
+/* end novstripe */
+
+
+/* ie adjustments */
 .flexigrid.ie div.hDiv th div, .flexigrid.ie  div.bDiv td  div, div.colCopy.ie div/* common inner cell properties*/
 {
     overflow: hidden;
-}			
+}
+
+/* ---------------------------------------------- */
+/* ---------------- END BODY DIV ---------------- */
+/* ---------------------------------------------- */

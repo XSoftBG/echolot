@@ -1759,10 +1759,7 @@ public final class FlexiGrid extends Component implements Pane {
         private boolean inProcess = false;
 
         @Override
-        public void propertyChange(PropertyChangeEvent pce) {
-            if (!isRenderVisible())
-              return;
-          
+        public void propertyChange(PropertyChangeEvent pce) {          
             if (this.inProcess || activePageIdx == -1) {
                 return;
             } else {

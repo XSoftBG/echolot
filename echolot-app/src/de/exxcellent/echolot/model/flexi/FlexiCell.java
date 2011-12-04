@@ -29,6 +29,7 @@
 
 package de.exxcellent.echolot.model.flexi;
 
+import de.exxcellent.echolot.app.FlexiGridSupport;
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -52,7 +53,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private static final String PROPERTY_COMPONENT_CHANGE = "PROPERTY_COMPONENT_CHANGE";
     private static final String PROPERTY_LAYOUTDATA_CHANGE = "PROPERTY_LAYOUTDATA_CHANGE";
         
-    private abstract class PCL implements PropertyChangeListener, Serializable { }
+    private abstract class SerializablePropertyChangeListener implements PropertyChangeListener, Serializable { }
     
     /** 
      * The property change event dispatcher.
@@ -68,10 +69,14 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     
     private final Label EMPTY_LABEL;
     private Component component;
-    private PropertyChangeListener componentVisibleChanged = new PCL() {
+    private PropertyChangeListener componentVisibleChanged = new SerializablePropertyChangeListener() {
         @Override
-        public void propertyChange(PropertyChangeEvent pce) {          
-            Boolean visible = (Boolean) pce.getNewValue();
+        public void propertyChange(PropertyChangeEvent pce) {
+            Component c = (Component) pce.getSource();
+            if (!c.isRenderVisible()) {
+                return;
+            }
+            Boolean visible = (Boolean) pce.getNewValue();            
             if (visible) {
                 firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
             } else {
@@ -80,15 +85,18 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     };
     
-    private PropertyChangeListener externalComponentLDChanged = new PCL() {
+    private PropertyChangeListener externalComponentLDChanged = new SerializablePropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
             if (!internalSetLayoutData) {
                 try {
+                    Component c = (Component) pce.getSource();
+                    if (!c.isRenderVisible()) {
+                        return;
+                    }
                     FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
-                    FlexiCellLayoutData oldLayoutData = (FlexiCellLayoutData) pce.getOldValue();
                     EMPTY_LABEL.setLayoutData(newLayoutData);
-                    firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, newLayoutData);
+                    firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, pce.getOldValue(), newLayoutData);
                 } catch (ClassCastException ex) {
                     throw new Error("Unsupported layoutData for FlexiCell component: " + pce.getSource());
                 }
