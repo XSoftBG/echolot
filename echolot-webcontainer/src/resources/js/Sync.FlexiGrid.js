@@ -468,7 +468,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     /**
      * Describes how the component is destroyed.
      */
-    renderDispose: function() {
+    renderDispose: function(update) {
         console.log('FG renderDispose: ' + this.component.renderId);
         // These cleanup things are CRUCICAL to avoid DRASTIC memory leaks.
         //

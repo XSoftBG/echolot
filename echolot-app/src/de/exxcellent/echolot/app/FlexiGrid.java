@@ -362,8 +362,8 @@ public final class FlexiGrid extends Component implements Pane {
         setWidth(null);
         setTitle("");
         setShowTableToggleButton(Boolean.TRUE);
-        setShowPager(Boolean.FALSE);
-        setShowResultsPerPage(Boolean.FALSE);
+        setShowPager(Boolean.TRUE);
+        setShowResultsPerPage(Boolean.TRUE);
         setMessageNoItems(noItemsMsg);
         setMessageProcessing(processingMsg);
         setMessagePageStatistics(pageStatisticsMsg);
@@ -467,19 +467,32 @@ public final class FlexiGrid extends Component implements Pane {
 
         // setzen der RowsPerPage Option
         // -----------------------------
-        if (getResultsPerPageOption() == null) {
-            ResultsPerPageOption rppo = new ResultsPerPageOption();
-            if (tableModel.getDefaultResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
-                int rowCount = tableModel.getRowCount();
-                rppo.setInitialOption(rowCount);
-                rppo.setPageOption(new int[]{rowCount});
+        int rowCount = tableModel.getRowCount();
+        ResultsPerPageOption n_rppo = new ResultsPerPageOption();
+        ResultsPerPageOption o_rppo = getResultsPerPageOption();
+        if (o_rppo == null) {
+            if (tableModel.getDefaultResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {                
+                n_rppo.setInitialOption(rowCount);
+                n_rppo.setPageOption(new int[]{ rowCount });
             } else {
-                rppo.setInitialOption(tableModel.getDefaultResultsPerPage());
-                rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
+                n_rppo.setInitialOption(tableModel.getDefaultResultsPerPage());
+                n_rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
             }
-            setResultsPerPageOption(rppo);
+            setResultsPerPageOption(n_rppo);
         }
-
+        
+//        else {
+//            if (o_rppo.getInitialOption() == -1) {
+//                n_rppo.setInitialOption(rowCount);
+//                n_rppo.setPageOption(new int[]{ rowCount });
+//            } else {
+//                n_rppo.setInitialOption(o_rppo.getInitialOption());
+//                n_rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
+//            }
+//        }
+        
+        
+        
         // data in model is ready adn set active page
         // ------------------------------------------
         setActivePage(1);
@@ -1393,8 +1406,11 @@ public final class FlexiGrid extends Component implements Pane {
         }
 
         // cerrent cells
-        // -------------        
-        ArrayList<FlexiCell> currentCells = new ArrayList<FlexiCell>(component2cell.values());
+        // -------------
+        ArrayList<FlexiCell> currentCells = new ArrayList<FlexiCell>();
+        for (ArrayList<FlexiCell> cells : row2cells.values()) {
+            currentCells.addAll(cells);
+        }
 
         // new cells ... add header's cells
         // --------------------------------
@@ -1576,28 +1592,11 @@ public final class FlexiGrid extends Component implements Pane {
         }
     }
 
-    private void addCell(FlexiCell cell) {
-        Component c = cell.getVisibleComponent();
-
-        Integer ri = markedForReplace.pollFirst();
-        int ci = ri != null ? ri : -1;
-
-        String ID = null;
-        String rID = null;
-        if (ci == -1) {
-            int cc = getComponentCount();
-            ID = Integer.toString(cc);
-            rID = genRenderId(cc);
-        } else {
-            internalRemove(ci);
-            ID = Integer.toString(ci);
-            rID = genRenderId(ci);
-        }
-
-        c.setRenderId(rID);
-        c.setId(ID);
-        internalAdd(c, ci);
-
+    private void addCell(FlexiCell cell) { 
+        Component component = cell.getVisibleComponent();
+        Integer replaceIndex = markedForReplace.pollFirst();
+        int index = replaceIndex != null ? replaceIndex : -1;
+        internalAdd(cell, component, index);
         bindCell(cell);
     }
 
@@ -1613,7 +1612,6 @@ public final class FlexiGrid extends Component implements Pane {
             row2cells.put(rowID, rowCells);
         }
         rowCells.add(columnPositions.indexOf(colID), cell);
-        component2cell.put(cell.getVisibleComponent(), cell);
     }
 
     private void unbindCell(FlexiCell cell) {
@@ -1632,7 +1630,6 @@ public final class FlexiGrid extends Component implements Pane {
         } else {
             row2cells.remove(rowID);
         }
-        component2cell.remove(cell.getVisibleComponent());
     }
 
     private void unbindColumn(FlexiColumn column) {
@@ -1643,7 +1640,8 @@ public final class FlexiGrid extends Component implements Pane {
     private void removeUnusedComponents(int maxIndex) {
         TreeSet<Integer> unusedIndeces = (TreeSet<Integer>) markedForReplace.tailSet(maxIndex, false);
         while (!unusedIndeces.isEmpty()) {
-            internalRemove(unusedIndeces.pollLast());
+            Integer idx = unusedIndeces.pollLast();
+            internalRemove(idx);
         }
     }
 
@@ -1765,6 +1763,10 @@ public final class FlexiGrid extends Component implements Pane {
             } else {
                 this.inProcess = true;
 
+                FlexiCell source = (FlexiCell) pce.getSource();
+                final int rowID = source.getRowId();
+                final int colID = source.getColId();                
+                
                 // prev layoutData ...
                 FlexiCellLayoutData oldLayoutData = (FlexiCellLayoutData) pce.getOldValue();
                 
@@ -1776,7 +1778,17 @@ public final class FlexiGrid extends Component implements Pane {
                 // new layoutData ...
                 FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
                 Extent newWidth = newLayoutData.getWidth();
+                if (newWidth == null) {
+                    newWidth = maxW.get(colID);
+                    oldWidth = newWidth;
+                    source.setWidth(newWidth);
+                }
                 Extent newHeight = newLayoutData.getHeight();
+                if (newHeight == null) {
+                    newHeight = maxH.get(rowID);
+                    oldHeight = newHeight;
+                    source.setHeight(newHeight);
+                }
 
                 // check for changes in height or width
                 // ... ignore all the other changes ...
@@ -1787,10 +1799,6 @@ public final class FlexiGrid extends Component implements Pane {
                     this.inProcess = false;
                     return;
                 }
-
-                FlexiCell source = (FlexiCell) pce.getSource();
-                final int rowID = source.getRowId();
-                final int colID = source.getColId();
 
                 ArrayList<FlexiCell> sourceRowCells = row2cells.get(rowID);
 
@@ -1822,25 +1830,9 @@ public final class FlexiGrid extends Component implements Pane {
 
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
-            /* get data from old component */
-            Component oldComponent = (Component) pce.getOldValue();
-
-            /* set data to new component */
-            Component newComponent = (Component) pce.getNewValue();
-            Component ncParent = newComponent.getParent();
-            if (ncParent != null) {
-                ncParent.remove(newComponent);
-            }
-            newComponent.setId(oldComponent.getId());
-            newComponent.setRenderId(oldComponent.getRenderId());
-
-            /* remove old component & add new */
+            Component oldComponent = (Component) pce.getOldValue();            
             Integer componentIdx = Integer.valueOf(oldComponent.getId());
-            FlexiGrid.this.internalRemove(componentIdx);
-            FlexiGrid.this.internalAdd(newComponent, componentIdx);
-
-            component2cell.remove(oldComponent);
-            component2cell.put(newComponent, (FlexiCell) pce.getSource());
+            FlexiGrid.this.internalAdd((FlexiCell) pce.getSource(), (Component) pce.getNewValue(), componentIdx);
         }
     }
 
@@ -1894,8 +1886,28 @@ public final class FlexiGrid extends Component implements Pane {
         externalAdd(cmpnt, i);
     }
 
-    private void internalAdd(Component cmpnt, int i) {
-        super.add(cmpnt, i);
+    private void internalAdd(FlexiCell cell, Component component, int index) {
+        Component parent = component.getParent();
+        if (parent != null) {
+            parent.remove(component);
+        }
+        
+        String ID = null;
+        String rID = null;
+        if (index == -1) {
+            int cc = getComponentCount();
+            ID = Integer.toString(cc);
+            rID = genRenderId(cc);
+        } else {
+            internalRemove(index);
+            ID = Integer.toString(index);
+            rID = genRenderId(index);
+        }
+        
+        component.setId(ID);
+        component.setRenderId(rID);
+        super.add(component, index);
+        component2cell.put(component, cell);
     }
     
     private void externalAdd(Component cmpnt, int i) {
@@ -1908,7 +1920,9 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     private void internalRemove(int idx) {
-        super.remove(getComponent(idx));
+        Component c = getComponent(idx);
+        component2cell.remove(c);
+        super.remove(c);
     }
 
     private void externalRemove(Component component) {

@@ -521,6 +521,7 @@ div.colCopy {
     left: 0;
     right: 0;
     bottom: 0;
+    height: 30px;
 }
 
 .flexigrid div.pDiv div.pDiv2
@@ -692,7 +693,7 @@ div.pGroup
 {
     background: HL_COLOR;
     border-left: 1px solid #eef8ff;
-    border-bottom: 1px dotted #a8d8eb;
+    /* border-bottom: 1px dotted #a8d8eb; */
 }
 
 .flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td, 
