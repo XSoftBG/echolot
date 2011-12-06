@@ -467,31 +467,17 @@ public final class FlexiGrid extends Component implements Pane {
 
         // setzen der RowsPerPage Option
         // -----------------------------
-        int rowCount = tableModel.getRowCount();
-        ResultsPerPageOption n_rppo = new ResultsPerPageOption();
-        ResultsPerPageOption o_rppo = getResultsPerPageOption();
-        if (o_rppo == null) {
+        if (getResultsPerPageOption() == null) {
+            ResultsPerPageOption rppo = new ResultsPerPageOption();
             if (tableModel.getDefaultResultsPerPage() == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {                
-                n_rppo.setInitialOption(rowCount);
-                n_rppo.setPageOption(new int[]{ rowCount });
+                rppo.setInitialOption(-1);
+                rppo.setPageOption(new int[]{ tableModel.getRowCount() });
             } else {
-                n_rppo.setInitialOption(tableModel.getDefaultResultsPerPage());
-                n_rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
+                rppo.setInitialOption(tableModel.getDefaultResultsPerPage());
+                rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
             }
-            setResultsPerPageOption(n_rppo);
+            setResultsPerPageOption(rppo);
         }
-        
-//        else {
-//            if (o_rppo.getInitialOption() == -1) {
-//                n_rppo.setInitialOption(rowCount);
-//                n_rppo.setPageOption(new int[]{ rowCount });
-//            } else {
-//                n_rppo.setInitialOption(o_rppo.getInitialOption());
-//                n_rppo.setPageOption(tableModel.getDefaultResultsPerPageOption());
-//            }
-//        }
-        
-        
         
         // data in model is ready adn set active page
         // ------------------------------------------
@@ -547,7 +533,7 @@ public final class FlexiGrid extends Component implements Pane {
         if (tableModel == null) {
             requestedPage = new FlexiPage(1, 1, new FlexiRow[0]);
         } else {
-            requestedPage = constructPage(page);
+            requestedPage = makePage(page);
         }
         setActivePage(requestedPage);
     }
@@ -580,6 +566,24 @@ public final class FlexiGrid extends Component implements Pane {
         if (rppo != null) {
             setResultsPerPageOption(new ResultsPerPageOption(count, rppo.getPageOption()));
         }
+    }
+    
+    /**
+     * Returns <code>true</code> if the pager is shown.
+     *
+     * @return <code>true</code> if the pager is shown
+     */
+    public boolean getShowPager() {
+        return (Boolean) get(PROPERTY_SHOW_PAGER);
+    }
+
+    /**
+     * Sets the visibility of the pager.
+     *
+     * @param newValue <code>true</code> the pager is visible
+     */
+    public void setShowPager(boolean newValue) {
+        set(PROPERTY_SHOW_PAGER, newValue);
     }
 
     /**
@@ -616,24 +620,6 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public void setShowResultsPerPage(Boolean newValue) {
         set(PROPERTY_SHOW_RESULTS_PPAGE, newValue);
-    }
-
-    /**
-     * Returns <code>true</code> if the pager is shown.
-     *
-     * @return <code>true</code> if the pager is shown
-     */
-    public boolean getShowPager() {
-        return Boolean.getBoolean((String) get(PROPERTY_SHOW_PAGER));
-    }
-
-    /**
-     * Sets the visibility of the pager.
-     *
-     * @param newValue <code>true</code> the pager is visible
-     */
-    public void setShowPager(boolean newValue) {
-        set(PROPERTY_SHOW_PAGER, newValue);
     }
 
     /**
@@ -1396,7 +1382,7 @@ public final class FlexiGrid extends Component implements Pane {
     private final FCLayoutDataChangeListener FC_LAYOUTDATA_CHANGE_LISTENER = new FCLayoutDataChangeListener();
     private final FCComponentChangeListener FC_COMPONENT_CHANGE_LISTENER = new FCComponentChangeListener();
 
-    private FlexiPage constructPage(int page) {
+    private FlexiPage makePage(int page) {
         int maxCompIndex = -1;
 
         // if column model is marked as invalid
@@ -1421,12 +1407,17 @@ public final class FlexiGrid extends Component implements Pane {
             maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
             newCells.add(cc);
         }
-
-        final int rowsPerPageCount = this.getRowsPerPageCount();
+        
         final int totalRows = tableModel.getRowCount();
+        final boolean showPager = getShowPager();
+        if (!showPager) {
+            ResultsPerPageOption rppo = new ResultsPerPageOption(-1, new int[] { totalRows });
+            setResultsPerPageOption(rppo);
+        }
 
         // if all Rows should be displayed on one page ...
         // -----------------------------------------------
+        final int rowsPerPageCount = this.getRowsPerPageCount();
         if (rowsPerPageCount == FlexiTableModel.SHOW_ALL_ROWS_ON_ONE_PAGE) {
             // ... we set rowStart to zero and rowEnd to maximum
             // -------------------------------------------------
@@ -1453,16 +1444,7 @@ public final class FlexiGrid extends Component implements Pane {
         for (int currentRow = currentPageFirstRow; currentRow < currentPageLastRow; currentRow++) {
             FlexiCell[] rowCells = new FlexiCell[amountOfColumns];
 
-            int rowID = -1;
-            try {
-                rowID = tableModel.getRowAt(currentRow).getId();
-            } catch (NullPointerException ex) {
-                tableModel.getRowAt(currentRow);
-                System.out.println("Page:" + page);
-                System.out.println("Row Index:" + currentRow);
-                System.out.println("FR:" + currentPageFirstRow);
-                System.out.println("LR:" + currentPageLastRow);
-            }
+            int rowID = tableModel.getRowAt(currentRow).getId();
             Extent rowMaxHeight = new Extent(0);
             for (int currentColumn = 0; currentColumn < amountOfColumns; currentColumn++) {
 

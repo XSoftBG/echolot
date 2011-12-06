@@ -572,7 +572,7 @@
                     return false;
                 }
 
-                p.pages = Math.ceil(p.total/p.rp);
+                p.pages = p.rp == -1 ? 1 : Math.ceil(p.total/p.rp);
 
                 if (p.dataType=='xml')
                     p.page = +$('rows page',data).text();
@@ -901,7 +901,7 @@
                 $('.pcontrol span',this.pDiv).html(p.pages);
 
                 var r1 = (p.page-1) * p.rp + 1;
-                var r2 = r1 + p.rp - 1;
+                var r2 = p.rp == -1 ? p.total : r1 + p.rp - 1;
                 if (p.total < r2) {
                     r2 = p.total;
                 }
@@ -1319,7 +1319,7 @@
                 
                 autoResizeMethod();
                 
-                component.removeAllListeners('updated', true);                
+                component.removeAllListeners('updated', true);
                 component.addListener('updated', autoResizeMethod, true);
             },
             
@@ -2650,6 +2650,24 @@
         });
     };
     
+    $.fn.flexGetCounterIndeces = function() {
+        var result = [];
+        var p = this[0].p;
+        var g = this[0].grid;
+        if (g) {
+            var qth = $("th[cmid='-1']", g.hDiv);
+            if (qth) {
+                result[0] = /(\d*)$/.exec(qth.attr('id'))[0] * 1;
+                var position = qth.index();
+                var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
+                rows.each(function(index, row) {
+                    result[index + 1] = /(\d*)$/.exec($(row).children()[position].id)[0] * 1;
+                })
+            }
+        };
+        return result;
+    };
+    
     $.fn.flexRenderChilds = function(childs) {
         return this.each( function() {
             if (this.grid) {
@@ -2717,7 +2735,7 @@
                 
                 for (u = 0; u < updates.length; u++) {
                     var qth = $("th[cmid='" + updates[u].ID + "']", g.hDiv);
-                    for (p = 0; p < updates[u].props.length; p++) {
+                    for (var p = 0; p < updates[u].props.length; p++) {
                         var propName = updates[u].props[p][0];
                         var propValue = updates[u].props[p][1];                        
                         switch(propName) {

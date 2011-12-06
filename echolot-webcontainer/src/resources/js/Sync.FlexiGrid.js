@@ -746,25 +746,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             }
         }
         
-        
-//        var counterComponent = this.component.getComponent(0);
-//        var lsd = counterComponent.getLocalStyleData();
-//
-//        var start = this._activePage.rows[0].cells.length;
-//        var end = start * this._activePage.rows.length;
-//        var step = this._activePage.rows[0].cells.length;
-//        while (start <= end) {
-//            c = this.component.getComponent(start);
-//            ct = c.get('text');
-//            
-//            for (p in lsd) {
-//                c.set(p, lsd[p]);
-//            }
-//              
-//            c.set('text', ct);            
-//            start += step;
-//        }
-                
         return this._activePage;
     },
             
@@ -847,28 +828,44 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     },
             
     _onPopulateFinish : function() {
+        
+        if (this._sortingModel && this._sortingModel.columns.length > 0) {
+          
+          
+            var f = function() {
+                console.log('fuck off');
+                if (!this.t.client)
+                    return; // Component has been disposed, do nothing.
+                this.c.set(this.p, this.v, false);
+            }
+          
+            this.component.getComponent(1).set("text", "miro", false);
+          
+            var indeces = this._flexigrid.flexGetCounterIndeces();
+            var counterComponent = this.component.getComponent(indeces[0]);
+            var counterLocalStyleData = counterComponent.getLocalStyleData();
+            for (var i = 1; i < indeces.length; i++) {
+                var c = this.component.getComponent(indeces[i]);
+                for (property in counterLocalStyleData) {
+                      if (!this.client.verifyInput(c)) {
+                          var _this = { t: this, c: c, p : "text", v : "miro"};
+                          this.client.registerRestrictionListener(c, Core.method(_this, f));
+                      }
+                      else {
+                          console.log('fuck off again ...');
+                          c.set(property, counterLocalStyleData[property], false);
+                      }
+                }
+            }
+        }
+        
         this.client.removeInputRestriction(this._waitDialogHandle);
         this._waitDialogHandle = null;
-        //this.component.set(exxcellent.FlexiGrid.ACTIVE_PAGE, null, true);
     },
             
     _onChangePage : function(newPageNo) {
         // notify listeners
-        // this._removeDataComponents();
         this.component.doChangePage(newPageNo);
-    },
-            
-    _removeDataComponents : function() {
-        if (Echo.Render._disposedComponents == null) {
-            Echo.Render._disposedComponents = {};
-        }
-        
-        var currentPage = this._getActivePage();
-        for (r = 0; r < currentPage.rows.length; r++) {
-            for (c = 0; c < currentPage.rows[r].cells.length; c++) {
-                this.component.remove(this.component.getComponentCount() - 1);
-            }
-        }
     },
 
     /**
@@ -929,7 +926,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Method to process the event ot changing the ResultsPerPageOption.
      */
     _onRpChange : function(initialOption) {
-        // this._removeDataComponents();
         this.component.doChangeResultsPerPage(initialOption);
     },
 
