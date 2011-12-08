@@ -546,39 +546,42 @@
                 if (!data) {
                     // There is no data after loading. Interrupt the loading here,
                     // set busy to to false and display an error message.
-                    g.setBusy(false);
                     finalizeRendering();
                     return false;
                 }
 
-                if (p.dataType=='xml') {
-                    p.total = +$('rows total',data).text();
-                } else {
+                if (p.dataType != 'xml') {
                     p.total = data.total;
+                    p.page = data.page;                    
+                } else {
+                    p.total = +$('rows total',data).text();
+                    p.page = +$('rows page',data).text();
                 }
+                
+                p.pages = p.rp == -1 ? 1 : Math.ceil(p.total/p.rp);
 
-                if (p.total==0) {
+                if (p.total == 0) {
                     $('tr, a, td, div',t).unbind();
                     $(t).empty();
                     p.pages = 1;
                     p.page = 1;
-                    this.buildpager();
-                    $('.pPageStat',this.pDiv).html(p.nomsg);
+                    finalizeRendering();
+                    $('.pPageStat', this.pDiv).html(p.nomsg);
+                    
+                    //this.buildpager();
+                    //$('.pPageStat',this.pDiv).html(p.nomsg);
                     // Call the onSuccess hook (if present).
-                    if (p.onSuccess) {
-                        p.onSuccess.call(p.owner);
-                    }
-                    g.setBusy(false);
+                    //if (p.onSuccess) {
+                    //    p.onSuccess.call(p.owner);
+                    //}
+                    //g.setBusy(false);
+                    
                     return false;
                 }
-
-                p.pages = p.rp == -1 ? 1 : Math.ceil(p.total/p.rp);
-
-                if (p.dataType=='xml')
-                    p.page = +$('rows page',data).text();
-                else
-                    p.page = data.page;
-
+                
+                
+                    
+                
                 // Build new tbody...
                 var tbody = document.createElement('tbody');
                 tbody.id = p.ownerId + '.DATA';
@@ -589,7 +592,8 @@
                 // set the heights before rendering finished
                 if (p.height == 'auto') {
                     var globalDiv = $(g.gDiv);
-                    /*
+                  
+                  /*
                 	 * can not be used... its more complicated.
                 	 * the idea was to measure all prev siblings (divs)
                 	 *
@@ -598,6 +602,7 @@
                           componentHeight += $(this).attr('offsetHeight');
                       });
                    */
+                  
                     var bHeight = globalDiv.offsetParent().attr('offsetHeight') - p.heightOffset;
                     // adjust the flexigrid body (table) height
                     $(g.bDiv).css({
@@ -634,16 +639,25 @@
                     tbody = null;
                     qtbody = null;
                     data = null;
+                    
                     // Call the onSuccess hook (if present).
                     if (p.onSuccess) {
                         p.onSuccess.call(p.owner);
                     }
+                    
                     // Deactivate the busy mode.
                     g.setBusy(false);
+                    
                     if (g.lazyFocus) {
                         g.lazyFocus.call(this, true);
                     }
+                    
+                    // build pager.
                     g.buildpager();
+                    
+                    // COMMENT-ECHO3: Notify for selection */
+                    g.notifyForSelection();
+                    
                     if (p.debug && window.console && window.console.log) {
                         // If debugging is enabled log the duration of this operation.
                         var nowTime = new Date();
@@ -652,7 +666,7 @@
                 }
                 // We will need the header cell at this point more times.
                 // So we do better to store it not for further usages.
-                var headers = $('thead tr:first th',g.hDiv);
+                var headers = $('thead tr:first th', g.hDiv);
 
                 // What is going on here? Because of many rows we have to render, we do not
                 // iterate with a regular foreach method. We make a pseudo asynchron process with
@@ -660,7 +674,7 @@
                 // force a lagging of the whole browser. In the worst case the user will get a
                 // dialog box of an "endless looping javaScript".
 
-                if (p.dataType=='json') {
+                if (p.dataType == 'json') {                  
                     // Prepare the looping parameters.
                     var ji = 0;
                     var row = null;
@@ -681,10 +695,9 @@
                             if (ji % 2 && p.striped) {
                                 tr.className = 'erow';
                             }
+                            
                             if (row.id !== null) {
                                 tr.id = p.ownerId + '.ROW.' + row.id;
-                            } else {
-                                console.log('nqma id');
                             }
                             // Add each cell for each header column (rowDataIndex)
                             var colCount = headers.length;
@@ -709,7 +722,69 @@
                             finalizeRendering();
                         }
                     }), 1, true);
-                                        
+                  
+                  
+                  
+                  
+                  
+//                    var baseRendering = function(start, end) {
+//                        if (end >= data.rows.length) {
+//                            end = data.rows.length - 1;
+//                        }
+//                        for (var index = start; index <= end; index++) {
+//                            var row = data.rows[index];
+//                            var tr = document.createElement('tr');
+//                            var qtr = $(tr);
+//                            if (index % 2 && p.striped) {
+//                                tr.className = 'erow';
+//                            }
+//                            
+//                            tr.id = p.ownerId + '.ROW.' + row.id;                            
+//                            if ($.inArray(row.id, p.asr) != -1)
+//                                $(tr).addClass('trSelected');
+//                            
+//                            // Add each cell for each header column (rowDataIndex)
+//                            var colCount = headers.length;
+//                            for (var idx = 0; idx < colCount; idx++) {
+//                                var th = headers[idx];
+//                                var td = document.createElement('td');
+//                                qtr.append(td);
+//                                var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
+//                                g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
+//                            }
+//                            
+//                            g.addRowProp(qtr);
+//                            qtbody.append(tr);
+//                        }
+//                    };
+//                    
+//                    // Activate the busy mode.
+//                    // g.setBusy(true);
+//                    
+//                    if (data.rows.length <= 100) {
+//                        baseRendering(0, data.rows.length - 1);
+//                        finalizeRendering();
+//                    } else {
+//                        /**                     
+//                         * Start the pseudo asynchron iteration.
+//                         * Processing the JSON input may take some time esp. on crappy MSIEs.
+//                         * Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
+//                         * 
+//                         * Processes a data row in the JSON data stream
+//                         */                        
+//                        var offset = 0;
+//                        var runnable = Core.Web.Scheduler.run(Core.method(this, function() {                          
+//                            if (offset <= data.rows.length) {
+//                                var start = offset;
+//                                offset += 100;
+//                                baseRendering(start, offset);
+//                            } else {
+//                                Core.Web.Scheduler.remove(runnable);
+//                                finalizeRendering();
+//                            }
+//                        }), 3, true);
+//                    }                    
+                    
                 } else if (p.dataType=='xml') {
                     // Prepare the looping parameters.
                     var index = 1;
@@ -877,14 +952,13 @@
                     if (rc == clonedData.rows.length) {
                         Core.Web.Scheduler.remove(runnable);
                         g.setBusy(false);
+                        if (p.onChangeSort){
+                            /* ECHO3 we need the owner of the object as 'this'. */
+                            p.onChangeSort.call(p.owner, p.sortModel);
+                        }
                     }
                 }), 1, true);
-                
-                if (p.onChangeSort){
-                    /* ECHO3 we need the owner of the object as 'this'. */
-                    p.onChangeSort.call(p.owner, p.sortModel);
-                }
-                
+                                
                 if (p.debug && window.console && window.console.log) {
                     // If debugging is enabled log the duration of this operation.
                     var nowTime = new Date();
@@ -1019,8 +1093,8 @@
                     this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
                 }
                 
-                /* COMMENT-ECHO3: Notify for selection */
-                g.notifyForSelection();
+//                /* COMMENT-ECHO3: Notify for selection */
+//                g.notifyForSelection();
             },
 
             doSearch: function () {
@@ -1077,7 +1151,6 @@
                 // prepeare cell ...
                 // -----------------
                 var qcell = $(cell);
-                //cell.id = 'cell-' + cellData.rowId + 'x' + cellData.colId;
                 if (pth != null) {
                     if ($(pth).hasClass('sorted'))
                         qcell.addClass('sorted');
@@ -1223,7 +1296,7 @@
         
             },
 
-            addRowProp: function(qrow) {              
+            addRowProp: function(qrow) {                
                 var rowId = /(\d*)$/.exec(qrow.attr('id'))[0] * 1;
                 if($.inArray(rowId, p.asr) != -1)
                     qrow.addClass('trSelected');
@@ -1295,26 +1368,31 @@
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
-                var autoResizeMethod = Core.method(div, function(event) {                  
-                    if(event && !event.data.hasUpdatedProperties() &&
-                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
-                        !event.data.hasUpdatedLayoutDataChildren()) {
-                        return;
+                var autoResizeMethod = Core.method( { div: div, component: component}, function(event) {
+                    var componentHeight = component.render("height");
+                    if (Echo.Sync.Extent.isPercent(componentHeight)) {
+                        div.style.height = '100%';
                     }
-                                        
-                    var f = this.style.cssFloat;
-                    this.style.cssFloat = 'left';
-                    this.style.width = '';
-                    this.style.height = '';
-                    var bounds = new Core.Web.Measure.Bounds(this);
                     
-                    //                    var cn = this.childNodes[0];
-                    //                    console.log('JQ TextNode:' + (cn.nodeType == 3 ? g.textNodeWidth(cn) : $(this).outerWidth()));
-                    //                    console.log('ECHO All:' + bounds.width);
-                    
-                    this.style.width = bounds.width + 'px';
-                    //this.style.height = bounds.height + 'px';
-                    this.style.cssFloat = f;
+                    var componentWidth = component.render("width");
+                    if (Echo.Sync.Extent.isPercent(componentWidth)) {
+                        div.style.width = '100%';
+                    } else {
+                        var defFloat = div.style.cssFloat;
+                        div.style.cssFloat = 'left';
+                        div.style.width = '';
+                        
+                        var bounds = new Core.Web.Measure.Bounds(div);
+                        div.style.width = bounds.width + 'px';
+                        div.style.cssFloat = defFloat;
+                    }
+                  
+//                    if(event && !event.data.hasUpdatedProperties() &&
+//                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
+//                        !event.data.hasUpdatedLayoutDataChildren()) {
+//                        return;
+//                    }
+
                 });
                 
                 autoResizeMethod();
@@ -1422,16 +1500,6 @@
                     g.renderCellBackground(td, layoutData.background);
                     g.renderCellBackgroundImage(div, layoutData.backgroundImage);
                 }
-            },
-            
-            textNodeWidth: function(elem) {
-                var calc = document.createElement('span');
-                calc.style.display = 'none';
-                calc.innerHTML = elem.innerHTML;
-                $('body').append(calc);
-                var width = $(calc).outerWidth();
-                $(calc).remove();
-                return width;
             },
             
             reloadPositions: function() {
@@ -2650,13 +2718,13 @@
         });
     };
     
-    $.fn.flexGetCounterIndeces = function() {
+    $.fn.flexGetCounterIndexes = function() {
         var result = [];
         var p = this[0].p;
         var g = this[0].grid;
         if (g) {
             var qth = $("th[cmid='-1']", g.hDiv);
-            if (qth) {
+            if (qth[0]) {
                 result[0] = /(\d*)$/.exec(qth.attr('id'))[0] * 1;
                 var position = qth.index();
                 var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');

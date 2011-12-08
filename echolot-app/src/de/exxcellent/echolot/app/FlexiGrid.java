@@ -55,10 +55,10 @@ import de.exxcellent.echolot.listener.flexi.FlexiSortingChangeListener;
 
 import de.exxcellent.echolot.model.flexi.FlexiColumn.FlexiColumnProperty;
 import de.exxcellent.echolot.model.flexi.FlexiColumnsUpdate;
+import de.exxcellent.echolot.util.ArrayList;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -681,7 +681,7 @@ public final class FlexiGrid extends Component implements Pane {
         set(PROPERTY_HL_IMG, imageReference);
     }
     
-    public ResourceImageReference getSelectionBackgroundImage(ResourceImageReference imageReference) {
+    public ResourceImageReference getSelectionBackgroundImage() {
         return (ResourceImageReference) get(PROPERTY_HL_IMG);
     }
     
@@ -1593,7 +1593,13 @@ public final class FlexiGrid extends Component implements Pane {
             rowCells = new ArrayList<FlexiCell>();
             row2cells.put(rowID, rowCells);
         }
-        rowCells.add(columnPositions.indexOf(colID), cell);
+
+        int index = columnPositions.indexOf(colID);        
+        if (index >= rowCells.size()) {
+            rowCells.setSize(index + 1);
+        }
+        if (rowCells.get(index) == null) { rowCells.set(index, cell); }
+        else { rowCells.add(index, cell); }            
     }
 
     private void unbindCell(FlexiCell cell) {
@@ -1870,6 +1876,11 @@ public final class FlexiGrid extends Component implements Pane {
 
     private void internalAdd(FlexiCell cell, Component component, int index) {
         Component parent = component.getParent();
+//        if (parent != null) {
+//            if (parent != this) { parent.remove(component); }
+//            else { component2cell.put(component, cell); return; }
+//        }
+        
         if (parent != null) {
             parent.remove(component);
         }

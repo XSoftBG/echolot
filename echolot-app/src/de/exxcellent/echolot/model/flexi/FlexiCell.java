@@ -479,29 +479,29 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     }
         
-    /**
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FlexiCell other = (FlexiCell) obj;
-        if (this.rowId != other.rowId) {
-            return false;
-        }
-        if (this.colId != other.colId) {
-            return false;
-        }
-        if (this.component != other.component && (this.component == null || !this.component.equals(other.component))) {
-            return false;
-        }
-        return true;
-    }
+//    /**
+//     * @see java.lang.Object#equals(java.lang.Object)
+//     */
+//    @Override
+//    public boolean equals(Object obj) {
+//        if (obj == null) {
+//            return false;
+//        }
+//        if (getClass() != obj.getClass()) {
+//            return false;
+//        }
+//        final FlexiCell other = (FlexiCell) obj;
+//        if (this.rowId != other.rowId) {
+//            return false;
+//        }
+//        if (this.colId != other.colId) {
+//            return false;
+//        }
+//        if (this.component != other.component && (this.component == null || !this.component.equals(other.component))) {
+//            return false;
+//        }
+//        return true;
+//    }
 
     @Override
     public String toString() {

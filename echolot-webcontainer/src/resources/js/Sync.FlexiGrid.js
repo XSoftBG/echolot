@@ -411,7 +411,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _rowSelection: null,
     _renderRequired: null,
     _waitDialogHandle: null,
-            
+    
+    _counterSetPropsRequired: null,
             
     /**
      * Describes how a component is initially built.
@@ -458,6 +459,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         }
 
         this._renderRequired = true;
+        this._counterSetPropsRequired = true;
                 
         /** 
          * Create empty row selection.
@@ -522,7 +524,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 containerElement.removeChild(element);
                 Echo.Render.renderComponentAdd(update, this.component, containerElement);
                 return true;
-            } else {
+            } else {                
                 dataNotRendered = false;
                 
                 var options = this._renderUpdateOptions();
@@ -533,6 +535,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     var columnUpdates = update.getUpdatedProperty(exxcellent.FlexiGrid.COLUMNS_UPDATE);
                     this._flexigrid.flexUpdateColumns(this._fromJsonString(columnUpdates.newValue).columnsUpdate.updates);
                 }
+                
+                this._counterSetPropsRequired = true;
             }
         }
 
@@ -592,7 +596,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         console.log('FG: renderDisplay ' + this.component.renderId);
         if (this._renderRequired) {
             this._renderRequired = false;
-
             var options = this._renderOptions();
             this._flexigrid = $(this._table).flexigrid(options);
         }
@@ -826,48 +829,116 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         }
         return this._getActivePage();
     },
-            
+    
     _onPopulateFinish : function() {
-        
-        if (this._sortingModel && this._sortingModel.columns.length > 0) {
-          
-          
-            var f = function() {
-                console.log('fuck off');
-                if (!this.t.client)
-                    return; // Component has been disposed, do nothing.
-                this.c.set(this.p, this.v, false);
-            }
-          
-            this.component.getComponent(1).set("text", "miro", false);
-          
-            var indeces = this._flexigrid.flexGetCounterIndeces();
-            var counterComponent = this.component.getComponent(indeces[0]);
-            var counterLocalStyleData = counterComponent.getLocalStyleData();
-            for (var i = 1; i < indeces.length; i++) {
-                var c = this.component.getComponent(indeces[i]);
-                for (property in counterLocalStyleData) {
-                      if (!this.client.verifyInput(c)) {
-                          var _this = { t: this, c: c, p : "text", v : "miro"};
-                          this.client.registerRestrictionListener(c, Core.method(_this, f));
-                      }
-                      else {
-                          console.log('fuck off again ...');
-                          c.set(property, counterLocalStyleData[property], false);
-                      }
-                }
-            }
-        }
-        
         this.client.removeInputRestriction(this._waitDialogHandle);
         this._waitDialogHandle = null;
+        
+        var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+            if (this._flexigrid) {                
+                var indexes = this._flexigrid.flexGetCounterIndexes();
+                this._setCounterProps(indexes);
+                this._setCounterNumbers(indexes);
+                this.client.sync();
+                Core.Web.Scheduler.remove(runnable);
+            }
+        }), !this._flexigrid ? 125 : 1, true);
     },
-            
+    
     _onChangePage : function(newPageNo) {
         // notify listeners
         this.component.doChangePage(newPageNo);
     },
+    
+        /**
+     * Method to process the event of changing the sorting.
+     * {"sortingModel": {
+     *      "columns": [
+     *        {
+     *          "columnId": 5,
+     *          "sortOrder": 'desc'
+     *        },
+     *        {
+     *          "columnId": 10,
+     *            "sortOrder": 'asc'
+     *       }
+     *    ]
+     *   }}
+     * @param {} sortingModel containing columns with their name column name and sorting
+     */
+    _onChangeSorting : function (sortingModel) {
+        this._sortingModel = sortingModel;
 
+        var columnsArray = [];
+        if (sortingModel && sortingModel.columns) {
+            for (var i = 0; i < sortingModel.columns.length; i++) {
+                var column = sortingModel.columns[i];
+                columnsArray.push({
+                    columnId: column.columnId * 1, // convert it to a number
+                    sortOrder: column.sortOrder
+                }
+                );
+            }
+        }
+        var sortingObj = {
+            sortingModel : {
+                columns: {
+                    sortingColumn: columnsArray
+                }
+            }
+        };
+                
+        var jsonMessage = this._toJsonString(sortingObj);
+        if (this.component.render(exxcellent.FlexiGrid.CLIENT_SORTING)) {
+            // client-sorting will no longer work - so this will do just nothing :-)
+            this._sortClientSide();
+        }
+        
+        this._setCounterNumbers(this._flexigrid.flexGetCounterIndexes());
+        this.component.doChangeSorting(jsonMessage);
+    },
+
+    /**
+     * Method responsible to sort the current tableModel using the current sortingModel and current columnModel.
+     * The sorting is using the flexMultiSort algorithm and starts refreshing the table model after to redraw
+     * the table content. Actually we only set a new table model to refresh the table with the new sortModel.
+     */
+    _sortClientSide : function () {
+        return;
+        // After refactoring to lazy loading this does not work any more...
+        // if you need this feel free to implement a logic to sort a lazy-loaded model on client-side
+
+        /*
+         var newTableModel = new exxcellent.model.TableModel(this._tableModel.pages);
+         this.component.set(exxcellent.FlexiGrid.TABLEMODEL, newTableModel);
+         */
+    },
+    
+    _setCounterProps: function(indexes) {
+        if (this._counterSetPropsRequired && indexes.length != 0) {
+            var counterComponent = this.component.getComponent(indexes[0]);
+            var counterLocalStyleData = counterComponent.getLocalStyleData();
+            for (var i = 1; i < indexes.length; i++) {
+                var component = this.component.getComponent(indexes[i]);
+                for (var propName in counterLocalStyleData) {
+                    if (propName !== "text" && propName !== "layoutData") {
+                        component.set(propName, counterLocalStyleData[propName], false);
+                    }
+                }
+            }
+            this._counterSetPropsRequired = false;
+        }
+    },
+    
+    _setCounterNumbers: function(indexes) {
+        if (indexes.length != 0 && this._sortingModel && this._sortingModel.columns.length != 0) {
+            var startNo = (this._activePage.page - 1) * this._resultsPerPageOption.initialOption + 1;
+            for (var i = 1; i < indexes.length; i++) {
+                this.component.getComponent(indexes[i]).set("text", startNo++, false);
+            }
+        }
+    },
+    
     /**
      * Method to process the event on selecting a row / rows.
      * 
@@ -927,68 +998,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      */
     _onRpChange : function(initialOption) {
         this.component.doChangeResultsPerPage(initialOption);
-    },
-
-    /**
-     * Method to process the event of changing the sorting.
-     * {"sortingModel": {
-     *      "columns": [
-     *        {
-     *          "columnId": 5,
-     *          "sortOrder": 'desc'
-     *        },
-     *        {
-     *          "columnId": 10,
-     *            "sortOrder": 'asc'
-     *       }
-     *    ]
-     *   }}
-     * @param {} sortingModel containing columns with their name column name and sorting
-     */
-    _onChangeSorting : function (sortingModel) {
-        this._sortingModel = sortingModel;
-
-        var columnsArray = [];
-        if (sortingModel && sortingModel.columns) {
-            for (var i = 0; i < sortingModel.columns.length; i++) {
-                var column = sortingModel.columns[i];
-                columnsArray.push({
-                    columnId: column.columnId * 1, // convert it to a number
-                    sortOrder: column.sortOrder
-                }
-                );
-            }
-        }
-        var sortingObj = {
-            sortingModel : {
-                columns: {
-                    sortingColumn: columnsArray
-                }
-            }
-        };
-                
-        var jsonMessage = this._toJsonString(sortingObj);
-        if (this.component.render(exxcellent.FlexiGrid.CLIENT_SORTING)) {
-            // client-sorting will no longer work - so this will do just nothing :-)
-            this._sortClientSide();
-        }
-        this.component.doChangeSorting(jsonMessage);
-    },
-
-    /**
-     * Method responsible to sort the current tableModel using the current sortingModel and current columnModel.
-     * The sorting is using the flexMultiSort algorithm and starts refreshing the table model after to redraw
-     * the table content. Actually we only set a new table model to refresh the table with the new sortModel.
-     */
-    _sortClientSide : function () {
-        return;
-        // After refactoring to lazy loading this does not work any more...
-        // if you need this feel free to implement a logic to sort a lazy-loaded model on client-side
-
-        /*
-         var newTableModel = new exxcellent.model.TableModel(this._tableModel.pages);
-         this.component.set(exxcellent.FlexiGrid.TABLEMODEL, newTableModel);
-         */
     },
 
     /**
