@@ -265,6 +265,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         addOutputProperty(FlexiGrid.PROPERTY_ACTIVE_PAGE);
         addOutputProperty(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
         addOutputProperty(FlexiGrid.PROPERTY_RESULTS_PER_PAGE_OPTION);
+        addOutputProperty(FlexiGrid.PROPERTY_HEADER_VISIBLE);
       
         //* Event fired when ActivePage is changed */
         addEvent(new EventPeer(FlexiGrid.INPUT_ACTIVE_PAGE_CHANGED,
@@ -505,8 +506,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             FlexiColumnsUpdate updates = (FlexiColumnsUpdate) component.get(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
             String json = streamOut.toXML(updates);
             updates.clear();
-            return json;            
-        }        
+            return json;
+        }
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
 

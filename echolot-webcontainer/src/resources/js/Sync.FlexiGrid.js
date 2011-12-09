@@ -18,6 +18,8 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
         RESULTS_PPAGE_OPTION: "resultsPerPageOption",                
         RESULTS_PPAGE_OPTION_CHANGED: "resultsPerPageOptionChanged",
         
+        HEADER_VISIBLE: "headerVisible",
+        
         COLUMNS_UPDATE: "columnsUpdate",
         COL_UPDATE_TOOLTIP: "columnTooltip",
         COL_UPDATE_SORTABLE: "columnSortable",
@@ -601,7 +603,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         }
     },
 
-    _renderOptions: function() {
+    _renderOptions: function() {        
         var resultsPerPageOption = this._getResultsPerPageOption();
         var gridWidth = this.component.render(exxcellent.FlexiGrid.WIDTH);
         var gridHeight = this.component.render(exxcellent.FlexiGrid.HEIGHT);
@@ -628,6 +630,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             sortModel: this._getSortingModel(),
             colModel : this._getColumnModel().columns,
             showPageStat: this.component.render(exxcellent.FlexiGrid.SHOW_PAGE_STAT),
+            headerVisible: this.component.render(exxcellent.FlexiGrid.HEADER_VISIBLE, true),
             width: gridWidth ? Echo.Sync.Extent.toCssValue(gridWidth, true, true) : 'auto',
             height: gridHeight ? Echo.Sync.Extent.toCssValue(gridHeight, false, true) : 'auto',
             showTableToggleBtn: this.component.render(exxcellent.FlexiGrid.SHOWTABLE_TOGGLE),
@@ -839,8 +842,10 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 var indexes = this._flexigrid.flexGetCounterIndexes();
                 this._setCounterProps(indexes);
                 this._setCounterNumbers(indexes);
-                this.client.sync();
-                Core.Web.Scheduler.remove(runnable);
+                this.client.processUpdates();
+                Core.Web.Scheduler.remove(runnable);                
+                // this.client._syncRequested = true;
+                // Core.Web.Scheduler.run(Core.method(this.client, this.client.sync));                
             }
         }), !this._flexigrid ? 125 : 1, true);
     },

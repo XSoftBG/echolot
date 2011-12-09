@@ -382,7 +382,7 @@
 .flexigrid div.hDiv th
 {
     text-align: left;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid #ccc;
     border-left: 1px solid #fff;
     overflow: hidden;
 }
@@ -478,33 +478,40 @@ div.colCopy {
     float: right;
 }
 
+
+
+
+
+
+.flexigrid tr.erow > td
+{
+    background: #e7e7e7;
+    border-bottom: 1px solid #e7e7e7;
+}
+
 .flexigrid tr td.sorted
 {
-    background: #f3f3f3;
-    border-right: 1px solid #ddd;
-    border-bottom: 1px solid #f3f3f3;
-}		
+    background: #f0f0f0;
+    border-right: 1px solid #ccc;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.flexigrid tr.erow td.sorted
+{
+    background: #e0e0e0;
+    border-bottom: 1px solid #e0e0e0;
+}						
 
 .flexigrid tr td.sorted div
 {
 }
 
-
-.flexigrid tr.erow > td
-{
-    background: #f7f7f7;
-    border-bottom: 1px solid #f7f7f7;
-}
-
-.flexigrid tr.erow td.sorted
-{
-    background: #e3e3e3;
-    border-bottom: 1px solid #e3e3e3;
-}						
-
 .flexigrid tr.erow td.sorted > div
 {
 }
+
+
+
 
 .flexigrid div.pDiv
 {
@@ -672,12 +679,17 @@ div.pGroup
 
 .flexigrid div.bDiv > table:first-child > tbody > tr > td
 {
-    border-bottom: 1px solid #fff;
+    border-bottom: 1px solid #ccc;
     border-left: 1px solid #fff;
-    border-right: 1px solid #ddd;
+    border-right: 1px solid #ccc;
 
     overflow: hidden;
     white-space: nowrap;
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr:last-child > td
+{
+    border-bottom: 0px solid #ccc;
 }
 
 .flexigrid div.bDiv > table:first-child > tbody > tr > td > div
@@ -705,9 +717,9 @@ div.pGroup
 {
     background: HL_COLOR url(HL_IMG) repeat-x top;
     background-size: 100% 100%;
-    border-right: 1px solid #d2e3ec;
+/*    border-right: 1px solid #d2e3ec;
     border-left: 1px solid #eef8ff;
-    border-bottom: 1px solid #fcc24c;
+    border-bottom: 1px solid #fcc24c;*/
 }
 
 /* novstripe adjustments */

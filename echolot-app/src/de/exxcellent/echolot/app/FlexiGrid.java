@@ -215,6 +215,10 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public static final String PROPERTY_MIN_COLUMN_HEIGHT = "minColumnHeight";
     /**
+     * the minimal height of the grid if the user resizes
+     */
+    public static final String PROPERTY_HEADER_VISIBLE = "headerVisible";
+    /**
      * <code>true</code> if no wrap is enabled
      */
     public static final String PROPERTY_NO_WRAP = "noWrap";
@@ -373,6 +377,7 @@ public final class FlexiGrid extends Component implements Pane {
         setNoWrap(Boolean.TRUE);
         setSelectionMode(FlexiGrid.MULTI_SELECTION_MODE);
         set(PROPERTY_FLEXICOLUMNS_UPDATE, new FlexiColumnsUpdate());
+        setHeaderVisible(true);
 
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
@@ -584,6 +589,14 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public void setShowPager(boolean newValue) {
         set(PROPERTY_SHOW_PAGER, newValue);
+    }
+    
+    public boolean isHeaderVisible() {
+        return (Boolean) get(PROPERTY_HEADER_VISIBLE); 
+    }
+    
+    public void setHeaderVisible(boolean newValue) {
+        set(PROPERTY_HEADER_VISIBLE, newValue);
     }
 
     /**

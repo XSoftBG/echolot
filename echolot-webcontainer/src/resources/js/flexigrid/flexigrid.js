@@ -940,9 +940,9 @@
                         var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc].id));
                         qrow.children().each(addRowChildProp);
                         if (rc % 2 == 0 && p.striped) {
-                            qrow.addClass('erow');
-                        } else {
                             qrow.removeClass('erow');
+                        } else {                            
+                            qrow.addClass('erow');
                         }
                         qData.append(qrow);
                         rowsPerBatch--;
@@ -1503,8 +1503,8 @@
             },
             
             reloadPositions: function() {
-                g.hDiv.style.top = g.mDiv.offsetHeight + 'px';
-                g.bDiv.style.top = (g.hDiv.offsetTop + g.hDiv.offsetHeight) + 'px';
+                g.hDiv.style.top = g.mDiv.offsetHeight + 'px';                
+                g.bDiv.style.top = p.headerVisible ? (g.hDiv.offsetTop + g.hDiv.offsetHeight) + 'px' : g.hDiv.style.top;                
                 g.bDiv.style.bottom = g.pDiv.offsetHeight + 'px';
             }
         }; // --- EOF Grid Declaration (g)
@@ -1649,7 +1649,12 @@
 
         //set hDiv
         g.hDiv.className = 'hDiv';
-
+        if (!p.headerVisible) {
+            g.hDiv.style.visibility = 'hidden';
+            g.hDiv.style.height = '0px';          
+        }
+        
+        
         $(t).before(g.hDiv);
 
         //set hTable
@@ -1898,11 +1903,11 @@
         }
 
 
-        //add strip
-        if (p.striped)
-        {
-            $('tbody tr:odd', g.bDiv).addClass('erow');
-        }
+//        //add strip
+//        if (p.striped)
+//        {
+//            $('tbody tr:odd', g.bDiv).addClass('erow');
+//        }
 
         if (p.resizable && p.height !='auto')
         {
