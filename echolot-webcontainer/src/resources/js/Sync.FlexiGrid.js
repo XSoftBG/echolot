@@ -842,8 +842,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 var indexes = this._flexigrid.flexGetCounterIndexes();
                 this._setCounterProps(indexes);
                 this._setCounterNumbers(indexes);
-                this.client.processUpdates();
-                Core.Web.Scheduler.remove(runnable);                
+                Core.Web.Scheduler.remove(runnable);
+                
+                // this.client.processUpdates();                
                 // this.client._syncRequested = true;
                 // Core.Web.Scheduler.run(Core.method(this.client, this.client.sync));                
             }
@@ -853,6 +854,11 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _onChangePage : function(newPageNo) {
         // notify listeners
         this.component.doChangePage(newPageNo);
+        
+//        Core.Web.Scheduler.run(Core.method(this, function() {
+//            this.component.getComponent(0).set("text", Math.floor(Math.random()*11));
+//        }), 1000, true);
+
     },
     
         /**
