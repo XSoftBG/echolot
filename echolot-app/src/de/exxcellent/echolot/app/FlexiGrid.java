@@ -28,6 +28,7 @@
  */
 package de.exxcellent.echolot.app;
 
+import de.exxcellent.echolot.event.flexi.FlexiActivePageChangedEvent;
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 
 import de.exxcellent.echolot.model.flexi.FlexiCell;
@@ -47,6 +48,7 @@ import de.exxcellent.echolot.event.flexi.FlexiColumnToggleEvent;
 import de.exxcellent.echolot.event.flexi.FlexiRowSelectionEvent;
 import de.exxcellent.echolot.event.flexi.FlexiSortingChangeEvent;
 
+import de.exxcellent.echolot.listener.flexi.FlexiActivePageChangeListener;
 import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
 import de.exxcellent.echolot.listener.flexi.FlexiRPPOListener;
 import de.exxcellent.echolot.listener.flexi.FlexiColumnToggleListener;
@@ -181,27 +183,7 @@ public final class FlexiGrid extends Component implements Pane {
     /**
      * <code>true</code> if the results per page are shown
      */
-    public static final String PROPERTY_SHOW_RESULTS_PPAGE = "showResultsPerPage";
-    /**
-     * the message displayed if no items were found, e.g. "no items found"
-     */
-    public static final String PROPERTY_NO_ITEMS_MSG = "messageNoItems";
-    /**
-     * the message displayed while processing the data
-     */
-    public static final String PROPERTY_PROCESS_MSG = "messageProcessing";
-    /**
-     * the message displayed as tooltip on a column
-     */
-    public static final String PROPERTY_HIDE_COLUMN_MSG = "messageColumnHiding";
-    /**
-     * the message displayed on the button to hide the table
-     */
-    public static final String PROPERTY_MIN_TABLE_MSG = "messageTableHiding";
-    /**
-     * the message displayed as page statistics
-     */
-    public static final String PROPERTY_PAGE_STATISTICS_MSG = "messagePageStatistics";
+    public static final String PROPERTY_SHOW_RESULTS_PPAGE = "showResultsPerPage";        
     /**
      * the state if the even and odd rows have different colors, i.e. "striped".
      */
@@ -307,44 +289,97 @@ public final class FlexiGrid extends Component implements Pane {
     private static final ImageReference LOAD_BTN_IMG =
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/load.gif");
     
-    private static long nextID = 0;
     
     /**
-     * This is due to the lack of knowledge how to force a sync on the client.
+     * the message displayed if no items were found, e.g. "no items found"
      */
+    public static final String PROPERTY_NO_ITEMS_MSG = "messageNoItems";
+    /**
+     * the message displayed while processing the data
+     */
+    public static final String PROPERTY_PROCESS_MSG = "messageProcessing";
+    /**
+     * the message displayed as tooltip on a column
+     */
+    public static final String PROPERTY_HIDE_COLUMN_MSG = "messageColumnHiding";
+    /**
+     * the message displayed on the button to hide the table
+     */
+    public static final String PROPERTY_MIN_TABLE_MSG = "messageTableHiding";
+    /**
+     * the message displayed as page statistics
+     */
+    public static final String PROPERTY_PAGE_STATISTICS_MSG = "messagePageStatistics";
+
+    public static final String PROPERTY_PAGE_WORD = "wordPage";
+    public static final String PROPERTY_OF_WORD = "wordOf";
+    
+    
+    // * Bulgarian translate:
+    public static final String LANG_BG = "BG";
+    private static final String MSG_PAGE_STATISTICS_BG = "Показани {from} до {to} от {total} елемента.";
+    private static final String MSG_PROCESSING_BG = "Обработва се, моля изчакайте ...";
+    private static final String MSG_COLUMN_HIDING_BG = "Показване/Скриване на колони";
+    private static final String MSG_TABLE_HIDING_BG = "Свиване/Разширяване на таблицата";
+    private static final String MSG_NO_ITEMS_BG = "Няма елементи.";
+    private static final String WORD_PAGE_BG = "Страница";
+    private static final String WORD_OF_BG = "от";
+    
+    // * English translate:
+    public static final String LANG_EN = "EN";
+    private static final String MSG_PAGE_STATISTICS_EN = "Displaying {from} to {to} of {total} items";
+    private static final String MSG_PROCESSING_EN = "Processing, please wait ...";
+    private static final String MSG_COLUMN_HIDING_EN = "Hide/Show Columns";
+    private static final String MSG_TABLE_HIDING_EN = "Minimize/Maximize Table";
+    private static final String MSG_NO_ITEMS_EN = "No Items";
+    private static final String WORD_PAGE_EN = "Page";
+    private static final String WORD_OF_EN = "of";
+    
+    
+    
+    private static long nextID = 0;
+        
+    private final FlexiActivePageChangeListener TABLE_AP_CHANGE_LISTENER = new FlexiActivePageChangeListener() {
+      
+        @Override
+        public void activePageChanged(FlexiActivePageChangedEvent e) {
+            tableModel.onActivePageChange(e.getNewPageNo());
+        }
+    };    
+    
     private final FlexiSortingChangeListener TABLE_SORTING_CHANGE_LISTENER = new FlexiSortingChangeListener() {
 
         @Override
         public void sortingChange(FlexiSortingChangeEvent e) {
-            FlexiGrid.this.set(
-                    FlexiGrid.PROPERTY_SORTINGMODEL,
-                    e.getSortingModel(),
-                    false);
+            FlexiGrid.this.set(FlexiGrid.PROPERTY_SORTINGMODEL, e.getSortingModel(), false);
+            if (FlexiGrid.this.getShowPager()) {
+                tableModel.onSort(e.getSortingModel());
+                // tableModel.onActivePageChange(activePageIdx);
+            }
         }
     };
+    
     private final FlexiRowSelectionListener TABLE_RS_CHANGE_LISTENER = new FlexiRowSelectionListener() {
 
         @Override
         public void rowSelection(FlexiRowSelectionEvent e) {
-            FlexiGrid.this.set(
-                    FlexiGrid.PROPERTY_TABLE_ROW_SELECTION,
-                    e.getRowSelection().getAllSelectedRowsIds(),
-                    false);
+            FlexiGrid.this.set(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION, e.getRowSelection().getAllSelectedRowsIds(), false);
         }
     };
+    
     private final FlexiRPPOListener TABLE_RPPO_CHANGE_LISTENER = new FlexiRPPOListener() {
 
         @Override
         public void resultsPerPageChange(FlexiRPPOEvent e) {
             ResultsPerPageOption currentRPPO = getResultsPerPageOption();
             setResultsPerPageOption(new ResultsPerPageOption(e.getNewIntialOption(), currentRPPO.getPageOption()));
-            setActivePage(1);
+            tableModel.onActivePageChange(1);
         }
     };
+    
     private final String renderId;
     private FlexiTableModel tableModel;
     private int activePageIdx = -1;
-    private FlexiSortingModel sortingModel;
     private final FlexiColumnPropertyChangeListener FLEXICOLUMN_PROPERTY_CHANGE_LISTENER = new FlexiColumnPropertyChangeListener();
     private final FlexiColumnsUpdate columnsUpdate = new FlexiColumnsUpdate();
 
@@ -352,10 +387,10 @@ public final class FlexiGrid extends Component implements Pane {
      * Default constructor for a {@link FlexiGrid}. Sets the several default values.
      */
     public FlexiGrid() {
-        this("No items", "Processing, please wait ...", "Displaying {from} to {to} of {total} items");
+        this(LANG_EN);
     }
 
-    public FlexiGrid(String noItemsMsg, String processingMsg, String pageStatisticsMsg) {
+    public FlexiGrid(String lang) {
         super();
 
         this.renderId = "FG" + nextID++;
@@ -368,9 +403,33 @@ public final class FlexiGrid extends Component implements Pane {
         setShowTableToggleButton(Boolean.TRUE);
         setShowPager(Boolean.TRUE);
         setShowResultsPerPage(Boolean.TRUE);
-        setMessageNoItems(noItemsMsg);
-        setMessageProcessing(processingMsg);
-        setMessagePageStatistics(pageStatisticsMsg);
+        
+        String psm = MSG_PAGE_STATISTICS_EN;
+        String pm  = MSG_PROCESSING_EN;
+        String chm = MSG_COLUMN_HIDING_EN;
+        String thm = MSG_TABLE_HIDING_EN;
+        String nim = MSG_NO_ITEMS_EN;
+        String pw  = WORD_PAGE_EN;
+        String ow  = WORD_OF_EN;
+        
+        if (lang.equalsIgnoreCase(LANG_BG)) {
+            psm = MSG_PAGE_STATISTICS_BG;
+            pm  = MSG_PROCESSING_BG;
+            chm = MSG_COLUMN_HIDING_BG;
+            thm = MSG_TABLE_HIDING_BG;
+            nim = MSG_NO_ITEMS_BG;
+            pw  = WORD_PAGE_BG;
+            ow  = WORD_OF_BG;
+        }
+        
+        setMessagePageStatistics(psm);
+        setMessageProcessing(pm);
+        setMessageColumnHiding(chm);
+        setMessageTableHiding(thm);
+        setMessageNoItems(nim);
+        set(PROPERTY_PAGE_WORD, pw);
+        set(PROPERTY_OF_WORD, ow);
+        
         setStriped(Boolean.TRUE);
         setMinimalColumnWidth(30);
         setMinimalColumnHeight(80);
@@ -378,6 +437,7 @@ public final class FlexiGrid extends Component implements Pane {
         setSelectionMode(FlexiGrid.MULTI_SELECTION_MODE);
         set(PROPERTY_FLEXICOLUMNS_UPDATE, new FlexiColumnsUpdate());
         setHeaderVisible(true);
+        set(PROPERTY_TABLE_ROW_SELECTION, new Integer[0], false);
 
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
@@ -398,7 +458,7 @@ public final class FlexiGrid extends Component implements Pane {
         set(PROPERTY_LOAD_IMG, LOAD_IMG);
         set(PROPERTY_LOAD_BTN_IMG, LOAD_BTN_IMG);
 
-        // this is due to the lack of knowledge how to force a sync on the client
+        addActivePageChangeListener(TABLE_AP_CHANGE_LISTENER);
         addTableSortingChangeListener(TABLE_SORTING_CHANGE_LISTENER);
         addTableRowSelectionListener(TABLE_RS_CHANGE_LISTENER);
         addResultsPerPageOptionChangeListener(TABLE_RPPO_CHANGE_LISTENER);
@@ -486,7 +546,7 @@ public final class FlexiGrid extends Component implements Pane {
         
         // data in model is ready adn set active page
         // ------------------------------------------
-        setActivePage(1);
+        tableModel.onActivePageChange(1);
     }
 
     /**
@@ -536,7 +596,7 @@ public final class FlexiGrid extends Component implements Pane {
         activePageIdx = page;
         FlexiPage requestedPage = null;
         if (tableModel == null) {
-            requestedPage = new FlexiPage(1, 1, new FlexiRow[0]);
+            requestedPage = new FlexiPage(1, 0, new FlexiRow[0]);
         } else {
             requestedPage = makePage(page);
         }
@@ -606,15 +666,6 @@ public final class FlexiGrid extends Component implements Pane {
      */
     public void clearSelection() {
         set(PROPERTY_TABLE_ROW_SELECTION, new Integer[0], true);
-    }
-
-    /**
-     * Sets the message displayed if no items were found, e.g. "no items found".
-     *
-     * @param newValue the message displayed if no items were found
-     */
-    public void setMessageNoItems(String newValue) {
-        set(PROPERTY_NO_ITEMS_MSG, newValue);
     }
 
     /**
@@ -851,6 +902,15 @@ public final class FlexiGrid extends Component implements Pane {
     public String getMessageNoItems() {
         return (String) get(PROPERTY_NO_ITEMS_MSG);
     }
+        
+    /**
+     * Sets the message displayed if no items were found, e.g. "no items found".
+     *
+     * @param newValue the message displayed if no items were found
+     */
+    public void setMessageNoItems(String newValue) {
+        set(PROPERTY_NO_ITEMS_MSG, newValue);
+    }
 
     /**
      * Returns current selected rows' ids.
@@ -870,7 +930,7 @@ public final class FlexiGrid extends Component implements Pane {
      *
      * @param newPage the active page to be set to current
      */
-    private void setActivePage(final FlexiPage newPage) {
+    public void setActivePage(final FlexiPage newPage) {
         clearSelection();
         set(PROPERTY_ACTIVE_PAGE, newPage);
     }
@@ -927,9 +987,7 @@ public final class FlexiGrid extends Component implements Pane {
      * @param newSortingModel The sorting model to be represented in this component.
      */
     public void setSortingModel(final FlexiSortingModel newSortingModel) {
-        final FlexiSortingModel oldSortingModel = sortingModel;
         set(PROPERTY_SORTINGMODEL, newSortingModel);
-        firePropertyChange(PROPERTY_SORTINGMODEL, oldSortingModel, newSortingModel);
     }
 
     /**
@@ -938,8 +996,7 @@ public final class FlexiGrid extends Component implements Pane {
      * @return The sorting model object or {@code null} if no such exists.
      */
     public FlexiSortingModel getSortingModel() {
-        sortingModel = (FlexiSortingModel) get(PROPERTY_SORTINGMODEL);
-        return sortingModel;
+        return (FlexiSortingModel) get(PROPERTY_SORTINGMODEL);
     }
 
     /**
@@ -1197,6 +1254,26 @@ public final class FlexiGrid extends Component implements Pane {
         getEventListenerList().removeListener(FlexiRPPOListener.class, l);
         firePropertyChange(RESULTS_PER_PAGE_OPTION_LISTENERS_CHANGED_PROPERTY, l, null);
     }
+    
+    /**
+     * Adds a {@link FlexiActivePageChangeListener}.
+     *
+     * @param l will be informed if active page changed
+     */
+    public void addActivePageChangeListener(FlexiActivePageChangeListener l) {
+        getEventListenerList().addListener(FlexiActivePageChangeListener.class, l);
+        firePropertyChange(TABLE_ACTIVE_PAGE_LISTENERS_CHANGED_PROPERTY, null, l);
+    }
+
+    /**
+     * Removes a {@link FlexiActivePageChangeListener}
+     *
+     * @param l will be removed from listener list.
+     */
+    public void removeActivePageChangeListener(FlexiActivePageChangeListener l) {
+        getEventListenerList().removeListener(FlexiActivePageChangeListener.class, l);
+        firePropertyChange(TABLE_ACTIVE_PAGE_LISTENERS_CHANGED_PROPERTY, l, null);
+    }
 
     /**
      * Processes a user request to select a row with the given parameter.
@@ -1217,7 +1294,7 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     /**
-     * Processes a user request to change the sorting of columns
+     * Processes a user request to change the sorting of columns.
      *
      * @param sortingModel the object containing information about the sorting
      */
@@ -1225,9 +1302,22 @@ public final class FlexiGrid extends Component implements Pane {
         fireTableSortingChange(sortingModel);
     }
 
-    // by sieskei
+    /**
+     * Processes a user request to change the results per page.
+     *
+     * @param pageNo the new rows per page count
+     */
     public void userResultsPerPageOptionChange(Integer initialOption) {
         fireResultsPerPageOptionChange(initialOption);
+    }
+    
+    /**
+     * Processes a user request to change the current active page.
+     *
+     * @param pageNo the new active page no
+     */
+    public void userActivePageChange(Integer pageNo) {
+        fireActivePageChange(pageNo);
     }
 
     /**
@@ -1297,6 +1387,23 @@ public final class FlexiGrid extends Component implements Pane {
             ((FlexiRPPOListener) listeners[i]).resultsPerPageChange(e);
         }
     }
+    
+    /**
+     * Notifies <code>FlexiActivePageChangeListener</code>s that the user has changed the current active page.
+     */
+    protected void fireActivePageChange(Integer pageNo) {
+        if (!hasEventListenerList()) {
+            return;
+        }
+        EventListener[] listeners = getEventListenerList().getListeners(FlexiActivePageChangeListener.class);
+        if (listeners.length == 0) {
+            return;
+        }
+        FlexiActivePageChangedEvent e = new FlexiActivePageChangedEvent(this, pageNo);
+        for (int i = 0; i < listeners.length; ++i) {
+            ((FlexiActivePageChangeListener) listeners[i]).activePageChanged(e);
+        }
+    }
 
     /**
      * Determines the any <code>FlexiRowSelectionListener</code>s are registered.
@@ -1345,6 +1452,19 @@ public final class FlexiGrid extends Component implements Pane {
         }
         return getEventListenerList().getListenerCount(FlexiRPPOListener.class) > 0;
     }
+    
+    /**
+     * Determines the any <code>FlexiRPPOListener</code>s are registered.
+     *
+     * @return true if any <code>FlexiRPPOListener</code>s are registered
+     */
+    public boolean hasActivePageChangedListeners() {
+        if (!hasEventListenerList()) {
+            return false;
+        }
+        return getEventListenerList().getListenerCount(FlexiActivePageChangeListener.class) > 0;
+    }
+        
     /**
      * The content of each rendered row.
      * <ul>
@@ -1420,6 +1540,13 @@ public final class FlexiGrid extends Component implements Pane {
             maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
             newCells.add(cc);
         }
+        
+//        // if sorting model exists then ask tablemodel for sorting ...
+//        // -----------------------------------------------------------
+//        FlexiSortingModel sortingModel = getSortingModel();
+//        if (sortingModel != null) {
+//            tableModel.onSort(sortingModel);
+//        }
         
         final int totalRows = tableModel.getRowCount();
         final boolean showPager = getShowPager();
@@ -1858,7 +1985,7 @@ public final class FlexiGrid extends Component implements Pane {
                 // table has new rows
                 // ------------------
                 case FlexiTableModelEvent.INSERT_ROWS:
-                    setLastActivePage();
+                    tableModel.onActivePageChange(getTotalPageCount());
                     break;
                 // table has deleted rows
                 // ----------------------
@@ -1868,7 +1995,7 @@ public final class FlexiGrid extends Component implements Pane {
                     if (currentPageIdx > lastPageIdx) {
                         currentPageIdx = lastPageIdx;
                     }
-                    setActivePage(currentPageIdx);
+                    tableModel.onActivePageChange(currentPageIdx);
                     break;
                 case FlexiTableModelEvent.INSERT_COLUMNS:
                     // nothing at now ...
@@ -1888,12 +2015,7 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     private void internalAdd(FlexiCell cell, Component component, int index) {
-        Component parent = component.getParent();
-//        if (parent != null) {
-//            if (parent != this) { parent.remove(component); }
-//            else { component2cell.put(component, cell); return; }
-//        }
-        
+        Component parent = component.getParent();        
         if (parent != null) {
             parent.remove(component);
         }

@@ -695,7 +695,7 @@ div.pGroup
 .flexigrid div.bDiv > table:first-child > tbody > tr > td > div
 {
     border-left: 0px solid #fff;
-    white-space: normal;
+/*    white-space: normal;*/
 }
 
 .flexigrid div.bDiv > table:first-child > tbody > tr:hover > td, 

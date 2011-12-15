@@ -44,6 +44,8 @@
             query: '',
             qtype: '',
             nomsg: 'No items',
+            pageWord: 'Page',
+            ofWord: 'of',
             minColToggle: 1, //minimum allowed column to be hidden
             showToggleBtn: true, //show or hide column toggle popup
             showPageStat: true,// show or hide the page statistics in the footer
@@ -543,6 +545,7 @@
             },
 
             addData: function (data) {
+                this.data = data;
                 if (!data) {
                     // There is no data after loading. Interrupt the loading here,
                     // set busy to to false and display an error message.
@@ -566,21 +569,18 @@
                     p.pages = 1;
                     p.page = 1;
                     finalizeRendering();
-                    $('.pPageStat', this.pDiv).html(p.nomsg);
-                    
-                    //this.buildpager();
-                    //$('.pPageStat',this.pDiv).html(p.nomsg);
-                    // Call the onSuccess hook (if present).
-                    //if (p.onSuccess) {
-                    //    p.onSuccess.call(p.owner);
-                    //}
-                    //g.setBusy(false);
-                    
+                    $('.pPageStat', this.pDiv).html(p.nomsg);                    
                     return false;
                 }
                 
-                
-                    
+                // if sorting model exists anr resultsperpage == -1 then sort data ...
+                if (p.rp == -1 && this.data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {                
+                    this.multiSort(
+                        p.sortModel, 
+                        new exxcellent.model.ColumnModel(p.colModel), 
+                        new exxcellent.model.TableModel(new Array(this.data))
+                    );
+                }
                 
                 // Build new tbody...
                 var tbody = document.createElement('tbody');
@@ -846,15 +846,9 @@
             /**
 			 * On change sort.
 			 */
-            changeSort: function(th, multiSelect) { //change sortorder
-                if (p.debug){
-                    var startTime = new Date();
-                }
-
+            changeSort: function(th, multiSelect) {
                 if (this.loading) return true;
-
-                // we are sorting, so visualize the processing
-                this.setBusy(true);
+               
                 $(g.nDiv).hide();
                 $(g.nBtn).hide();
 
@@ -895,7 +889,7 @@
                             }
                         }
                     } else {
-                        var sortColumn = new Object({
+                        sortColumn = new Object({
                             columnId: abbrSelector,
                             columnIdx: columnIdx,
                             sortOrder: ($(thdiv).hasClass('sasc')? 'asc':'desc')
@@ -907,7 +901,7 @@
                 else if (!isSorted) {
                     $(th).addClass('sorted');
                     thdiv.addClass('s' + p.sortorder);
-                    var sortColumn = new Object({
+                    sortColumn = new Object({
                         columnId: abbrSelector,
                         columnIdx: columnIdx,
                         sortOrder: p.sortorder
@@ -915,56 +909,56 @@
                     p.sortModel.columns.push(sortColumn);
                 }
                 
-                var clonedData = JSON.parse(JSON.stringify(this.data));                
-                this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(clonedData)));
-                this.data = clonedData;
-                
-                var sortedColumns = [];
-                $(p.sortModel.columns).each(function(i, col) {
-                    sortedColumns.push(col.columnIdx);
-                });
-                
-                var addRowChildProp = function(i, child) {
-                    if (Core.Arrays.indexOf(sortedColumns, i) >= 0) {
-                        $(child).addClass('sorted');
-                    } else {
-                        $(child).removeClass('sorted');
-                    }
-                } 
-                
-                var qData = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
-                var rc = 0;
-                var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-                    var rowsPerBatch = 50;
-                    while(rowsPerBatch > 0 && clonedData.rows.length > rc) {
-                        var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc].id));
-                        qrow.children().each(addRowChildProp);
-                        if (rc % 2 == 0 && p.striped) {
-                            qrow.removeClass('erow');
-                        } else {                            
-                            qrow.addClass('erow');
-                        }
-                        qData.append(qrow);
-                        rowsPerBatch--;
-                        rc++;
-                    }
+                if (p.rp != -1) {
+                  if (p.onChangeSort) {
+                      p.onChangeSort.call(p.owner, p.sortModel);
+                  }
+                } else {
+                    // we are sorting, so visualize the processing
+                    this.setBusy(true);
                     
-                    if (rc == clonedData.rows.length) {
-                        Core.Web.Scheduler.remove(runnable);
-                        g.setBusy(false);
-                        if (p.onChangeSort){
-                            /* ECHO3 we need the owner of the object as 'this'. */
-                            p.onChangeSort.call(p.owner, p.sortModel);
+                    var clonedData = JSON.parse(JSON.stringify(this.data));                
+                    this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(clonedData)));
+                    this.data = clonedData;
+
+                    var sortedColumns = [];
+                    $(p.sortModel.columns).each(function(i, col) {
+                        sortedColumns.push(col.columnIdx);
+                    });
+
+                    var addRowChildProp = function(i, child) {
+                        if (Core.Arrays.indexOf(sortedColumns, i) >= 0) {
+                            $(child).addClass('sorted');
+                        } else {
+                            $(child).removeClass('sorted');
                         }
-                    }
-                }), 1, true);
-                                
-                if (p.debug && window.console && window.console.log) {
-                    // If debugging is enabled log the duration of this operation.
-                    var nowTime = new Date();
-                    var multiSelectMsg = multiSelect ? 'yes':'no';
-                    console.log('Change sort to ' + sortColumn.sortOrder + ' for column ' + sortColumn.columnId + ':'
-                        + (nowTime - startTime) + 'ms' + ' (CRTL pressed: ' + multiSelectMsg + ')');
+                    } 
+
+                    var qData = $('#' + $.fn.fixID(p.ownerId + '.DATA'));
+                    var rc = 0;
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                        var rowsPerBatch = 50;
+                        while(rowsPerBatch > 0 && clonedData.rows.length > rc) {
+                            var qrow = $('#' + $.fn.fixID(p.ownerId + '.ROW.' + clonedData.rows[rc].id));
+                            qrow.children().each(addRowChildProp);
+                            if (rc % 2 == 0 && p.striped) {
+                                qrow.removeClass('erow');
+                            } else {                            
+                                qrow.addClass('erow');
+                            }
+                            qData.append(qrow);
+                            rowsPerBatch--;
+                            rc++;
+                        }
+
+                        if (rc == clonedData.rows.length) {
+                            Core.Web.Scheduler.remove(runnable);
+                            g.setBusy(false);
+                            if (p.onChangeSort){
+                                p.onChangeSort.call(p.owner, p.sortModel);
+                            }
+                        }
+                    }), 1, true);
                 }
             },
 
@@ -1086,12 +1080,13 @@
                     }
                 }
                 /* COMMENT-ECHO3: We need to use echo3 calls instead of ajax URL based approach. */
-                data = p.onPopulateCallback.call(p.owner, data);
-                this.data = data;
+                data = p.onPopulateCallback.call(p.owner, data);                
                 g.addData(data);
-                if (data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {                
-                    this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
-                }
+                
+//                this.data = data;
+//                if (data && p.clientsort && p.sortModel && p.sortModel.columns.length > 0) {                
+//                    this.multiSort(p.sortModel, new exxcellent.model.ColumnModel(p.colModel), new exxcellent.model.TableModel(new Array(data)));
+//                }
                 
 //                /* COMMENT-ECHO3: Notify for selection */
 //                g.notifyForSelection();
@@ -1950,9 +1945,14 @@
             if (p.usepager) {
                 var pagerHtml = ' <div class="pGroup"> <div class="pFirst pButton"><span></span></div>' +
                 '<div class="pPrev pButton"><span></span></div> </div> <div class="btnseparator"></div> ' +
-                '<div class="pGroup"><span class="pcontrol">Page <input type="text" size="4" value="1" /> of <span> 1 </span>' +
+                '<div class="pGroup"><span class="pcontrol">{page} <input type="text" size="4" value="1" /> {of} <span> 1 </span>' +
                 '</span></div> <div class="btnseparator"></div> <div class="pGroup"> <div class="pNext pButton">' +
                 '<span></span></div><div class="pLast pButton"><span></span></div> </div>';
+              
+                pagerHtml = pagerHtml.replace(/{page}/, p.pageWord);
+                pagerHtml = pagerHtml.replace(/{of}/, p.ofWord);              
+              
+              
                 $('div',g.pDiv).html(pagerHtml);
                 // register events for pager
                 $('.pReload',g.pDiv).click(function(){

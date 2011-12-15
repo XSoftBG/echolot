@@ -49,8 +49,15 @@ import java.util.Arrays;
  * @author Oliver Pehnke <o.pehnke@exxcellent.de>
  */
 public class FlexiSortingModel implements Serializable {
-    private FlexiSortingColumn[] columns;
+    private final FlexiSortingColumn[] columns;
 
+    /**
+     * Default constructor.
+     */
+    public FlexiSortingModel() { 
+        this(new FlexiSortingColumn[0]);
+    }
+    
     /**
      * Creates a {@link FlexiSortingModel} with a set of columns defining the sorting order per column.
      * 
@@ -64,13 +71,31 @@ public class FlexiSortingModel implements Serializable {
     public FlexiSortingColumn[] getColumns() {
         return columns;
     }
-
-    public void setColumns(FlexiSortingColumn[] columns) {
-        this.columns = columns;
-    }
     
     @Override
     public String toString() {
         return Arrays.toString(columns);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj == null) {
+          return false;
+      }
+      if (getClass() != obj.getClass()) {
+          return false;
+      }
+      final FlexiSortingModel other = (FlexiSortingModel) obj;
+      if (!Arrays.deepEquals(this.columns, other.columns)) {
+          return false;
+      }
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 41 * hash + Arrays.deepHashCode(this.columns);
+        return hash;
     }
 }

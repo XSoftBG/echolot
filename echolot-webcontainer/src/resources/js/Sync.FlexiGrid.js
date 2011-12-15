@@ -45,12 +45,16 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
         COLUMNMODEL : "columnModel",
         SHOW_PAGER : "showPager",
         SHOW_PAGE_STAT : "showPageStatistics",
-        SHOW_RESULTS_PPAGE: "showResultsPerPage",                
-        NO_ITEMS_MSG : "noItemsMessage",
+        SHOW_RESULTS_PPAGE: "showResultsPerPage",
+        
+        NO_ITEMS_MSG : "messageNoItems",
         PROCESS_MSG : "messageProcessing",
         HIDE_COLUMN_MSG : "messageColumnHiding",
         MIN_TABLE_MSG : "messageTableHiding",
         PAGE_STATISTICS_MSG : "messagePageStatistics",
+        PAGE_WORD : "wordPage",
+        OF_WORD : "wordOf",
+        
         RESIZABLE : "resizable",
         STRIPED : "striped",
         MIN_COLUMN_WIDTH : "minColumnWidth",
@@ -644,6 +648,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             nsr: $.makeArray(rs.nsr),
             nur: $.makeArray(rs.nur),
             nomsg: this.component.render(exxcellent.FlexiGrid.NO_ITEMS_MSG),
+            pageWord: this.component.render(exxcellent.FlexiGrid.PAGE_WORD),
+            ofWord: this.component.render(exxcellent.FlexiGrid.OF_WORD),
             procmsg: this.component.render(exxcellent.FlexiGrid.PROCESS_MSG),
             hidecolmsg: this.component.render(exxcellent.FlexiGrid.HIDE_COLUMN_MSG),
             mintablemsg: this.component.render(exxcellent.FlexiGrid.MIN_TABLE_MSG),
@@ -680,7 +686,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             osr: $.makeArray(rs.osr),
             nsr: $.makeArray(rs.nsr),
             nur: $.makeArray(rs.nur),
-            nomsg: this.component.render(exxcellent.FlexiGrid.NO_ITEMS_MSG),
+            nomsg: this.component.render(exxcellent.FlexiGrid.NO_ITEMS_MSG),            
+            pageWord: this.component.render(exxcellent.FlexiGrid.PAGE_WORD),
+            ofWord: this.component.render(exxcellent.FlexiGrid.OF_WORD),
             procmsg: this.component.render(exxcellent.FlexiGrid.PROCESS_MSG),
             hidecolmsg: this.component.render(exxcellent.FlexiGrid.HIDE_COLUMN_MSG),
             mintablemsg: this.component.render(exxcellent.FlexiGrid.MIN_TABLE_MSG),
@@ -728,6 +736,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
     _getActivePage : function() {
         var value = this.component.render(exxcellent.FlexiGrid.ACTIVE_PAGE);
+        if (!value) {
+            return null;
+        }
         if (value && value instanceof exxcellent.model.Page) {
             // Client-side usage: property containts page model
             this._activePage = value;
@@ -842,11 +853,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                 var indexes = this._flexigrid.flexGetCounterIndexes();
                 this._setCounterProps(indexes);
                 this._setCounterNumbers(indexes);
-                Core.Web.Scheduler.remove(runnable);
-                
-                // this.client.processUpdates();                
-                // this.client._syncRequested = true;
-                // Core.Web.Scheduler.run(Core.method(this.client, this.client.sync));                
+                Core.Web.Scheduler.remove(runnable);              
             }
         }), !this._flexigrid ? 125 : 1, true);
     },
@@ -854,11 +861,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _onChangePage : function(newPageNo) {
         // notify listeners
         this.component.doChangePage(newPageNo);
-        
-//        Core.Web.Scheduler.run(Core.method(this, function() {
-//            this.component.getComponent(0).set("text", Math.floor(Math.random()*11));
-//        }), 1000, true);
-
     },
     
         /**
@@ -905,7 +907,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             this._sortClientSide();
         }
         
-        this._setCounterNumbers(this._flexigrid.flexGetCounterIndexes());
+        if (this._resultsPerPageOption.initialOption == -1) {
+          this._setCounterNumbers(this._flexigrid.flexGetCounterIndexes());
+        }
         this.component.doChangeSorting(jsonMessage);
     },
 

@@ -29,7 +29,6 @@
 
 package de.exxcellent.echolot.model.flexi;
 
-import de.exxcellent.echolot.listener.flexi.FlexiRPPOListener;
 import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
 import java.io.Serializable;
 
@@ -77,6 +76,16 @@ public interface FlexiTableModel extends Serializable {
     // * Cells methods
     // ---------------
     public FlexiCell getCellAt(int rowIndex, int columnIndex);
+    
+    /**
+     * Server-side sorting.
+     * <br />
+     * <b>Call only when pagable mode is turn ON;</b>
+     * @param model - new sorting model;
+     */
+    public void onSort(FlexiSortingModel model);
+    
+    public void onActivePageChange(int pageNo);
     
     // * Listeners
     // -----------

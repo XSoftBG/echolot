@@ -273,13 +273,12 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
                 Integer.class) {
             @Override
             public boolean hasListeners(Context context, Component c) {
-                return true;
+                return ((FlexiGrid) c).hasActivePageChangedListeners();
             }
 
             @Override
             public void processEvent(Context context, Component component, Object eventData) {
-                final FlexiGrid flexigrid = (FlexiGrid) component;
-                flexigrid.setActivePage((Integer) eventData);
+                ((FlexiGrid) component).userActivePageChange((Integer) eventData);
             }
         });
         
@@ -493,7 +492,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
     @Override
     public Object getOutputProperty(final Context context, final Component component, final String propertyName, final int propertyIndex) {            
         if (FlexiGrid.PROPERTY_ACTIVE_PAGE.equals(propertyName)) {
-            return streamOut.toXML(((FlexiGrid) component).getActivePage());
+            FlexiPage activePage = ((FlexiGrid) component).getActivePage();
+            return activePage == null ? null : streamOut.toXML(activePage);
         } else if (FlexiGrid.PROPERTY_COLUMNMODEL.equals(propertyName)) {
             return streamOut.toXML(((FlexiGrid) component).getColumnModel());
         } else if (FlexiGrid.PROPERTY_RESULTS_PER_PAGE_OPTION.equals(propertyName)) {

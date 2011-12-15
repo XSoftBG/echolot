@@ -29,6 +29,7 @@
 
 package de.exxcellent.echolot.model.flexi;
 
+import de.exxcellent.echolot.app.FlexiGrid;
 import de.exxcellent.echolot.event.flexi.FlexiTableModelEvent;
 import de.exxcellent.echolot.listener.flexi.FlexiTableModelListener;
 import java.util.EventListener;
@@ -40,6 +41,11 @@ import nextapp.echo.app.event.EventListenerList;
  */
 public abstract class AbstractFlexiTableModel implements FlexiTableModel {    
     private EventListenerList listenerList = new EventListenerList();
+    private final FlexiGrid owner;
+
+    public AbstractFlexiTableModel(FlexiGrid owner) {
+      this.owner = owner;
+    }
     
     /**
      * @see nextapp.echo.app.table.TableModel#addTableModelListener(nextapp.echo.app.event.TableModelListener)
@@ -108,5 +114,10 @@ public abstract class AbstractFlexiTableModel implements FlexiTableModel {
     @Override
     public int getColumnIdAt(int columnIndex) {
         return getColumnAt(columnIndex).getId();
+    }
+
+    @Override
+    public void onActivePageChange(int pageNo) {
+        owner.setActivePage(pageNo);
     }
 }

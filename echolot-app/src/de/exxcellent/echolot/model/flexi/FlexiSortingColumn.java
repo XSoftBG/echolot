@@ -76,6 +76,32 @@ public class FlexiSortingColumn implements Serializable {
     public String toString() {
         return "Column " + columnId + ", " + getSortingDirection().name();
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final FlexiSortingColumn other = (FlexiSortingColumn) obj;
+        if (this.columnId != other.columnId) {
+            return false;
+        }
+        if ((this.sortOrder == null) ? (other.sortOrder != null) : !this.sortOrder.equals(other.sortOrder)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + this.columnId;
+        hash = 79 * hash + (this.sortOrder != null ? this.sortOrder.hashCode() : 0);
+        return hash;
+    }
 }
 
 
