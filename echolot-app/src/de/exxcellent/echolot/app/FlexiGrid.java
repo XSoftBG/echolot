@@ -1862,7 +1862,7 @@ public final class FlexiGrid extends Component implements Pane {
             // create default column ...
             // --------------------------
             counterColumn = new FlexiColumn(-1, label, null, false, false, true);
-            counterColumn.getCell().setWidth(new Extent(65));
+            counterColumn.getCell().setWidth(new Extent(45));
         } else if (label == null && counterColumn != null) {
             unbindColumn(counterColumn);
             counterColumn = null;
@@ -1942,8 +1942,6 @@ public final class FlexiGrid extends Component implements Pane {
                     Collection<ArrayList<FlexiCell>> rowsCells = row2cells.values();
                     for (ArrayList<FlexiCell> rowCells : rowsCells) {
                         rowCells.get(position).setWidth(newWidth);
-                        System.out.println(rowCells.get(position));
-                        System.out.println(rowCells.get(position).getWidth());
                     }
                     maxW.put(colID, newWidth);
                 }
@@ -2060,7 +2058,7 @@ public final class FlexiGrid extends Component implements Pane {
             component.setRenderId(null);
             component.setId(null);
         } else {
-            System.out.println(component);
+            System.out.println("Very strange :) -> " + component);
         }
     }
 }
