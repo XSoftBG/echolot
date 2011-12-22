@@ -170,24 +170,20 @@
                 }
             },
             /* ~~~~~ ECHO3 special handling END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+            
             /**
-			 * Method used to fix the height of the column drag-lines and the
-			 * column visibility menu height (nDiv).
-			 */
+             * Method used to fix the height of the column drag-lines and the
+             * column visibility menu height (nDiv).
+             */
             fixHeight: function (newH) {
-                // If Debugging is enabled record the start time of the rendering process.
-                if (p.debug) {
-                    var startTime = new Date();
-                }
-                newH = false;
-                
+                newH = false;                
                 if (!newH) {
                     newH = $(g.bDiv).height();
                 }
                    
                 var hdHeight = $(this.hDiv).height();
                 
-                $('div',this.cDrag).each(function() {
+                $('div', this.cDrag).each(function() {
                     $(this).height(newH + hdHeight);
                 });
 
@@ -209,17 +205,10 @@
                 });
 
                 var hrH = g.bDiv.offsetTop + newH;
-                if (p.height != 'auto' && p.resizable) hrH = g.vDiv.offsetTop;
-                $(g.rDiv).css({
-                    height: hrH
-                });
-
-                if (p.debug && window.console && window.console.log) {
-                    // If debugging is enabled log the duration of this operation.
-                    var nowTime = new Date();
-                    console.log('Duration of fixHeight :' + (nowTime - startTime) + 'ms');
+                if (p.height != 'auto' && p.resizable) { 
+                  hrH = g.vDiv.offsetTop;
                 }
-
+                $(g.rDiv).css({ height: hrH });
             },
             dragStart: function (dragtype,e,obj) { //default drag function start
 
@@ -381,7 +370,17 @@
                     var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
                         var rowsPerBatch = 50;
                         while(rowsPerBatch-- > 0 && rc < rows.length) {
-                            $(rows[rc++]).children('td:visible:eq(' + n + ')').css('width', nw);
+                            var qtd = $(rows[rc++]).children('td:visible:eq(' + n + ')');
+                            qtd.css('width', nw);
+                            
+                            var qdiv = $(':first-child', qtd[0]);
+                            var title = qtd.attr('title');
+                            if (nw < qdiv.width() && !title) {
+                                var component = p.owner.component.getComponent(/(\d*)$/.exec(qtd.attr('id'))[0] * 1);
+                                qtd.attr('title', component.get('text'));
+                            } else if (nw >= qdiv.width() && title) {
+                                qtd.removeAttr('title');
+                            }
                         }                         
                         if (rc == rows.length) {
                             Core.Web.Scheduler.remove(runnable);
@@ -1363,7 +1362,7 @@
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
-                var autoResizeMethod = Core.method( { div: div, component: component}, function(event) {
+                var autoResizeMethod = Core.method( { td: td, div: div, component: component}, function(event) {
                     var componentHeight = component.render("height");
                     if (Echo.Sync.Extent.isPercent(componentHeight)) {
                         div.style.height = '100%';
@@ -1381,13 +1380,13 @@
                         div.style.width = bounds.width + 'px';
                         div.style.cssFloat = defFloat;
                     }
-                  
-//                    if(event && !event.data.hasUpdatedProperties() &&
-//                        !event.data.hasAddedChildren() && !event.data.hasRemovedChildren() &&
-//                        !event.data.hasUpdatedLayoutDataChildren()) {
-//                        return;
-//                    }
-
+                    
+                    var td_width = $(td).width();
+                    var div_width = $(div).width();
+                    
+                    if (div_width > td_width) {
+                        $(td).attr('title', component.get("text"));
+                    }
                 });
                 
                 autoResizeMethod();
@@ -2695,6 +2694,14 @@
         return this.each( function() {
             if (this.grid) {
                 this.grid.focus(focusState)
+            };
+        });
+    };
+    
+    $.fn.flexFixHeight = function() {
+        return this.each( function() {
+            if (this.grid) {
+                this.grid.fixHeight();
             };
         });
     };

@@ -424,7 +424,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how a component is initially built.
      */
     renderAdd: function(update, parentElement) {
-        console.log('FG: renderAdd: ' + this.component.renderId);
+        // console.log('FG: renderAdd: ' + this.component.renderId);
         
         /**
          * the root div with and table inside.
@@ -477,7 +477,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component is destroyed.
      */
     renderDispose: function(update) {
-        console.log('FG renderDispose: ' + this.component.renderId);
+        // console.log('FG renderDispose: ' + this.component.renderId);
         // These cleanup things are CRUCICAL to avoid DRASTIC memory leaks.
         //
         // Remove out attached keylisteners from the DIV
@@ -506,7 +506,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
+        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
         
         if (this._renderRequired) {
             return true;
@@ -599,11 +599,13 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component renders itself.
      */
     renderDisplay: function() {
-        console.log('FG: renderDisplay ' + this.component.renderId);
+        // console.log('FG: renderDisplay ' + this.component.renderId);
         if (this._renderRequired) {
             this._renderRequired = false;
             var options = this._renderOptions();
             this._flexigrid = $(this._table).flexigrid(options);
+        } else {
+            this._flexigrid.flexFixHeight();
         }
     },
 
