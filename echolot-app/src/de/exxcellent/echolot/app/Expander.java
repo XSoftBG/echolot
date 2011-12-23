@@ -96,6 +96,8 @@ public class Expander extends Component {
     public static final String PROPERTY_HIDE_IMAGE = "hideImage";
     public static final String PROPERTY_SHOW_IMAGE = "showImage";
     public static final String PROPERTY_SHOW = "show";
+    public static final String PROPERTY_SHOW_HEIGHT = "showHeight";
+    public static final String PROPERTY_HIDE_HEIGHT = "hideHeight";
 
     public static final String PROPERTY_ROLLOVER_FOREGROUND = "rolloverForeground";
     public static final String PROPERTY_ROLLOVER_BACKGROUND = "rolloverBackground";
@@ -790,6 +792,42 @@ public class Expander extends Component {
      */
     public void setHeaderHide(final boolean newValue) {
         set(PROPERTY_HEADER_HIDE, Boolean.valueOf(newValue));
+    }
+    
+    /**
+     * Sets the total height of the expander with the show / initial content
+     * 
+     * @param newValue the height to be shown
+     */
+    public void setShowHeight(final Extent newValue) {
+      set(PROPERTY_SHOW_HEIGHT, newValue);
+    }
+    
+    /**
+     * Gets the total height of the expander with the show / initial content
+     * 
+     * @return current height of the expander with the show content
+     */
+    public Extent getShowHeight() {
+      return (Extent) get(PROPERTY_SHOW_HEIGHT);
+    }
+    
+    /**
+     * Sets the total height of the expander with the hide / secondary content
+     * 
+     * @param newValue the height to be shown
+     */
+    public void setHideHeight(final Extent newValue) {
+      set(PROPERTY_HIDE_HEIGHT, newValue);
+    }
+    
+    /**
+     * Gets the total height of the expander with the hide / secondary content
+     * 
+     * @return current height of the expander with the hide content
+     */
+    public Extent getHideHeight() {
+      return (Extent) get(PROPERTY_HIDE_HEIGHT);
     }
 
 }

@@ -27,6 +27,8 @@ exxcellent.Expander = Core.extend(Echo.Component, {
 
         TITLE: "title",
         SPEED: "speed",
+        SHOW_HEIGHT: "showHeight",
+        HIDE_HEIGHT: "hideHeight",
         ROLLOVER_BORDER: "rolloverBorder",
         ROLLOVER_FOREGROUND: "rolloverForeground",
         ROLLOVER_BACKGROUND: "rolloverBackground",
@@ -110,6 +112,7 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
     _txtDiv: null, // the text span containing the fold/ collapse text.
     _titleDiv: null, // the title div
     _shown: null, // the state of the expander. True if the first child is shown, otherwise false.
+    _parent: null,
 
 
     /** @see Echo.Render.ComponentSync#renderAdd */
@@ -118,6 +121,7 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
         this._div.id = this.component.renderId;
         this._div.tabIndex = "0";// because of "0" it will take part in the focus cycle, otherwise "-1"
         this._div.style.outlineStyle = "none";
+        this._div.style.height = "100%";
 
         Echo.Sync.renderComponentDefaults(this.component, this._div);
         Echo.Sync.Border.render(this.component.render(exxcellent.Expander.BORDER), this._div);
@@ -134,6 +138,9 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
         this._renderChildren(update);
 
         parentElement.appendChild(this._div);
+        parentElement.style.height = this.component.render(exxcellent.Expander.SHOW_HEIGHT);
+        this._parent = parentElement;
+        this._parent.style.overflow = "hidden";
     },
 
     /**
@@ -326,7 +333,9 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
         // determine the visible and invisible div
         var visibleDiv = this._shown ? this._showDiv : this._hideDiv;
         var invisibleDiv = this._shown ? this._hideDiv : this._showDiv;
-
+        this._parent.style.height = this._shown ? this.component.render(exxcellent.Expander.HIDE_HEIGHT)
+                                                : this.component.render(exxcellent.Expander.SHOW_HEIGHT);
+                  
         function showInvisible() {
 
             // toggle the shown index
