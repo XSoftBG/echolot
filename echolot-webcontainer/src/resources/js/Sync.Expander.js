@@ -117,6 +117,7 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
 
     /** @see Echo.Render.ComponentSync#renderAdd */
     renderAdd: function(update, parentElement) {
+        this._parent = parentElement;
         this._div = document.createElement("div");
         this._div.id = this.component.renderId;
         this._div.tabIndex = "0";// because of "0" it will take part in the focus cycle, otherwise "-1"
@@ -138,9 +139,10 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
         this._renderChildren(update);
 
         parentElement.appendChild(this._div);
-        parentElement.style.height = this.component.render(exxcellent.Expander.SHOW_HEIGHT);
-        this._parent = parentElement;
-        this._parent.style.overflow = "hidden";
+        if(!parentElement.style.height) {
+          parentElement.style.height = this.component.render(exxcellent.Expander.SHOW_HEIGHT);
+        }
+        parentElement.style.overflow = "hidden";
     },
 
     /**
@@ -268,12 +270,14 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
             this._hideRenderID = hideChild.renderId;
             if (!showInit) {
                 $(this._showDiv).hide();
+                this._parent.style.height = this.component.render(exxcellent.Expander.HIDE_HEIGHT);
             } else {
                 $(this._hideDiv).hide();
             }
         } else {
             if (!showInit) {
                 $(this._showDiv).hide();
+                this._parent.style.height = this.component.render(exxcellent.Expander.HIDE_HEIGHT);
             }
         }
         this._shown = showInit;
