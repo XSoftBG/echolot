@@ -208,7 +208,7 @@
                 if (p.height != 'auto' && p.resizable) { 
                   hrH = g.vDiv.offsetTop;
                 }
-                $(g.rDiv).css({ height: hrH });
+                $(g.rDiv).css({height: hrH});
             },
             dragStart: function (dragtype,e,obj) { //default drag function start
 
@@ -1361,8 +1361,12 @@
                 
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
+                if (p.onRenderCell) {
+                    p.onRenderCell.call(p.owner, component);
+                }
+                // Echo.Render.renderComponentDisplay(component);
                 
-                var autoResizeMethod = Core.method( { td: td, div: div, component: component}, function(event) {
+                var autoResizeMethod = Core.method( {td: td, div: div, component: component}, function(event) {
                     var componentHeight = component.render("height");
                     if (Echo.Sync.Extent.isPercent(componentHeight)) {
                         div.style.height = '100%';

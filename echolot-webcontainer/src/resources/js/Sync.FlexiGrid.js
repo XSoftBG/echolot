@@ -416,15 +416,17 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _resultsPerPageOption: null,
     _rowSelection: null,
     _renderRequired: null,
-    _waitDialogHandle: null,
-    
     _counterSetPropsRequired: null,
+    
+    _renderedChilds: null,
+    
+    _waitDialogHandle: null,
             
     /**
      * Describes how a component is initially built.
      */
     renderAdd: function(update, parentElement) {
-        // console.log('FG: renderAdd: ' + this.component.renderId);
+        console.log('FG: renderAdd: ' + this.component.renderId);
         
         /**
          * the root div with and table inside.
@@ -466,6 +468,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
         this._renderRequired = true;
         this._counterSetPropsRequired = true;
+        
+        this._renderedChilds = [];
                 
         /** 
          * Create empty row selection.
@@ -477,7 +481,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component is destroyed.
      */
     renderDispose: function(update) {
-        // console.log('FG renderDispose: ' + this.component.renderId);
+        console.log('FG renderDispose: ' + this.component.renderId);
         // These cleanup things are CRUCICAL to avoid DRASTIC memory leaks.
         //
         // Remove out attached keylisteners from the DIV
@@ -494,6 +498,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         this._sortingModel = null;
         this._resultsPerPageOption = null;
         this._div = null;
+        
+        this._renderedChilds = [];
+        
         if (this._waitDialogHandle !== null) {
             this.client.removeInputRestriction(this._waitDialogHandle);
         }
@@ -506,7 +513,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
+        console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
         
         if (this._renderRequired) {
             return true;
@@ -551,19 +558,27 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var cells = [];
 
         if (hasAddedChildren && hasRemovedChildren) {
+            var ci;
+            var c;
+            var addedRenderIds = [];
+            var removedRenderIds = [];
+            
             // new added children
             // ------------------
-            var added = update.getAddedChildren();
-            var addedRenderIds = [];
-            for (c = 0; c < added.length; c++)
-                addedRenderIds.push(added[c].renderId);
+            var added = update.getAddedChildren();            
+            for (ci = 0; ci < added.length; ci++) {
+                addedRenderIds.push(added[ci].renderId);
+            }
                         
             // new removed children
             // --------------------
             var removed = update.getRemovedChildren();
-            var removedRenderIds = [];
-            for (c = 0; c < removed.length; c++)
-                removedRenderIds.push(removed[c].renderId);
+            this._renderedChilds.removeAll();
+            for (ci = 0; ci < removed.length; ci++) {
+                c = removed[ci];                
+                removedRenderIds.push(c.renderId);
+                Core.Arrays.remove(this._renderedChilds, c);
+            }
 
             if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
                 cells = this._renderUpdateChildIterator(added, dataNotRendered, activePageCells, columnModelCells);
@@ -586,11 +601,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     
     _renderUpdateChildIterator : function(updatedChilds, dataNotRendered, activePageCells, columnModelCells) {
         var result = [];
-        for (c = 0; c < updatedChilds.length; c++) {
+        for (var c = 0; c < updatedChilds.length; c++) {
             var child = (dataNotRendered && activePageCells[updatedChilds[c].renderId]) || columnModelCells[updatedChilds[c].renderId];
-            if (child) {
-                result.push(child);
-            }
+            if (child) { result.push(child); }
         }
         return result;
     },
@@ -599,13 +612,24 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component renders itself.
      */
     renderDisplay: function() {
-        // console.log('FG: renderDisplay ' + this.component.renderId);
+        console.log('FG: renderDisplay ' + this.component.renderId);
         if (this._renderRequired) {
             this._renderRequired = false;
             var options = this._renderOptions();
             this._flexigrid = $(this._table).flexigrid(options);
         } else {
             this._flexigrid.flexFixHeight();
+        }
+    },
+    
+    /** @see Echo.Render.ComponentSync#isChildDisplayed */
+    isChildVisible: function(component) {
+        return Core.Arrays.indexOf(this._renderedChilds, component) != -1;
+    },
+    
+    _onRenderCell: function(component) {
+        if (Core.Arrays.indexOf(this._renderedChilds, component) == -1) {
+            this._renderedChilds.push(component);
         }
     },
 
@@ -623,6 +647,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             dataType: 'json',
             autoload: true,
             onPopulateCallback: this._onPopulate,
+            onRenderCell: this._onRenderCell,
             onRpChange: this._onRpChange,
             onChangeSort: this._onChangeSorting,
             onToggleCol: this._onToggleColumnVisibilty,

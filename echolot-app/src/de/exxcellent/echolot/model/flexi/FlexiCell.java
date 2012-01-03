@@ -29,7 +29,6 @@
 
 package de.exxcellent.echolot.model.flexi;
 
-import de.exxcellent.echolot.app.FlexiGridSupport;
 import de.exxcellent.echolot.layout.FlexiCellLayoutData;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -73,9 +72,9 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
             Component c = (Component) pce.getSource();
-            if (!c.isRenderVisible()) {
-                return;
-            }
+//            if (!c.isRenderVisible()) {
+//                return;
+//            }
             Boolean visible = (Boolean) pce.getNewValue();            
             if (visible) {
                 firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
