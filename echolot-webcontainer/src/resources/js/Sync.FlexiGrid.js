@@ -384,15 +384,15 @@ exxcellent.model.RowSelection = Core.extend({
                 nur: this.nur
                 }
             } );
-},
+    },
             
-/** Return the string representation of this model. */
-toString : function() {
-    return "AllSelectedRowsIds: " + this.asr + " " +
-    "OldSelectedRowsIds: " + this.osr + " " +
-    "NewSelectedRowsIds: " + this.nsr + " " +
-    "NewUnselectedRowsIds: " + this.nur;
-}
+    /** Return the string representation of this model. */
+    toString : function() {
+        return "AllSelectedRowsIds: " + this.asr + " " +
+        "OldSelectedRowsIds: " + this.osr + " " +
+        "NewSelectedRowsIds: " + this.nsr + " " +
+        "NewUnselectedRowsIds: " + this.nur;
+    }
 });
         
 /**
@@ -426,7 +426,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how a component is initially built.
      */
     renderAdd: function(update, parentElement) {
-        console.log('FG: renderAdd: ' + this.component.renderId);
+        // console.log('FG: renderAdd: ' + this.component.renderId);
         
         /**
          * the root div with and table inside.
@@ -469,7 +469,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         this._renderRequired = true;
         this._counterSetPropsRequired = true;
         
-        this._renderedChilds = [];
+        this._renderedChilds = { };
                 
         /** 
          * Create empty row selection.
@@ -481,7 +481,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component is destroyed.
      */
     renderDispose: function(update) {
-        console.log('FG renderDispose: ' + this.component.renderId);
+        // console.log('FG renderDispose: ' + this.component.renderId);
         // These cleanup things are CRUCICAL to avoid DRASTIC memory leaks.
         //
         // Remove out attached keylisteners from the DIV
@@ -499,7 +499,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         this._resultsPerPageOption = null;
         this._div = null;
         
-        this._renderedChilds = [];
+        this._renderedChilds = null;
         
         if (this._waitDialogHandle !== null) {
             this.client.removeInputRestriction(this._waitDialogHandle);
@@ -513,7 +513,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
+        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
         
         if (this._renderRequired) {
             return true;
@@ -558,26 +558,22 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var cells = [];
 
         if (hasAddedChildren && hasRemovedChildren) {
-            var ci;
-            var c;
+            var index;
             var addedRenderIds = [];
             var removedRenderIds = [];
             
             // new added children
             // ------------------
             var added = update.getAddedChildren();            
-            for (ci = 0; ci < added.length; ci++) {
-                addedRenderIds.push(added[ci].renderId);
+            for (index = 0; index < added.length; index++) {
+                addedRenderIds.push(added[index].renderId);
             }
-                        
+            
             // new removed children
             // --------------------
-            var removed = update.getRemovedChildren();
-            this._renderedChilds.removeAll();
-            for (ci = 0; ci < removed.length; ci++) {
-                c = removed[ci];                
-                removedRenderIds.push(c.renderId);
-                Core.Arrays.remove(this._renderedChilds, c);
+            var removed = update.getRemovedChildren();            
+            for (index = 0; index < removed.length; index++) {
+                removedRenderIds.push(removed[index].renderId);
             }
 
             if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
@@ -612,7 +608,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * Describes how the component renders itself.
      */
     renderDisplay: function() {
-        console.log('FG: renderDisplay ' + this.component.renderId);
+        // console.log('FG: renderDisplay ' + this.component.renderId);
         if (this._renderRequired) {
             this._renderRequired = false;
             var options = this._renderOptions();
@@ -624,13 +620,11 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     
     /** @see Echo.Render.ComponentSync#isChildDisplayed */
     isChildVisible: function(component) {
-        return Core.Arrays.indexOf(this._renderedChilds, component) != -1;
+        return !!this._renderedChilds[component.renderId];
     },
     
     _onRenderCell: function(component) {
-        if (Core.Arrays.indexOf(this._renderedChilds, component) == -1) {
-            this._renderedChilds.push(component);
-        }
+        this._renderedChilds[component.renderId] = component;
     },
 
     _renderOptions: function() {        

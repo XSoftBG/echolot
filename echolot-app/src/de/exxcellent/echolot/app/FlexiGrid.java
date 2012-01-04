@@ -2058,7 +2058,7 @@ public final class FlexiGrid extends Component implements Pane {
             component.setRenderId(null);
             component.setId(null);
         } else {
-            System.out.println("Very strange :) -> " + component);
+            throw new Error("FlexiGrid Error: External remove components is not allowed !!!");
         }
     }
 }
