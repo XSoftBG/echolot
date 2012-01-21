@@ -1743,10 +1743,10 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     private void unbindCell(FlexiCell cell) {
+        markedForReplace.add(Integer.valueOf(cell.getVisibleComponent().getId()));
+        
         cell.removeComponentChangeListener(FC_COMPONENT_CHANGE_LISTENER);
         cell.removeLayoutDataChangeListener(FC_LAYOUTDATA_CHANGE_LISTENER);
-
-        markedForReplace.add(Integer.valueOf(cell.getVisibleComponent().getId()));
 
         final int rowID = cell.getRowId();
         ArrayList<FlexiCell> rowCells = row2cells.get(rowID);
