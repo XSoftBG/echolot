@@ -1536,7 +1536,7 @@ public final class FlexiGrid extends Component implements Pane {
         ArrayList<FlexiCell> newCells = new ArrayList<FlexiCell>();
         for (FlexiColumn c : columnModel.getColumns()) {
             FlexiCell cc = c.getCell();
-            int ci = Integer.parseInt(cc.getVisibleComponent().getId());
+            int ci = Integer.parseInt(cc.getValidComponent(false).getId());
             maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
             newCells.add(cc);
         }
@@ -1683,7 +1683,7 @@ public final class FlexiGrid extends Component implements Pane {
         for (int r = 0; r < rows.length; r++) {
             FlexiCell[] cells = rows[r].getCells();
             for (int c = 0; c < cells.length; c++) {
-                int ci = Integer.parseInt(cells[c].getVisibleComponent().getId());
+                int ci = Integer.parseInt(cells[c].getValidComponent(false).getId());
                 maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
             }
         }
@@ -1703,7 +1703,7 @@ public final class FlexiGrid extends Component implements Pane {
         
         for (int f = 0; f < newCells.size(); f++) {
             FlexiCell fc = newCells.get(f);
-            Component c = fc.getVisibleComponent();
+            Component c = fc.getValidComponent(true);
             if (marked.contains(c)) {
                 Integer ID = Integer.valueOf(c.getId());
                 markedForReplace.remove(ID);
@@ -1715,7 +1715,7 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     private void addCell(FlexiCell cell) { 
-        Component component = cell.getVisibleComponent();
+        Component component = cell.getValidComponent(true);
         Integer replaceIndex = markedForReplace.pollFirst();
         int index = replaceIndex != null ? replaceIndex : -1;
         internalAdd(cell, component, index);
@@ -1743,7 +1743,7 @@ public final class FlexiGrid extends Component implements Pane {
     }
 
     private void unbindCell(FlexiCell cell) {
-        markedForReplace.add(Integer.valueOf(cell.getVisibleComponent().getId()));
+        markedForReplace.add(Integer.valueOf(cell.getValidComponent(false).getId()));
         
         cell.removeComponentChangeListener(FC_COMPONENT_CHANGE_LISTENER);
         cell.removeLayoutDataChangeListener(FC_LAYOUTDATA_CHANGE_LISTENER);
