@@ -66,12 +66,12 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private boolean internalSetLayoutData = true;
     private boolean valid = true;
     
-    private final Label EMPTY_LABEL;
+    private Label EMPTY_LABEL;
     private Component component;
     private PropertyChangeListener componentVisibleChanged = new SerializablePropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
-            Component c = (Component) pce.getSource();
+//            Component c = (Component) pce.getSource();
 //            if (!c.isRenderVisible()) {
 //                return;
 //            }
@@ -105,10 +105,10 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     };
             
     public FlexiCell(final int rowId, final int colId, final Component component) {
-        Component parent = component.getParent();
-        if (parent != null) {
-            parent.remove(component);
-        }
+//        Component parent = component.getParent();
+//        if (parent != null) {
+//            parent.remove(component);
+//        }
         
         this.rowId = rowId;
         this.colId = colId;
@@ -165,14 +165,15 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     public Component getComponent() {
         return component;
     }
-
-    /**
-     * Get visible cell component.
-     * @return current visible cell component.
-     */
-    public Component getVisibleComponent() {
-        validate();
+    
+    public Component getValidComponent(boolean forceValidation) {
+      if (valid)
         return component.isVisible() ? component : EMPTY_LABEL;
+      else
+      {
+        if (forceValidation) { validate(); return getValidComponent(false); }
+        else { return EMPTY_LABEL; }
+      }
     }
     
     /**
@@ -182,17 +183,18 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
-        Component parent = newComponent.getParent();
-        if (parent != null) {
-            parent.remove(newComponent);
-        }
+//        Component parent = newComponent.getParent();
+//        if (parent != null) {
+//            parent.remove(newComponent);
+//        }
+      
         unbindComponent();
-        FlexiCellLayoutData layoutData = getLayoutData();
-        Component oldComponent = getVisibleComponent();
-        this.component = newComponent;
-        this.component.setLayoutData(layoutData);
-        bindComponent();
+        Component oldComponent = getValidComponent(false);
         firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, newComponent);
+        this.component = newComponent;
+        this.component.setLayoutData(getLayoutData());
+        this.valid = true;
+        bindComponent();
     }
     
     /**
@@ -467,6 +469,11 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
             unbindComponent();
             firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY_LABEL);
             valid = false;
+        } else {
+          Label old_empty_label = EMPTY_LABEL;
+          EMPTY_LABEL = new Label();
+          EMPTY_LABEL.setLayoutData(old_empty_label.getLayoutData());
+          firePropertyChange(PROPERTY_COMPONENT_CHANGE, old_empty_label, EMPTY_LABEL);
         }
     }
     
@@ -478,6 +485,14 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     }
 
+    /**
+     * Check cell validation.
+     * @return cell validation
+     */
+    public boolean isValid() {
+      return valid;
+    }
+    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
