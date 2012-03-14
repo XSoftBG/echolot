@@ -513,8 +513,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
-        
+        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());               
         if (this._renderRequired) {
             return true;
         }
@@ -989,15 +988,17 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {rowSelectionEventData}
      * @param {newRowSelection}
      */
-    _onSelection : function (asr, osr, nsr, nur) {                
+    _onSelection : function (asr, osr, nsr, nur) {
+        /** set all selected rows */
+        this.component.set(exxcellent.FlexiGrid.TABLE_ROW_SELECTION, this._toJsonString(asr), true);
+        
         /** Store new row selection */
         this._rowSelection = new exxcellent.model.RowSelection(
             $.makeArray(asr), 
             $.makeArray(osr), 
             $.makeArray(nsr), 
-            $.makeArray(nur)
-            );
-                                
+            $.makeArray(nur));
+
         // ** Fire event for new client selection */
         if(nsr.length != 0 || nur.length != 0) {
             this.component.doSelection(this._rowSelection.toJsonStr());

@@ -501,8 +501,8 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
             return streamOut.toXML(((FlexiGrid) component).getResultsPerPageOption());
         } else if (FlexiGrid.PROPERTY_SORTINGMODEL.equals(propertyName)) {
             return streamOut.toXML(((FlexiGrid) component).getSortingModel());
-        } else if (FlexiGrid.PROPERTY_TABLE_ROW_SELECTION.equals(propertyName)) {
-            return Arrays.toString(((FlexiGrid) component).getSelectedRowsIds());
+        } else if (FlexiGrid.PROPERTY_TABLE_ROW_SELECTION.equals(propertyName)) {            
+            return Arrays.toString(((FlexiGrid) component).getSelectedRowsIds()).replace(" ", "");
         } else if (FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE.equals(propertyName)) {
             FlexiColumnsUpdate updates = (FlexiColumnsUpdate) component.get(FlexiGrid.PROPERTY_FLEXICOLUMNS_UPDATE);
             String json = streamOut.toXML(updates);

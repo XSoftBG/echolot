@@ -363,7 +363,7 @@ public final class FlexiGrid extends Component implements Pane {
 
         @Override
         public void rowSelection(FlexiRowSelectionEvent e) {
-            FlexiGrid.this.set(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION, e.getRowSelection().getAllSelectedRowsIds(), false);
+            FlexiGrid.this.set(FlexiGrid.PROPERTY_TABLE_ROW_SELECTION, e.getRowSelection().getAllSelectedRowsIds());
         }
     };
     
