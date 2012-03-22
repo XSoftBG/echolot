@@ -90,17 +90,15 @@
         //create grid class
         var g = {      
             hset : {},
+            
             rePosDrag: function () {
-                //alert("rePosDrag");
                 // If Debugging is enabled record the start time of the rendering process.
-                if (p.debug) {
+                //if (p.debug) {
                     var startTime = new Date();
-                }
+                //}
                 var cdleft = 0 - this.hDiv.scrollLeft;
-                if (this.hDiv.scrollLeft>0) cdleft -= Math.floor(p.cgwidth/2);
-                $(g.cDrag).css({
-                    top:g.hDiv.offsetTop+1
-                });
+                if (this.hDiv.scrollLeft > 0) cdleft -= Math.floor(p.cgwidth/2);
+                $(g.cDrag).css( {'top': g.hDiv.offsetTop+1} );
                 var cdpad = this.cdpad;
                 // Select all possible drags and hide it. The selection is stored to a variable because
                 // we will reuse it later while iterate through the header cells.
@@ -117,59 +115,57 @@
                     }
                     cdpos = cdpos + cdleft + cdpad;
                     // Select the drag which is equals to the index of the current header cell.
-                    $(qdrags[n]).css({
-                        'left': cdpos + 'px'
-                    }).show();
+                    $(qdrags[n]).css( {'left': cdpos + 'px'} ).show();
                     cdleft = cdpos;
                 }
-                if (p.debug && window.console && window.console.log) {
+                //if (p.debug && window.console && window.console.log) {
                     // If debugging is enabled log the duration of this operation.
                     console.log('Duration of rePosDrag :' + (new Date() - startTime) + 'ms');
-                }
+                //}
             },
 
-            /* ~~~~~ ECHO3 special handling start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-            autoColumnWidth: function () {
-                // If Debugging is enabled record the start time of the rendering process.
-                if (p.debug) {
-                    var startTime = new Date();
-                }
-                var n = 0;
-                var flexgrid = this;
-                $('thead tr:first th:visible',this.hDiv).each(
-                    function() {
-                        // ? Do we really need to readdress the part; isn't it available somehow by the jquery.each()?
-                        var columnWidth =  $('th:visible div:eq('+n+')',this.hDiv).width();
-                        $('tr',flexgrid.bDiv).each (
-                            function ()
-                            {
-                                var cellWidth = $('td:visible div:eq('+n+')',this).width();
-                                if (columnWidth < cellWidth) {
-                                    columnWidth = cellWidth;
-                                }
-                            }
-                            );
-
-                        $('th:visible div:eq('+n+')',flexgrid.hDiv).css('width',columnWidth);
-                        $('tr',flexgrid.bDiv).each (
-                            function ()
-                            {
-                                $('td:visible div:eq('+n+')',this).css('width',columnWidth);
-                            }
-                            );
-                        $(flexgrid.hDiv).scrollLeft($(flexgrid.bDiv).scrollLeft);
-                        flexgrid.rePosDrag();
-                        flexgrid.fixHeight();
-                        n++;
-
-                    });
-                if (p.debug && window.console && window.console.log) {
-                    // If debugging is enabled log the duration of this operation.
-                    var nowTime = new Date();
-                    console.log('Duration of autoColumnWidth :' + (nowTime - startTime) + 'ms');
-                }
-            },
-            /* ~~~~~ ECHO3 special handling END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//            /* ~~~~~ ECHO3 special handling start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+//            autoColumnWidth: function () {
+//                // If Debugging is enabled record the start time of the rendering process.
+//                if (p.debug) {
+//                    var startTime = new Date();
+//                }
+//                var n = 0;
+//                var flexgrid = this;
+//                $('thead tr:first th:visible',this.hDiv).each(
+//                    function() {
+//                        // ? Do we really need to readdress the part; isn't it available somehow by the jquery.each()?
+//                        var columnWidth =  $('th:visible div:eq('+n+')',this.hDiv).width();
+//                        $('tr',flexgrid.bDiv).each (
+//                            function ()
+//                            {
+//                                var cellWidth = $('td:visible div:eq('+n+')',this).width();
+//                                if (columnWidth < cellWidth) {
+//                                    columnWidth = cellWidth;
+//                                }
+//                            }
+//                            );
+//
+//                        $('th:visible div:eq('+n+')',flexgrid.hDiv).css('width',columnWidth);
+//                        $('tr',flexgrid.bDiv).each (
+//                            function ()
+//                            {
+//                                $('td:visible div:eq('+n+')',this).css('width',columnWidth);
+//                            }
+//                            );
+//                        $(flexgrid.hDiv).scrollLeft($(flexgrid.bDiv).scrollLeft);
+//                        flexgrid.rePosDrag();
+//                        flexgrid.fixHeight();
+//                        n++;
+//
+//                    });
+//                if (p.debug && window.console && window.console.log) {
+//                    // If debugging is enabled log the duration of this operation.
+//                    var nowTime = new Date();
+//                    console.log('Duration of autoColumnWidth :' + (nowTime - startTime) + 'ms');
+//                }
+//            },
+//            /* ~~~~~ ECHO3 special handling END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
             
             /**
              * Method used to fix the height of the column drag-lines and the
@@ -186,29 +182,19 @@
                 $('div', this.cDrag).each(function() {
                     $(this).height(newH + hdHeight);
                 });
-
-                /*
-                * adjust the column visibility menu height (nDiv).
-                */
-               
-                /*
-                var nd = parseInt($(g.nDiv).height());
-                if (nd>newH)
-                        $(g.nDiv).height(newH).width(200);
-                else
-                        $(g.nDiv).height('auto').width('auto');
-                */
                
                 $(g.block).css({
-                    height:newH,
-                    marginBottom:(newH * -1)
+                    height: newH,
+                    marginBottom: (newH * -1)
                 });
 
                 var hrH = g.bDiv.offsetTop + newH;
                 if (p.height != 'auto' && p.resizable) { 
-                  hrH = g.vDiv.offsetTop;
+                    hrH = g.vDiv.offsetTop;
                 }
-                $(g.rDiv).css({height: hrH});
+                $(g.rDiv).css({
+                    height: hrH
+                });
             },
             dragStart: function (dragtype,e,obj) { //default drag function start
 
@@ -580,14 +566,7 @@
                         new exxcellent.model.TableModel(new Array(this.data))
                     );
                 }
-                
-                // Build new tbody...
-                var tbody = document.createElement('tbody');
-                tbody.id = p.ownerId + '.DATA';
-                // Select the body before. This is better because this selected jQuery object could
-                // be used more then one times in the next steps.
-                var qtbody = $(tbody);
-
+                                
                 // set the heights before rendering finished
                 if (p.height == 'auto') {
                     var globalDiv = $(g.gDiv);
@@ -620,6 +599,56 @@
                     // If Debugging is enabled record the start time of the rendering process.
                     var startTime = new Date();
                 }
+                
+                // We will need the header cell at this point more times.
+                // So we do better to store it not for further usages.
+                var headers = $('thead tr:first th', g.hDiv);
+
+
+               if (!this.dataDOM) {
+                    console.log('dataDOM: new');
+                    
+                    var tbody = document.createElement('tbody');                    
+                    var protoTr = document.createElement('tr');
+                    var protoTd = document.createElement('td');
+                    protoTd.appendChild(document.createElement('div'));
+                    if (!p.nowrap) {
+                        protoTd.style.whiteSpace = 'normal';
+                    }
+                    for (var c = 0; c < headers.length; c++) {
+                        protoTr.appendChild(protoTd.cloneNode(true));
+                    }
+                    for (var r = 0; r < data.rows.length; r++) {
+                        tbody.appendChild(protoTr.cloneNode(true));
+                    }
+                    this.dataDOM = tbody;
+                } else {
+                    console.log('dataDOM: exits');
+                    
+                    console.log(' === before === ');
+                    console.log('rows: ' + this.dataDOM.childNodes.length);
+                    console.log('columns: ' + this.dataDOM.childNodes[0].childNodes.length);
+                    
+                    var rowsDiff = data.rows.length - this.dataDOM.childNodes.length;
+                    if (rowsDiff > 0) {
+                        while (rowsDiff-- > 0) {
+                            this.dataDOM.appendChild(this.dataDOM.childNodes[0].cloneNode(true));
+                        }
+                    } else if (rowsDiff < 0) {
+                        while (rowsDiff++ < 0) {
+                            this.dataDOM.removeChild(this.dataDOM.childNodes[0]);
+                        }
+                    }
+                    
+                    console.log(' === after === ');
+                    console.log('rows: ' + this.dataDOM.childNodes.length);
+                    console.log('columns: ' + this.dataDOM.childNodes[0].childNodes.length);
+                }
+                
+                // Clone prototype data body ...
+                var body = this.dataDOM.cloneNode(true);
+                body.id = p.ownerId + '.DATA';
+                var qtbody = $(body);
 
                 /**
                  * This method is used to finalize the rendering of the data to the body if the grid list.
@@ -631,11 +660,13 @@
                     $('tr', qt).unbind();
                     qt.empty().append(qtbody);
 
-                    g.rePosDrag();
-                    g.fixHeight();
+                    if (data.rows.length != 0) {
+                        g.rePosDrag();
+                        g.fixHeight();
+                    }
 
                     // This is paranoid but set the variables back to null. It is better for debugging.
-                    tbody = null;
+                    body = null;
                     qtbody = null;
                     data = null;
                     
@@ -663,9 +694,6 @@
                         console.log('Duration of rendering data of type "' + p.dataType + '": ' + (nowTime - startTime) + 'ms');
                     }
                 }
-                // We will need the header cell at this point more times.
-                // So we do better to store it not for further usages.
-                var headers = $('thead tr:first th', g.hDiv);
 
                 // What is going on here? Because of many rows we have to render, we do not
                 // iterate with a regular foreach method. We make a pseudo asynchron process with
@@ -685,42 +713,24 @@
                      * 
                      * Processes a data row in the JSON data stream
                      */
-                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-                        
-                        var qTrProto = $(document.createElement('tr'));
-                        qTrProto.click(g._rowClickHandler);
-                        if ($.browser.msie && $.browser.version < 7.0) {
-                            qTrProto.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
-                        }
-                        
-                        var qTdProto = $(document.createElement('td'));
-                        qTdProto.append(document.createElement("div"));
-                        if (!p.nowrap) {
-                            qTdProto.css('white-space', 'normal');
-                        }
-                        
+                    var start = new Date();
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {                        
                         var rowsPerBatch = 20;
                         while (data && data.rows.length > ji && data.rows[ji] && rowsPerBatch > 0) {
-                            row = data.rows[ji];
-                            
-                            var qtr = qTrProto.clone(true, false);
+                            row = data.rows[ji];                            
+                            var qtr = $(body.childNodes[ji]);                            
                             if (row.id !== null) {
                                 qtr.attr('id', p.ownerId + '.ROW.' + row.id);
-                            }
+                            }                            
                             if (ji % 2 && p.striped) {
                                 qtr.addClass('erow');
-                            }
-                            
+                            }                            
                             // Add each cell for each header column (rowDataIndex)                            
                             var colCount = headers.length;
-                            for (var idx = 0; idx < colCount; idx++) {
-                                var qtd = qTdProto.clone(true, true);
-                                qtr.append(qtd);
-                                g.addCellProp(qtd[0], qtr, row.cells[$(headers[idx]).data('rowDataIndex')], headers[idx]);
-                            }
-                            
+                            for (var ci = 0; ci < colCount; ci++) {
+                                g.addCellProp(body.childNodes[ji].childNodes[ci], qtr, row.cells[$(headers[ci]).data('rowDataIndex')], headers[ci]);
+                            }                            
                             g.addRowProp(qtr);
-                            qtbody.append(qtr);
                             
                             // Prepare the next step.
                             ji++;
@@ -731,50 +741,61 @@
                             Core.Web.Scheduler.remove(runnable);
                             // No more data? Finalize
                             finalizeRendering();
+                            console.log('render time: ' + (new Date() - start) + 'ms');
                         }
                     }), 1, true);
-                  
-                  
-                  
-                  
+
                   
 //                    var baseRendering = function(start, end) {
-//                        if (end >= data.rows.length) {
+//                        if (end > data.rows.length) {
 //                            end = data.rows.length - 1;
 //                        }
-//                        for (var index = start; index <= end; index++) {
-//                            var row = data.rows[index];
-//                            var tr = document.createElement('tr');
-//                            var qtr = $(tr);
-//                            if (index % 2 && p.striped) {
-//                                tr.className = 'erow';
+//                        
+//                        var qTrProto = $(document.createElement('tr'));
+//                        qTrProto.click(g._rowClickHandler);
+//                        if ($.browser.msie && $.browser.version < 7.0) {
+//                            qTrProto.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
+//                        }
+//                        
+//                        var qTdProto = $(document.createElement('td'));
+//                        qTdProto.append(document.createElement("div"));
+//                        if (!p.nowrap) {
+//                            qTdProto.css('white-space', 'normal');
+//                        }
+//                        
+//                        for (var r = start; r <= end; r++) {                            
+//                            row = data.rows[r];
+//
+//                            var qtr = qTrProto.clone(true, false);
+//                            if (row.id !== null) {
+//                                qtr.attr('id', p.ownerId + '.ROW.' + row.id);
 //                            }
-//                            
-//                            tr.id = p.ownerId + '.ROW.' + row.id;                            
-//                            if ($.inArray(row.id, p.asr) != -1)
-//                                $(tr).addClass('trSelected');
-//                            
+//                            if (r % 2 && p.striped) {
+//                                qtr.addClass('erow');
+//                            }
+//
 //                            // Add each cell for each header column (rowDataIndex)
-//                            var colCount = headers.length;
-//                            for (var idx = 0; idx < colCount; idx++) {
-//                                var th = headers[idx];
-//                                var td = document.createElement('td');
-//                                qtr.append(td);
-//                                var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
-//                                g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
+//                            for (var c = 0; c < headers.length; c++) {
+//                                var qtd = qTdProto.clone(true, true);
+//                                qtr.append(qtd);
+//                                g.addCellProp(qtd[0], qtr, row.cells[$(headers[c]).data('rowDataIndex')], headers[c]);
 //                            }
-//                            
+//
 //                            g.addRowProp(qtr);
-//                            qtbody.append(tr);
+//                            qtbody.append(qtr);
 //                        }
 //                    };
 //                    
+//                    
+//                    var start = new Date();
+//                    
 //                    // Activate the busy mode.
-//                    // g.setBusy(true);
+//                    g.setBusy(true);
 //                    
 //                    if (data.rows.length <= 100) {
 //                        baseRendering(0, data.rows.length - 1);
 //                        finalizeRendering();
+//                        console.log('sync render time: ' + (new Date() - start) + 'ms');
 //                    } else {
 //                        /**                     
 //                         * Start the pseudo asynchron iteration.
@@ -792,9 +813,10 @@
 //                            } else {
 //                                Core.Web.Scheduler.remove(runnable);
 //                                finalizeRendering();
+//                                console.log('async render time: ' + (new Date() - start) + 'ms');
 //                            }
-//                        }), 3, true);
-//                    }                    
+//                        }), 1, true);
+//                    }
                     
                 } else if (p.dataType=='xml') {
                     // Prepare the looping parameters.
@@ -1304,6 +1326,10 @@
                 if ($.inArray((/(\d*)$/.exec(qtr.attr('id'))[0] * 1), p.asr) != -1) {
                     qtr.addClass('trSelected');
                 }
+                qtr.click(g._rowClickHandler);
+                if ($.browser.msie && $.browser.version < 7.0) {
+                    qtr.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
+                }                
             },
             
             
@@ -1338,39 +1364,38 @@
                 if (p.onRenderCell) {
                     p.onRenderCell.call(p.owner, component);
                 }
-                // Echo.Render.renderComponentDisplay(component);
                 
-                var autoResizeMethod = Core.method( {td: td, div: div, component: component}, function(event) {
-                    var componentHeight = component.render("height");
-                    if (Echo.Sync.Extent.isPercent(componentHeight)) {
-                        div.style.height = '100%';
-                    }
-                    
-                    var componentWidth = component.render("width");
-                    if (Echo.Sync.Extent.isPercent(componentWidth)) {
-                        div.style.width = '100%';
-                    } else {
-                        var defFloat = div.style.cssFloat;
-                        div.style.cssFloat = 'left';
-                        div.style.width = '';
-                        
-                        var bounds = new Core.Web.Measure.Bounds(div);
-                        div.style.width = bounds.width + 'px';
-                        div.style.cssFloat = defFloat;
-                    }
-                    
-                    var td_width = $(td).width();
-                    var div_width = $(div).width();
-                    
-                    if (div_width > td_width) {
-                        $(td).attr('title', component.get("text"));
-                    }
-                });
-                
-                autoResizeMethod();
-                
-                component.removeAllListeners('updated', true);
-                component.addListener('updated', autoResizeMethod, true);
+//                var autoResizeMethod = Core.method( {td: td, div: div, component: component}, function(event) {
+//                    var componentHeight = component.render("height");
+//                    if (Echo.Sync.Extent.isPercent(componentHeight)) {
+//                        div.style.height = '100%';
+//                    }
+//                    
+//                    var componentWidth = component.render("width");
+//                    if (Echo.Sync.Extent.isPercent(componentWidth)) {
+//                        div.style.width = '100%';
+//                    } else {
+//                        var defFloat = div.style.cssFloat;
+//                        div.style.cssFloat = 'left';
+//                        div.style.width = '';
+//                        
+//                        var bounds = new Core.Web.Measure.Bounds(div);
+//                        div.style.width = bounds.width + 'px';
+//                        div.style.cssFloat = defFloat;
+//                    }
+//                    
+//                    var td_width = $(td).width();
+//                    var div_width = $(div).width();
+//                    
+//                    if (div_width > td_width) {
+//                        $(td).attr('title', component.get("text"));
+//                    }
+//                });
+//                
+//                autoResizeMethod();
+//                
+//                component.removeAllListeners('updated', true);
+//                component.addListener('updated', autoResizeMethod, true);
             },
             
             renderCellWidth: function(container, width) {
@@ -1387,7 +1412,7 @@
                 } else {
                     if (!userSized) {
                         qcontainer.css('width',  width);
-                        this.rePosDrag();
+                        // this.rePosDrag();
                     }
                 }
             },
@@ -1446,7 +1471,7 @@
                 Echo.Sync.FillImage.render(backgroundImage, td);
             },
             
-            renderCellLayoutData: function(componentOrIndex, div, td) {                
+            renderCellLayoutData: function(componentOrIndex, div, td) {
                 var component = null;
                 if (typeof componentOrIndex == "number") {
                     component = p.owner.component.getComponent(componentOrIndex);
@@ -1458,19 +1483,24 @@
                 if (layoutData) {                    
                     if (layoutData.width) {
                         g.renderCellWidth(td, layoutData.width);
-                    }
-                    
+                    }                    
                     if (layoutData.height) {
                         g.renderCellHeight(td, layoutData.height);
-                    }
-                    
+                    }                    
                     if (layoutData.alignment) {
                         g.renderCellAlignment(td, div, layoutData.alignment);
-                    }
-                    
+                    }                    
                     g.renderCellInsets(div, layoutData.insets);
                     g.renderCellBackground(td, layoutData.background);
                     g.renderCellBackgroundImage(div, layoutData.backgroundImage);
+                }
+                
+                if (Echo.Sync.Extent.isPercent(component.render("height"))) {
+                    div.style.height = '100%';
+                }
+
+                if (Echo.Sync.Extent.isPercent(component.render("width"))) {
+                    div.style.width = '100%';
                 }
             },
             
@@ -1870,8 +1900,7 @@
                             );
                     }
                 }
-                );
-        //g.rePosDrag()
+            );
         }
 
 
@@ -2446,7 +2475,7 @@
          * Method to force populating the flexigrid again by setting the loading mode
          * to false. The loading mode is normally used while rendering.
          */
-        g.reload = function (){
+        g.reload = function () {
             g.loading = false;
             g.populate()
         };
@@ -2462,8 +2491,8 @@
             if (p.width!='auto') $(g.gDiv).addClass('ie6fullwidthbug');
         }
 
-        g.rePosDrag();
-        g.fixHeight();
+        // g.rePosDrag();
+        // g.fixHeight();
 
         //make grid functions accessible
         t.p = p;
@@ -2763,7 +2792,7 @@
                     while (cellsPerBatch > 0 && cc < childs.length) {
                       var ID = childs[cc];
                       var cell = document.getElementById(ID);
-                      this.grid.renderCellLayoutData(/(\d*)$/.exec(ID)[0] * 1, cell.firstChild, cell);
+                      this.grid.renderCellLayoutData(/(\d*)$/.exec(ID)[0] * 1, cell.firstChild, cell);                      
                       cc++;
                       cellsPerBatch--;
                     }
@@ -2772,6 +2801,7 @@
                         Core.Web.Scheduler.remove(runnable);
                         this.grid.setBusy(false);
                         this.grid.reloadPositions();
+                        this.grid.rePosDrag();
                     }
                 }), 1, true);
             };

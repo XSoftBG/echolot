@@ -571,24 +571,21 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             // new removed children
             // --------------------
             var removed = update.getRemovedChildren();            
-            for (index = 0; index < removed.length; index++) {
+            for (index = 0; index < removed.length; index++)
                 removedRenderIds.push(removed[index].renderId);
-            }
 
             if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
                 cells = this._renderUpdateChildIterator(added, dataNotRendered, activePageCells, columnModelCells);
-                if(cells.length != 0) {
+                if(cells.length != 0)
                     this._flexigrid.flexRenderChilds(cells);
-                }
             }
         }
 
         if (hasUpdatedLayoutDatas) {
             var updated = update.getUpdatedLayoutDataChildren();
             cells = this._renderUpdateChildIterator(updated, dataNotRendered, activePageCells, columnModelCells);
-            if(cells.length != 0) {
+            if(cells.length != 0)
                 this._flexigrid.flexRenderLayoutChilds(cells);
-            }
         }
         
         return false;
