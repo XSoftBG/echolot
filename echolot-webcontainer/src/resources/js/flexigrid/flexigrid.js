@@ -92,10 +92,6 @@
             hset : {},
             
             rePosDrag: function () {
-                // If Debugging is enabled record the start time of the rendering process.
-                //if (p.debug) {
-                    var startTime = new Date();
-                //}
                 var cdleft = 0 - this.hDiv.scrollLeft;
                 if (this.hDiv.scrollLeft > 0) cdleft -= Math.floor(p.cgwidth/2);
                 $(g.cDrag).css( {'top': g.hDiv.offsetTop+1} );
@@ -118,54 +114,7 @@
                     $(qdrags[n]).css( {'left': cdpos + 'px'} ).show();
                     cdleft = cdpos;
                 }
-                //if (p.debug && window.console && window.console.log) {
-                    // If debugging is enabled log the duration of this operation.
-                    console.log('Duration of rePosDrag :' + (new Date() - startTime) + 'ms');
-                //}
             },
-
-//            /* ~~~~~ ECHO3 special handling start ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-//            autoColumnWidth: function () {
-//                // If Debugging is enabled record the start time of the rendering process.
-//                if (p.debug) {
-//                    var startTime = new Date();
-//                }
-//                var n = 0;
-//                var flexgrid = this;
-//                $('thead tr:first th:visible',this.hDiv).each(
-//                    function() {
-//                        // ? Do we really need to readdress the part; isn't it available somehow by the jquery.each()?
-//                        var columnWidth =  $('th:visible div:eq('+n+')',this.hDiv).width();
-//                        $('tr',flexgrid.bDiv).each (
-//                            function ()
-//                            {
-//                                var cellWidth = $('td:visible div:eq('+n+')',this).width();
-//                                if (columnWidth < cellWidth) {
-//                                    columnWidth = cellWidth;
-//                                }
-//                            }
-//                            );
-//
-//                        $('th:visible div:eq('+n+')',flexgrid.hDiv).css('width',columnWidth);
-//                        $('tr',flexgrid.bDiv).each (
-//                            function ()
-//                            {
-//                                $('td:visible div:eq('+n+')',this).css('width',columnWidth);
-//                            }
-//                            );
-//                        $(flexgrid.hDiv).scrollLeft($(flexgrid.bDiv).scrollLeft);
-//                        flexgrid.rePosDrag();
-//                        flexgrid.fixHeight();
-//                        n++;
-//
-//                    });
-//                if (p.debug && window.console && window.console.log) {
-//                    // If debugging is enabled log the duration of this operation.
-//                    var nowTime = new Date();
-//                    console.log('Duration of autoColumnWidth :' + (nowTime - startTime) + 'ms');
-//                }
-//            },
-//            /* ~~~~~ ECHO3 special handling END   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
             
             /**
              * Method used to fix the height of the column drag-lines and the
@@ -337,10 +286,6 @@
 
             },
             dragEnd: function () {
-                // If Debugging is enabled record the start time of the rendering process.
-                if (p.debug) {
-                    var startTime = new Date();
-                }
                 if (this.colresize)
                 {
                     g.setBusy(true);
@@ -387,11 +332,6 @@
                         var columnId = p.colModel[n].id;
                         p.onResizeCol.call(p.owner, columnId, nw);
                     }
-                    if (p.debug && window.console && window.console.log) {
-                        // If debugging is enabled log the duration of this operation.
-                        var nowTime = new Date();
-                        console.log('Duration of dragEnd (colresize) :' + (nowTime - startTime) + 'ms');
-                    }
                 }
                 else if (this.vresize)
                 {
@@ -433,12 +373,6 @@
 
                     $('.thMove',this.hDiv).removeClass('thMove');
                     $(this.cDrag).show();
-
-                    if (p.debug && window.console && window.console.log) {
-                        // If debugging is enabled log the duration of this operation.
-                        var nowTime = new Date();
-                        console.log('Duration of dragEnd (colCopy) :' + (nowTime - startTime) + 'ms');
-                    }
                 }
                 $('body').css('cursor','default');
                 // $('body').noSelect(false);
@@ -517,10 +451,6 @@
                 }
 
                 this.hDiv.scrollLeft = this.bDiv.scrollLeft;
-
-                if (p.debug && window.console && window.console.log) {
-                    console.log('Triggered switchCol.');
-                }
             },
 
             // the action triggered by the scroll event in the body div (bDiv)
@@ -584,20 +514,8 @@
                     var bHeight = globalDiv.offsetParent().attr('offsetHeight') - p.heightOffset;
                     // adjust the flexigrid body (table) height
                     $(g.bDiv).css({
-                        height: bHeight+"px"
+                        height: bHeight + 'px'
                     });
-                    // adjust the column visibility menu height and width
-                    var mHeight = bHeight - 100;
-                    //$(g.nDiv).height(mHeight > 50 ? mHeight : 100).width(200);
-                    if (p.debug && window.console && window.console.log) {
-                        console.log('Finalize calculated height :' + bHeight + ' px, ' +
-                            'heightOffset: ' + p.heightOffset + ' px, menuHeight: ' + mHeight);
-                    }
-                }
-
-                if (p.debug) {
-                    // If Debugging is enabled record the start time of the rendering process.
-                    var startTime = new Date();
                 }
                 
                 // We will need the header cell at this point more times.
@@ -605,9 +523,7 @@
                 var headers = $('thead tr:first th', g.hDiv);
 
 
-               if (!this.dataDOM) {
-                    console.log('dataDOM: new');
-                    
+               if (!this.dataDOM) {                    
                     var tbody = document.createElement('tbody');                    
                     var protoTr = document.createElement('tr');
                     var protoTd = document.createElement('td');
@@ -622,13 +538,7 @@
                         tbody.appendChild(protoTr.cloneNode(true));
                     }
                     this.dataDOM = tbody;
-                } else {
-                    console.log('dataDOM: exits');
-                    
-                    console.log(' === before === ');
-                    console.log('rows: ' + this.dataDOM.childNodes.length);
-                    console.log('columns: ' + this.dataDOM.childNodes[0].childNodes.length);
-                    
+                } else {                    
                     var rowsDiff = data.rows.length - this.dataDOM.childNodes.length;
                     if (rowsDiff > 0) {
                         while (rowsDiff-- > 0) {
@@ -639,10 +549,6 @@
                             this.dataDOM.removeChild(this.dataDOM.childNodes[0]);
                         }
                     }
-                    
-                    console.log(' === after === ');
-                    console.log('rows: ' + this.dataDOM.childNodes.length);
-                    console.log('columns: ' + this.dataDOM.childNodes[0].childNodes.length);
                 }
                 
                 // Clone prototype data body ...
@@ -687,12 +593,6 @@
                     
                     // COMMENT-ECHO3: Notify for selection */
                     g.notifyForSelection();
-                    
-                    if (p.debug && window.console && window.console.log) {
-                        // If debugging is enabled log the duration of this operation.
-                        var nowTime = new Date();
-                        console.log('Duration of rendering data of type "' + p.dataType + '": ' + (nowTime - startTime) + 'ms');
-                    }
                 }
 
                 // What is going on here? Because of many rows we have to render, we do not
@@ -744,141 +644,14 @@
                             console.log('render time: ' + (new Date() - start) + 'ms');
                         }
                     }), 1, true);
-
-                  
-//                    var baseRendering = function(start, end) {
-//                        if (end > data.rows.length) {
-//                            end = data.rows.length - 1;
-//                        }
-//                        
-//                        var qTrProto = $(document.createElement('tr'));
-//                        qTrProto.click(g._rowClickHandler);
-//                        if ($.browser.msie && $.browser.version < 7.0) {
-//                            qTrProto.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
-//                        }
-//                        
-//                        var qTdProto = $(document.createElement('td'));
-//                        qTdProto.append(document.createElement("div"));
-//                        if (!p.nowrap) {
-//                            qTdProto.css('white-space', 'normal');
-//                        }
-//                        
-//                        for (var r = start; r <= end; r++) {                            
-//                            row = data.rows[r];
-//
-//                            var qtr = qTrProto.clone(true, false);
-//                            if (row.id !== null) {
-//                                qtr.attr('id', p.ownerId + '.ROW.' + row.id);
-//                            }
-//                            if (r % 2 && p.striped) {
-//                                qtr.addClass('erow');
-//                            }
-//
-//                            // Add each cell for each header column (rowDataIndex)
-//                            for (var c = 0; c < headers.length; c++) {
-//                                var qtd = qTdProto.clone(true, true);
-//                                qtr.append(qtd);
-//                                g.addCellProp(qtd[0], qtr, row.cells[$(headers[c]).data('rowDataIndex')], headers[c]);
-//                            }
-//
-//                            g.addRowProp(qtr);
-//                            qtbody.append(qtr);
-//                        }
-//                    };
-//                    
-//                    
-//                    var start = new Date();
-//                    
-//                    // Activate the busy mode.
-//                    g.setBusy(true);
-//                    
-//                    if (data.rows.length <= 100) {
-//                        baseRendering(0, data.rows.length - 1);
-//                        finalizeRendering();
-//                        console.log('sync render time: ' + (new Date() - start) + 'ms');
-//                    } else {
-//                        /**                     
-//                         * Start the pseudo asynchron iteration.
-//                         * Processing the JSON input may take some time esp. on crappy MSIEs.
-//                         * Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
-//                         * 
-//                         * Processes a data row in the JSON data stream
-//                         */                        
-//                        var offset = 0;
-//                        var runnable = Core.Web.Scheduler.run(Core.method(this, function() {                          
-//                            if (offset <= data.rows.length) {
-//                                var start = offset;
-//                                offset += 100;
-//                                baseRendering(start, offset);
-//                            } else {
-//                                Core.Web.Scheduler.remove(runnable);
-//                                finalizeRendering();
-//                                console.log('async render time: ' + (new Date() - start) + 'ms');
-//                            }
-//                        }), 1, true);
-//                    }
-                    
-                } else if (p.dataType=='xml') {
-                    // Prepare the looping parameters.
-                    var index = 1;
-                    var xi = 0;
-                    var rows = $("rows row", data);
-
-
-                    function doXmlRow() {
-                        // Only if there are more rows we will render a next row.
-                        if (xi < rows.length) {
-                            var row = rows[xi];
-                            // Paranoid I know but it possible that there is an array selected with
-                            // null entries.
-                            if (row) {
-                                var qrow = $(row);
-                                index++;
-                                var tr = document.createElement('tr');
-                                var qtr = $(tr);
-                                if (index % 2 && p.striped) {
-                                    tr.className = 'erow';
-                                }
-                                var nid = qrow.attr('id');
-                                if (nid === null) {
-                                // nothing to do
-                                }else {
-                                    //tr.id = 'row' + nid;
-                                    tr.id = p.ownerId + '.ROW.' + row.nid;
-                                }
-                                nid = null;
-                                var cells = $('cell', row);
-                                // Add each cell
-                                for (var idx = 0; idx < cells.length; idx++) {
-                                    var td = document.createElement('td');
-                                    var th = idx < headers.length ? headers[idx] : null;
-                                    qtr.append(td);
-                                    g.addCellProp(td, qtr, $(cells[idx]).text(), th);
-                                }
-                                qtbody.append(tr);
-                                // Prepare the next step.
-                                tr = null;
-                                xi++;
-                                setTimeout(doXmlRow, 1);
-                            } else {
-                                finalizeRendering();
-                            }
-                        } else {
-                            finalizeRendering();
-                        }
-                    }
-                    // Start the pseudo asynchron iteration.
-                    // Processing the XML input may take some time esp. on crappy MSIEs.
-                    // Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
-                    setTimeout(doXmlRow, 1);
-                }else {
+                } else {
                     throw new Error('DataType "' + p.dataType + '" could not be handled.');
                 }
             },
 
             /**
-			 * On change sort.
-			 */
+             * On change sort.
+             */
             changeSort: function(th, multiSelect) {
                 if (this.loading) return true;
                
@@ -886,20 +659,12 @@
                 $(g.nBtn).hide();
 
                 if (!multiSelect) {
-                    if (p.debug){
-                        var cleanStartTime = new Date();
-                    }
                     // remove all sorted columns from the model
                     p.sortModel.columns = [];
                     // remove all classes from the other header columns.
                     var thDiv = $('div', th);
                     $('thead tr:first th div', this.hDiv).not(thDiv).removeClass('sdesc').removeClass('sasc');
-
                     $(th).siblings().removeClass('sorted');
-                    if (p.debug && window.console && window.console.log){
-                        console.log('Multiselect is false, cleaned up columns in ' + (new Date() - cleanStartTime) + 'ms. '
-                            + 'remaining column: "' + $(th).attr('abbr') + '" classes: "' + thDiv.attr('class') + '"');
-                    }
                 }
 
                 // set or add the sorting order in the model
@@ -1599,11 +1364,7 @@
             var tDiv2 = document.createElement('div');
             tDiv2.className = 'tDiv2';
 
-            if (p.debug && window.console && window.console.log) {
-                console.log('Grid has ' + p.buttons.length + ' custom buttons.');
-            }
-
-            for (i=0;i<p.buttons.length;i++)
+            for (i = 0; i < p.buttons.length; i++)
             {
                 var btn = p.buttons[i];
                 if (!btn.separator)
@@ -1669,11 +1430,6 @@
         thead = null;
 
         if (!p.colmodel) var ci = 0;
-        if(p.debug && window.console && window.console.log){
-            console.log("Building table header");
-        }
-
-        //alert("SortModel: " + p.sortModel + " ClientSort: " + p.clientsort);
 
         //setup table header (thead)
         $('thead tr:first th',g.hDiv).each
@@ -1902,13 +1658,6 @@
                 }
             );
         }
-
-
-//        //add strip
-//        if (p.striped)
-//        {
-//            $('tbody tr:odd', g.bDiv).addClass('erow');
-//        }
 
         if (p.resizable && p.height !='auto')
         {
@@ -2278,9 +2027,6 @@
          */
         g.focus = function (focusState) {
             // FOCUS on first row
-            if (p.debug && window.console && window.console.log) {
-                console.log("FlexFocus: focus is " + focusState);
-            }
             // if flexigrid is busy we will trigger the focus after its finished.
             if (this.loading) {
                 g.lazyFocus = g.focus;
@@ -2303,14 +2049,10 @@
         g.remoteControl = function (e) {
             if(g.selectedRow && g.selectedRow != null ) {
                 var keycode = e.keyCode;
-                if (p.debug && window.console && window.console.log) {
-                    var startTime = new Date();
-                    console.log('Triggered remoteControl keycode: ' + keycode);
-                }
-                if (keycode == 13) {
+                if (e.keyCode == 13) {
                     // press enter to trigger the same as mouse click (up)
                     g.selectedRow.trigger("click");
-                } else if (keycode == 40) {
+                } else if (e.keyCode == 40) {
                     // press arrow down
                     var nextselectedRow = g.selectedRow.next();
                     if (nextselectedRow.is('tr')) {
@@ -2322,7 +2064,7 @@
                         if ($(g.bDiv).height()/2.3 < rowsHeight)
                             g.bDiv.scrollTop = g.bDiv.scrollTop + nextselectedRow.height();                
                     }
-                } else if (keycode == 38) {
+                } else if (e.keyCode == 38) {
                     // press arrow up
                     var prevselectedRow = g.selectedRow.prev();
                     if (prevselectedRow.is('tr')) {
@@ -2334,17 +2076,14 @@
                         if ($(g.bDiv).height()/2.3 < rowsHeight)
                             g.bDiv.scrollTop = g.bDiv.scrollTop - prevselectedRow.height();
                     }
-                } else if (keycode == 39) {
+                } else if (e.keyCode == 39) {
                     // press arrow right
                     g.bDiv.scrollLeft = g.bDiv.scrollLeft + 50;
                     g.scroll();
-                } else if (keycode == 37) {
+                } else if (e.keyCode == 37) {
                     // press arrow left
                     g.bDiv.scrollLeft = g.bDiv.scrollLeft - 50;
                     g.scroll();
-                }
-                if (p.debug && window.console && window.console.log) {
-                    console.log('Processed scrolltop: ' + g.bDiv.scrollTop + ', cHeight: ' + $(g.bDiv).height() + ' in :' + (new Date() - startTime) + 'ms');
                 }
             }
             return true;
@@ -2369,9 +2108,6 @@
                 }
             }
             columnsToSort.reverse();
-            if (p.debug && window.console && window.console.log) {
-                console.log('Sorting columns: ' + columnsToSort);
-            }
             var allRows = new Array();
             for (var idx = 0; idx < tableModel.pages.length; idx++) {
                 allRows = allRows.concat(tableModel.pages[idx].rows);
@@ -2388,21 +2124,10 @@
              * A method to sort rows using multiple columns.
              */
             function multiSorter (columns, rows) {
-                if (p.debug) {
-                    var startTime = new Date();
-                }
                 for (idx = 0; idx < columns.length; idx++) {
                     var columnIdx = columns[idx].index;
                     var sortOrder = columns[idx].order;
-                    if (p.debug && window.console && window.console.log) {
-                        console.log('Sorting column: ' + columnIdx + ', ' + sortOrder);
-                    }
                     rows.sort(alphaNumericSorter);
-                }
-                if (p.debug && window.console && window.console.log) {
-                    var nowTime = new Date();
-                    console.log('Duration of multiSort on ' + rows.length
-                        + ' rows :' + (nowTime - startTime) + 'ms');
                 }
                 return rows;
 
@@ -2435,20 +2160,11 @@
                             var row2Num = row2Cell.replace(delimiterRegExp,'');
                         // after replacing the delimiter, we make sure to have a '.' as delimiter for Decimal-Values
                         if(typeof(row2Num) != 'undefined') // can happen...
-                        {
                             row2Num = row2Num.replace(decimalDelimiterRegExp, '.');
-                        }
-                        if (p.debug && window.console && window.console.log) {
-                            console.log('Tested row type = "number" ' + row1Num + ' to ' + row2Num);
-                        }
-                        
                         result = sortOrder == 'asc' ? row1Num - row2Num : row2Num - row1Num;
                     }
                     // string rows
                     else {
-                        if (p.debug && window.console && window.console.log) {
-                            console.log('Tested row type = "string" '+ row1Cell + ' to ' + row2Cell);
-                        }
                         if (row1Cell == row2Cell) {
                             result = 0;
                         }
@@ -2481,18 +2197,14 @@
         };
 
         //browser adjustments
-        if ($.browser.msie&&$.browser.version<7.0)
-        {
-            $('.hDiv,.bDiv,.mDiv,.pDiv,.vGrip,.tDiv, .sDiv',g.gDiv)
-            .css({
-                width: '100%'
-            });
+        if ($.browser.msie&&$.browser.version < 7.0) {
+            $('.hDiv,.bDiv,.mDiv,.pDiv,.vGrip,.tDiv, .sDiv',g.gDiv).css({ width: '100%' });
             $(g.gDiv).addClass('ie6');
             if (p.width!='auto') $(g.gDiv).addClass('ie6fullwidthbug');
         }
 
-        // g.rePosDrag();
-        // g.fixHeight();
+        // g.rePosDrag(); // don't need
+        // g.fixHeight(); // don't need
 
         //make grid functions accessible
         t.p = p;
@@ -2502,15 +2214,8 @@
         if (p.url && p.autoload) {
             g.populate();
         } else {
-            // If Debugging is enabled record the start time of the rendering process.
-            if (p.debug) {
-                var startTime = new Date();
-            }
             // Make this grid list busy for the user.
             g.setBusy(true);
-
-            // ECHO3: call our special autosize columns which assigns max width (by bsc)
-            // g.autoColumnWidth.call(g);
 
             /**
              * This method is used to finalize the rendering of the data to the body if the grid list.
@@ -2519,10 +2224,6 @@
             function finalizeRendering() {
                 g.setBusy(false);
                 $('tbody', g.bDiv).show();
-                if (p.debug && window.console && window.console.log) {
-                    var nowTime = new Date();
-                    console.log('Duration of rendering data of type "inlineHtml": ' + (nowTime - startTime) + 'ms');
-                }
             }
 
             // Add tr and td properties
@@ -2574,31 +2275,11 @@
         return t;
     };
 
-    /* COMMENT-ECHO3: Not useful in echo3! changed to true, was false */
-    //var docloaded = true;
-
-    //$(document).ready(function () {docloaded = true} );
-
     $.fn.flexigrid = function(p) {
-
         return this.each( function() {
-            /*if (!docloaded)
-				{
-					$(this).hide();
-					var t = this;
-					$(document).ready
-					(
-						function ()
-						{
-						$.addFlex(t,p);
-						}
-					);
-				} else {*/
             $.addFlex(this,p);
-        //}
         });
-
-    }; //end flexigrid
+    };
 
     $.fn.flexReload = function(p) { // function to reload grid
 
@@ -2607,8 +2288,7 @@
                 return this.grid.reload();
             }
         });
-
-    }; //end flexReload
+    };
 
     $.fn.flexOptions = function(p) { //function to update general options
 
@@ -2616,7 +2296,7 @@
             if (this.grid) $.extend(this.p,p);
         });
 
-    }; //end flexOptions
+    };
 
     $.fn.flexToggleCol = function(cid,visible) { // function to reload grid
 
@@ -2624,7 +2304,7 @@
             if (this.grid) this.grid.toggleCol(cid,visible);
         });
 
-    }; //end flexToggleCol
+    };
 
     $.fn.flexAddData = function(data) { // function to add data to grid
         return this.each( function() {
@@ -2633,20 +2313,15 @@
                 this.grid.addData(data);
             }
         });
-
     };
 
-    $.fn.noSelect = function(p) { //no select plugin by me :-)
-
+    $.fn.noSelect = function(p) {
         if (p == null)
             var prevent = true;
         else
             prevent = p;
-
         if (prevent) {
-
-            return this.each(function ()
-            {
+            return this.each(function () {
                 if ($.browser.msie||$.browser.safari) $(this).bind('selectstart',function(){
                     return false;
                 });
@@ -2660,80 +2335,55 @@
                 });
                 else $(this).attr('unselectable','on');
             });
-
         } else {
-            return this.each(function ()
-            {
+            return this.each(function () {
                 if ($.browser.msie||$.browser.safari) $(this).unbind('selectstart');
                 else if ($.browser.mozilla) $(this).css('MozUserSelect','inherit');
                 else if ($.browser.opera) $(this).unbind('mousedown');
                 else $(this).removeAttr('unselectable','on');
             });
-
         }
-
-    }; //end noSelect
+    };
 
     $.fn.flexDestroy = function() {
         return this.each( function() {
-            if (this.grid) {
-                var isDebug = this.p.debug;
-                if (isDebug) {
-                    var startTime = new Date();
-                }
-                this.grid.cleanup();
-                if (isDebug && window.console && window.console.log) {
-                    console.log('flexDestroy took :' + (new Date() - startTime) + 'ms');
-                }
-            }
+            if (this.grid) this.grid.cleanup();
         });
     };
 
     $.fn.flexMultiSort = function(sortModel, colModel, tableModel) {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.multiSort(sortModel, colModel, tableModel)
-            };
+            if (this.grid) this.grid.multiSort(sortModel, colModel, tableModel);
         });
     };
 
     $.fn.flexFocus = function(focusState) {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.focus(focusState)
-            };
+            if (this.grid) this.grid.focus(focusState);
         });
     };
     
     $.fn.flexFixHeight = function() {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.fixHeight();
-            };
+            if (this.grid) this.grid.fixHeight();
         });
     };
 
     $.fn.flexRemoteControl = function(e) {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.remoteControl(e)
-            };
+            if (this.grid) this.grid.remoteControl(e);
         });
     };    
     
     $.fn.flexCheckSelection = function() {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.notifyForSelection();
-            };
+            if (this.grid) this.grid.notifyForSelection();
         });
     };
     
     $.fn.flexMakeSelection = function(rowSelection) {
         return this.each( function() {
-            if (this.grid) {
-                this.grid.makeSelection(rowSelection);
-            };
+            if (this.grid) this.grid.makeSelection(rowSelection);
         });
     };
     
