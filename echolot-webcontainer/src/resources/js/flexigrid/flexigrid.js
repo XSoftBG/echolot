@@ -686,29 +686,41 @@
                      * Processes a data row in the JSON data stream
                      */
                     var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-                        var rowsPerBatch = 20;                        
+                        
+                        var qTrProto = $(document.createElement('tr'));
+                        qTrProto.click(g._rowClickHandler);
+                        if ($.browser.msie && $.browser.version < 7.0) {
+                            qTrProto.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
+                        }
+                        
+                        var qTdProto = $(document.createElement('td'));
+                        qTdProto.append(document.createElement("div"));
+                        if (!p.nowrap) {
+                            qTdProto.css('white-space', 'normal');
+                        }
+                        
+                        var rowsPerBatch = 20;
                         while (data && data.rows.length > ji && data.rows[ji] && rowsPerBatch > 0) {
                             row = data.rows[ji];
-                            var tr = document.createElement('tr');
-                            var qtr = $(tr);
+                            
+                            var qtr = qTrProto.clone(true, false);
+                            if (row.id !== null) {
+                                qtr.attr('id', p.ownerId + '.ROW.' + row.id);
+                            }
                             if (ji % 2 && p.striped) {
-                                tr.className = 'erow';
+                                qtr.addClass('erow');
                             }
                             
-                            if (row.id !== null) {
-                                tr.id = p.ownerId + '.ROW.' + row.id;
-                            }
-                            // Add each cell for each header column (rowDataIndex)
+                            // Add each cell for each header column (rowDataIndex)                            
                             var colCount = headers.length;
                             for (var idx = 0; idx < colCount; idx++) {
-                                var th = headers[idx];
-                                var td = document.createElement('td');
-                                qtr.append(td);
-                                var rowDataIdx = $(th).data('rowDataIndex'); // retrieves the value rowDataIndex
-                                g.addCellProp(td, qtr, row.cells[rowDataIdx], th);
-                            }                                
+                                var qtd = qTdProto.clone(true, true);
+                                qtr.append(qtd);
+                                g.addCellProp(qtd[0], qtr, row.cells[$(headers[idx]).data('rowDataIndex')], headers[idx]);
+                            }
+                            
                             g.addRowProp(qtr);
-                            qtbody.append(tr);
+                            qtbody.append(qtr);
                             
                             // Prepare the next step.
                             ji++;
@@ -808,7 +820,7 @@
                                 var nid = qrow.attr('id');
                                 if (nid === null) {
                                 // nothing to do
-                                } else {
+                                }else {
                                     //tr.id = 'row' + nid;
                                     tr.id = p.ownerId + '.ROW.' + row.nid;
                                 }
@@ -837,7 +849,7 @@
                     // Processing the XML input may take some time esp. on crappy MSIEs.
                     // Using this timeout mechanism we avoid "unresponsible script" warn dialogs.
                     setTimeout(doXmlRow, 1);
-                } else {
+                }else {
                     throw new Error('DataType "' + p.dataType + '" could not be handled.');
                 }
             },
@@ -887,7 +899,7 @@
                                 break;
                             }
                         }
-                    } else {
+                    }else {
                         sortColumn = new Object({
                             columnId: abbrSelector,
                             columnIdx: columnIdx,
@@ -1142,25 +1154,14 @@
             },
 
             addCellProp: function (cell, prnt, cellData, pth) {
-                // prepeare cell ...
-                // -----------------
                 var qcell = $(cell);
-                if (pth != null) {
+                if (pth) {
                     if ($(pth).hasClass('sorted'))
                         qcell.addClass('sorted');
                     if (pth.hide)
                         qcell.css('display', 'none');
                 }
-
-                var childDiv = document.createElement("div");
-                g.renderCell(cellData.componentIdx, childDiv, cell);
-                
-                if (!p.nowrap) 
-                    qcell.css('white-space', 'normal');
-
-                // add content to cell ...
-                // -----------------------
-                qcell.empty().append(childDiv);
+                g.renderCell(cellData.componentIdx, qcell.children(':first-child')[0], cell);
             },
 
             getCellDim: function (obj) // get cell prop for editable event
@@ -1290,51 +1291,24 @@
         
             },
 
-            addRowProp: function(qrow) {                
-                var rowId = /(\d*)$/.exec(qrow.attr('id'))[0] * 1;
-                if($.inArray(rowId, p.asr) != -1)
-                    qrow.addClass('trSelected');
-                
-                qrow.click(function (e) {
-                    var obj = (e.target || e.srcElement);
-                    if (obj.href || obj.type) {
-                        return true;
-                    }
-                    g.processSelection($(this), e);
-                    e.stopPropagation();
-                });
-                
-                if ($.browser.msie && $.browser.version < 7.0) {
-                    qrow.hover(function () {
-                        $(this).addClass('trOver');
-                    }, function () {
-                        $(this).removeClass('trOver');
-                    });
+            _rowClickHandler: function(e) {
+                var obj = (e.target || e.srcElement);
+                if (obj.href || obj.type) {
+                    return true;
                 }
-                
-            // Why ???                
-            //                .hover(function () {/*hover-in*/
-            //                    if (g.multisel) {
-            //                        $(this).toggleClass('trSelected');
-            //                    }
-            //                }, function () {/*hover-out*/
-            //                })
-            //                .mousedown(function (e) {
-            //                    if (e.shiftKey) {
-            //                        $(this).toggleClass('trSelected');
-            //                        g.multisel = true;
-            //                        $(g.gDiv).noSelect();
-            //                    }
-            //                }).mouseup(function (e) {
-            //                	e.stopPropagation();
-            //                    if (g.multisel) {
-            //                        g.multisel = false;
-            //                        $(g.gDiv).noSelect(false);
-            //                    }
-            //                })
-                
-                
+                g.processSelection($(this), e);
+                e.stopPropagation();
             },
+
+            addRowProp: function(qtr) {
+                if ($.inArray((/(\d*)$/.exec(qtr.attr('id'))[0] * 1), p.asr) != -1) {
+                    qtr.addClass('trSelected');
+                }
+            },
+            
+            
+            
+            
             pager: 0,
             
             getCellHeader: function(cell) {
@@ -2287,7 +2261,7 @@
                     //g.selectedRow = $("table tbody tr:first-child", g.bDiv);
                     if (focusState) {
                     //g.selectedRow.addClass('trSelected');
-                    } else {
+                    }else {
                         $("table tbody tr").removeClass('trSelected');
                     }
                 }
