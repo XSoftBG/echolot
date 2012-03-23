@@ -605,6 +605,9 @@
                     // Prepare the looping parameters.
                     var ji = 0;
                     var row = null;
+                    var cell = null;
+                    var tr = null;
+                    var qth = null;
                     
                     /**                     
                      * Start the pseudo asynchron iteration.
@@ -614,23 +617,54 @@
                      * Processes a data row in the JSON data stream
                      */
                     var start = new Date();
-                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {                        
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                        
+                        var clickHandler = function(e) {
+                            var obj = (e.target || e.srcElement);
+                            if (obj.href || obj.type) {
+                                return true;
+                            }
+                            g.processSelection($(this), e);
+                            e.stopPropagation();
+                        };                        
+                      
                         var rowsPerBatch = 20;
                         while (data && data.rows.length > ji && data.rows[ji] && rowsPerBatch > 0) {
                             row = data.rows[ji];                            
-                            var qtr = $(body.childNodes[ji]);                            
+                            tr = body.childNodes[ji];
+                            
                             if (row.id !== null) {
-                                qtr.attr('id', p.ownerId + '.ROW.' + row.id);
+                                tr.id = p.ownerId + '.ROW.' + row.id;
                             }                            
                             if (ji % 2 && p.striped) {
-                                qtr.addClass('erow');
-                            }                            
-                            // Add each cell for each header column (rowDataIndex)                            
-                            var colCount = headers.length;
-                            for (var ci = 0; ci < colCount; ci++) {
-                                g.addCellProp(body.childNodes[ji].childNodes[ci], qtr, row.cells[$(headers[ci]).data('rowDataIndex')], headers[ci]);
-                            }                            
-                            g.addRowProp(qtr);
+                                tr.className += ' erow';
+                            }
+                            if ($.inArray(row.id, p.asr) != -1) {
+                                tr.className += ' trSelected';
+                            }
+                            
+                            tr.onclick = clickHandler;
+                            
+                            /*
+                             * if ($.browser.msie && $.browser.version < 7.0) {
+                             *    qtr.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
+                             * }
+                             */
+                           
+                            // Add each cell for each header column (rowDataIndex)
+                            for (var ci = 0; ci < headers.length; ci++) {
+                                qth = $(headers[ci]);
+                                cell = body.childNodes[ji].childNodes[ci];
+                                
+                                if (qth.hasClass('sorted')) {
+                                    cell.className += ' sorted';
+                                }
+                                if (headers[ci].hide) {
+                                    cell.style.display = 'node';
+                                }
+                                
+                                g.renderCell(qth.data('rowDataIndex').componentIdx, cell.childNodes[0], cell);
+                            }
                             
                             // Prepare the next step.
                             ji++;
@@ -638,8 +672,7 @@
                         }
                         
                         if (ji == data.rows.length) {
-                            Core.Web.Scheduler.remove(runnable);
-                            // No more data? Finalize
+                            Core.Web.Scheduler.remove(runnable);                            
                             finalizeRendering();
                             console.log('render time: ' + (new Date() - start) + 'ms');
                         }
@@ -940,16 +973,15 @@
                     
             },
 
-            addCellProp: function (cell, prnt, cellData, pth) {
-                var qcell = $(cell);
-                if (pth) {
-                    if ($(pth).hasClass('sorted'))
-                        qcell.addClass('sorted');
-                    if (pth.hide)
-                        qcell.css('display', 'none');
-                }
-                g.renderCell(cellData.componentIdx, qcell.children(':first-child')[0], cell);
-            },
+//            addCellProp: function (cell, tr, cellData, pth) {
+//                if (pth) {
+//                    if ($(pth).hasClass('sorted'))
+//                        cell.className += ' sorted';
+//                    if (pth.hide)
+//                        cell.style.display = 'none';
+//                }                
+//                g.renderCell(cellData.componentIdx, cell.childNodes[0], cell);
+//            },
 
             getCellDim: function (obj) // get cell prop for editable event
             {
@@ -1078,23 +1110,11 @@
         
             },
 
-            _rowClickHandler: function(e) {
-                var obj = (e.target || e.srcElement);
-                if (obj.href || obj.type) {
-                    return true;
-                }
-                g.processSelection($(this), e);
-                e.stopPropagation();
-            },
 
-            addRowProp: function(qtr) {
-                if ($.inArray((/(\d*)$/.exec(qtr.attr('id'))[0] * 1), p.asr) != -1) {
-                    qtr.addClass('trSelected');
-                }
-                qtr.click(g._rowClickHandler);
-                if ($.browser.msie && $.browser.version < 7.0) {
-                    qtr.hover(function () {$(this).addClass('trOver');}, function () {$(this).removeClass('trOver');});
-                }                
+
+            addRowProp: function(tr) {
+                // do nothing ....
+                
             },
             
             
@@ -1122,10 +1142,10 @@
                     component = componentOrIndex;
                 }
                 
-                td.id = 'CELL.' + component.renderId;
-                
+                td.id = 'CELL.' + component.renderId;                
                 g.renderCellLayoutData(component, div, td);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
+                
                 if (p.onRenderCell) {
                     p.onRenderCell.call(p.owner, component);
                 }
@@ -1181,61 +1201,7 @@
                     }
                 }
             },
-            
-            renderCellHeight: function(td, height) {
-                td.style.height = height;
-            },
-            
-            renderCellAlignment: function(td, div, alignment) {
-                var qdiv = $(div);
-                var horizontal = Echo.Sync.Alignment.getRenderedHorizontal(alignment);
-                var vertical = typeof(alignment) == "object" ? alignment.vertical : alignment;
-
-                switch (horizontal) {
-                    case "center":
-                        qdiv.css({
-                            'margin' : '0 auto', 
-                            'float': 'none'
-                        });
-                        break;
-                    default:
-                        qdiv.css({
-                            'float': horizontal
-                        });
-                        break;
-                }
-
-                var verticalValue;
-                switch (vertical) {
-                    case "top":
-                        verticalValue = "top";
-                        break;
-                    case "middle":
-                        verticalValue = "middle";
-                        break;
-                    case "bottom":
-                        verticalValue = "bottom";
-                        break;
-                    default:
-                        verticalValue = "";
-                        break;
-                }
-                td.style.verticalAlign = verticalValue;
-                td.style.textAlign = 'center';
-            },
-            
-            renderCellInsets: function(div, insets) {
-                Echo.Sync.Insets.render(insets, div, "padding");
-            },
-            
-            renderCellBackground: function(td, backgroundColor) {
-                Echo.Sync.Color.render(backgroundColor, td, "backgroundColor");
-            },
-            
-            renderCellBackgroundImage: function(td, backgroundImage) {
-                Echo.Sync.FillImage.render(backgroundImage, td);
-            },
-            
+                        
             renderCellLayoutData: function(componentOrIndex, div, td) {
                 var component = null;
                 if (typeof componentOrIndex == "number") {
@@ -1245,19 +1211,52 @@
                 }
                 
                 var layoutData = component.render("layoutData");
-                if (layoutData) {                    
+                if (layoutData) {
+                  
                     if (layoutData.width) {
                         g.renderCellWidth(td, layoutData.width);
-                    }                    
+                    }
+                    
                     if (layoutData.height) {
-                        g.renderCellHeight(td, layoutData.height);
-                    }                    
+                        td.style.height = layoutData.height;
+                    }
+                    
                     if (layoutData.alignment) {
-                        g.renderCellAlignment(td, div, layoutData.alignment);
-                    }                    
-                    g.renderCellInsets(div, layoutData.insets);
-                    g.renderCellBackground(td, layoutData.background);
-                    g.renderCellBackgroundImage(div, layoutData.backgroundImage);
+                        var horizontal = Echo.Sync.Alignment.getRenderedHorizontal(layoutData.alignment);
+                        var vertical = typeof(alignment) == "object" ? layoutData.alignment.vertical : layoutData.alignment;
+
+                        switch (horizontal) {
+                            case "center":
+                                div.style.margin = "0px auto";
+                                div.style.cssFloat = 'none';
+                                break;
+                            default:
+                                div.style.cssFloat = horizontal;
+                                break;
+                        }
+
+                        var verticalValue;
+                        switch (vertical) {
+                            case "top":
+                                verticalValue = "top";
+                                break;
+                            case "middle":
+                                verticalValue = "middle";
+                                break;
+                            case "bottom":
+                                verticalValue = "bottom";
+                                break;
+                            default:
+                                verticalValue = "";
+                                break;
+                        }
+                        td.style.verticalAlign = verticalValue;
+                        td.style.textAlign = 'center';
+                    }
+                    
+                    Echo.Sync.Insets.render(layoutData.insets, div, "padding");                    
+                    Echo.Sync.Color.render(layoutData.background, td, "backgroundColor");
+                    Echo.Sync.FillImage.render(layoutData.backgroundImage, td);
                 }
                 
                 if (Echo.Sync.Extent.isPercent(component.render("height"))) {
