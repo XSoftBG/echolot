@@ -76,7 +76,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
     private static final String FLEXIGRID_STYLESHEET;
     
     static {
-        FLEXIGRID_SERVICE = JavaScriptService.forResource("exxcellent.FlexiGridService", "js/flexigrid/flexigrid.js");
+        FLEXIGRID_SERVICE = JavaScriptService.forResource("exxcellent.FlexiGridService", "js/flexigrid/flexigrid-min.js");
         FLEXIGRID_SYNC_SERVICE = JavaScriptService.forResource("exxcellent.FlexiGrid.Sync", "js/Sync.FlexiGrid.js");
         
         FLEXIGRID_STYLESHEET = "js/flexigrid/css/flexigrid/";

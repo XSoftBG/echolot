@@ -90,11 +90,11 @@
         //create grid class
         var g = {      
             hset : {},
-            
+           
             rePosDrag: function () {
                 var cdleft = 0 - this.hDiv.scrollLeft;
                 if (this.hDiv.scrollLeft > 0) cdleft -= Math.floor(p.cgwidth/2);
-                $(g.cDrag).css( {'top': g.hDiv.offsetTop+1} );
+                g.cDrag.style.top = (g.hDiv.offsetTop + 1) + 'px';
                 var cdpad = this.cdpad;
                 // Select all possible drags and hide it. The selection is stored to a variable because
                 // we will reuse it later while iterate through the header cells.
@@ -102,7 +102,7 @@
                 qdrags.hide();
                 // We do not use the regular each method of jQuery because we do need the index of the
                 // header cell for other operation with the drags. (each is usually also slower than for)
-                var qheaders = $('thead tr:first th:visible', this.hDiv);
+                var qheaders = $('thead tr:first th:visible', this.hTable);
                 for (var n = 0; n < qheaders.length; n++) {
                     //var cdpos = parseInt($('div', qheaders[n]).width());
                     var cdpos = parseInt($(qheaders[n]).width());
@@ -111,9 +111,10 @@
                     }
                     cdpos = cdpos + cdleft + cdpad;
                     // Select the drag which is equals to the index of the current header cell.
-                    $(qdrags[n]).css( {'left': cdpos + 'px'} ).show();
+                    qdrags[n].style.left = cdpos + 'px';
                     cdleft = cdpos;
                 }
+                qdrags.show();
             },
             
             /**
@@ -121,7 +122,7 @@
              * column visibility menu height (nDiv).
              */
             fixHeight: function (newH) {
-                newH = false;                
+                // newH = false;
                 if (!newH) {
                     newH = $(g.bDiv).height();
                 }
@@ -222,6 +223,7 @@
                 $(g.gDiv).noSelect();
 
             },
+            
             dragMove: function (e) {
 
                 if (this.colresize) //column resize
@@ -285,6 +287,7 @@
                 }
 
             },
+            
             dragEnd: function () {
                 if (this.colresize)
                 {
@@ -616,7 +619,7 @@
                      * 
                      * Processes a data row in the JSON data stream
                      */
-                    var start = new Date();
+                    // var start = new Date();
                     var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
                         
                         var clickHandler = function(e) {
@@ -660,10 +663,10 @@
                                     cell.className += ' sorted';
                                 }
                                 if (headers[ci].hide) {
-                                    cell.style.display = 'node';
+                                    cell.style.display = 'none';
                                 }
                                 
-                                g.renderCell(row.cells[qth.data('rowDataIndex')].componentIdx, cell.childNodes[0], cell);
+                                g.renderCell(row.cells[qth.data('rowDataIndex')].componentIdx, cell.childNodes[0], cell, qth);
                             }
                             
                             // Prepare the next step.
@@ -674,7 +677,7 @@
                         if (ji == data.rows.length) {
                             Core.Web.Scheduler.remove(runnable);                            
                             finalizeRendering();
-                            console.log('render time: ' + (new Date() - start) + 'ms');
+                            // console.log('render time: ' + (new Date() - start) + 'ms');
                         }
                     }), 1, true);
                 } else {
@@ -796,8 +799,8 @@
             // * rebuild pager based on new properties ...
             // -------------------------------------------
             buildpager: function(){ 
-                $('.pcontrol input',this.pDiv).val(p.page);
-                $('.pcontrol span',this.pDiv).html(p.pages);
+                $('.pcontrol input', this.pDiv).val(p.page);
+                $('.pcontrol span', this.pDiv).html(p.pages);
 
                 var r1 = (p.page-1) * p.rp + 1;
                 var r2 = p.rp == -1 ? p.total : r1 + p.rp - 1;
@@ -1126,11 +1129,11 @@
                 if (cell.is('th')) {
                     return cell;
                 } else {
-                    return $('tr:eq(0) > th:eq(' + cell.index() + ')', $('#' + $.fn.fixID('HEADER.' + p.ownerId)));
+                    return $('tr:eq(0) > th:eq(' + cell.index() + ')', this.hTable);
                 }
             },
             
-            renderCell: function(componentOrIndex, div, td) {
+            renderCell: function(componentOrIndex, div, td, qth) {
                 if (Echo.Render._disposedComponents == null) {
                     Echo.Render._disposedComponents = {};
                 }
@@ -1143,7 +1146,7 @@
                 }
                 
                 td.id = 'CELL.' + component.renderId;                
-                g.renderCellLayoutData(component, div, td);
+                g.renderCellLayoutData(component, div, td, qth);
                 Echo.Render.renderComponentAdd(new Echo.Update.ComponentUpdate(), component, div);
                 
                 if (p.onRenderCell) {
@@ -1182,27 +1185,8 @@
 //                component.removeAllListeners('updated', true);
 //                component.addListener('updated', autoResizeMethod, true);
             },
-            
-            renderCellWidth: function(container, width) {
-                var qcontainer = $(container);
-                var qth = g.getCellHeader(qcontainer);
-                var userSized = qth.data('isUserSized');
-                
-                if (qth != qcontainer) {
-                    if (userSized) {
-                        qcontainer.css('width',  qth.css('width'));
-                    } else {
-                        qcontainer.css('width',  width);
-                    }
-                } else {
-                    if (!userSized) {
-                        qcontainer.css('width',  width);
-                        // this.rePosDrag();
-                    }
-                }
-            },
                         
-            renderCellLayoutData: function(componentOrIndex, div, td) {
+            renderCellLayoutData: function(componentOrIndex, div, td, qth) {
                 var component = null;
                 if (typeof componentOrIndex == "number") {
                     component = p.owner.component.getComponent(componentOrIndex);
@@ -1213,8 +1197,21 @@
                 var layoutData = component.render("layoutData");
                 if (layoutData) {
                   
-                    if (layoutData.width) {
-                        g.renderCellWidth(td, layoutData.width);
+                    if (layoutData.width) {                      
+                        if (!qth) {
+                            qth = g.getCellHeader($(td));
+                        }
+                        
+                        var userSized = qth.data('isUserSized');
+                        if (td != qth[0]) {
+                            if (!userSized) {
+                                td.style.width = layoutData.width;
+                            } else {
+                                td.style.width = qth[0].style.width;
+                            }
+                        } else if (!userSized) {
+                            td.style.width = layoutData.width;
+                        }
                     }
                     
                     if (layoutData.height) {
@@ -1278,64 +1275,52 @@
         // -----------------------------------------------------------------------------------------------------------
 
         //analyze column model if any
-        if (p.colModel)
-        {
+        if (p.colModel) {
             var thead = document.createElement('thead');
             var tr = document.createElement('tr');
-
+            var protoTh = document.createElement('th');
+            
             for (var i = 0; i < p.colModel.length; i++) {
-                //                if(/^true$/i.test(p.colModel[i].visible)) {
-                var cm = p.colModel[i];
-                var pth = document.createElement('th');
+                var columnModel = p.colModel[i];
+                var th = protoTh.cloneNode(false);
 
-                if (cm.id !== null) {
-                    $(pth).attr('cmid', cm.id);
-                    if (cm.sortable) {
-                        $(pth).attr('abbr', cm.id);
+                if (columnModel.id !== null) {
+                    th.setAttribute('cmid', columnModel.id);
+                    if (columnModel.sortable) {
+                        th.setAttribute('abbr', columnModel.id);
                     }
                 }
-                    
-                $(pth).attr('title', cm.tooltip);
-                    
-                if (cm.hide || !cm.visible) {
-                    pth.hide = true;
-                }
-                    
-                if (cm.process) {
-                    pth.process = cm.process;
-                }
-
-                // store the data index using jquery
-                $(pth).data({
-                    //'rowDataIndex': counter ? i-1 : i, 
-                    'rowDataIndex': i, 
-                    'componentIdx': cm.cell.componentIdx,
-                    'visible': cm.visible
-                }); // sets the value of userid & component index
-
-                $(tr).append(pth);
-            //                }
+                
+                th.setAttribute('title', columnModel.tooltip);
+                th.hide = columnModel.hide || !columnModel.visible;
+                th.process = columnModel.process;
+                
+                $(th).data({'rowDataIndex': i, 'componentIdx': columnModel.cell.componentIdx, 'visible': columnModel.visible});                
+                tr.appendChild(th);
             }
-            $(thead).append(tr);
+            thead.appendChild(tr);
             $(t).prepend(thead);
-        } // end if p.colmodel
+        }
 
         //init divs
-        g.gDiv = document.createElement('div'); //create global container
-        g.mDiv = document.createElement('div'); //create title container
-        g.hDiv = document.createElement('div'); //create header container
-        g.bDiv = document.createElement('div'); //create body container
-        g.vDiv = document.createElement('div'); //create grip
-        g.rDiv = document.createElement('div'); //create horizontal resizer
-        g.cDrag = document.createElement('div'); //create column drag
-        g.block = document.createElement('div'); //creat blocker
-        g.nDiv = document.createElement('div'); //create column show/hide popup
-        g.nBtn = document.createElement('div'); //create column show/hide button
-        g.iDiv = document.createElement('div'); //create editable layer
-        g.tDiv = document.createElement('div'); //create toolbar
-        g.sDiv = document.createElement('div');
+        var pDiv = document.createElement('div'); //create prototype div        
+        g.gDiv = pDiv.cloneNode(false); //create global container
+        g.mDiv = pDiv.cloneNode(false); //create title container
+        g.hDiv = pDiv.cloneNode(false); //create header container
+        g.bDiv = pDiv.cloneNode(false); //create body container
+        g.vDiv = pDiv.cloneNode(false); //create grip
+        g.rDiv = pDiv.cloneNode(false); //create horizontal resizer
+        g.cDrag = pDiv.cloneNode(false); //create column drag
+        g.block = pDiv.cloneNode(false); //creat blocker
+        g.nDiv = pDiv.cloneNode(false); //create column show/hide popup
+        g.nBtn = pDiv.cloneNode(false); //create column show/hide button
+        g.iDiv = pDiv.cloneNode(false); //create editable layer
+        g.tDiv = pDiv.cloneNode(false); //create toolbar
+        g.sDiv = pDiv.cloneNode(false);
 
-        if (p.usepager || p.showPageStat) g.pDiv = document.createElement('div'); //create pager container
+        if (p.usepager || p.showPageStat) {
+            g.pDiv = pDiv.cloneNode(false); //create pager container
+        }
         g.hTable = document.createElement('table');
         g.hTable.id = 'HEADER.' + p.ownerId;
 
@@ -1347,24 +1332,24 @@
         //    g.gDiv.style.width = p.width;
 
         //add conditional classes
-        if ($.browser.msie)
-            $(g.gDiv).addClass('ie');
+        if ($.browser.msie) {
+            g.gDiv.className += ' ie';
+        }
 
-        if (p.novstripe)
-            $(g.gDiv).addClass('novstripe');
+        if (p.novstripe) {
+            g.gDiv.className += ' novstripe';
+        }
 
         $(t).before(g.gDiv);
-        $(g.gDiv).append(t);
+        g.gDiv.appendChild(t);
 
         //set toolbar
-        if (p.buttons)
-        {
+        if (p.buttons) {
             g.tDiv.className = 'tDiv';
             var tDiv2 = document.createElement('div');
             tDiv2.className = 'tDiv2';
 
-            for (i = 0; i < p.buttons.length; i++)
-            {
+            for (i = 0; i < p.buttons.length; i++) {
                 var btn = p.buttons[i];
                 if (!btn.separator)
                 {
@@ -1414,31 +1399,34 @@
         if (!p.headerVisible) {
             g.hDiv.style.visibility = 'hidden';
             g.hDiv.style.height = '0px';          
-        }
-        
+        }        
         
         $(t).before(g.hDiv);
 
         //set hTable
         g.hTable.cellPadding = 0;
         g.hTable.cellSpacing = 0;
-        $(g.hDiv).append('<div class="hDivBox"></div>');
-        $('div',g.hDiv).append(g.hTable);
-        var thead = $("thead:first",t).get(0);
-        if (thead) $(g.hTable).append(thead);
+        
+        var hDivBox = pDiv.cloneNode(false);
+        hDivBox.className = 'hDivBox';
+        g.hDiv.appendChild(hDivBox);
+        hDivBox.appendChild(g.hTable);
+        
+        var thead = $("thead:first", t)[0];
+        if (thead) {
+            g.hTable.appendChild(thead);
+        }
         thead = null;
 
         if (!p.colmodel) var ci = 0;
 
         //setup table header (thead)
-        $('thead tr:first th',g.hDiv).each
-        (
-            function ()
-            {
+        $('thead tr:first th', g.hDiv).each(function () {
+          
                 var qth = $(this);
                 
                 var thdiv = document.createElement('div');
-                g.renderCell(qth.data('componentIdx'), thdiv, this);
+                g.renderCell(qth.data('componentIdx'), thdiv, this, $(this));
 
                 var columnNameSelector = qth.attr('abbr');
                 if (columnNameSelector){
@@ -1601,21 +1589,24 @@
         $('tbody', g.bDiv).hide();
 
         //set cDrag
-        var cdcol = $('thead tr:first th:first',g.hDiv).get(0);
+        var cdcol = $('thead tr:first th:first', g.hDiv)[0];
 
-        if (cdcol != null)
-        {
+        if (cdcol != null) {
             g.cDrag.className = 'cDrag';
             g.cdpad = 0;
-
-            g.cdpad += (isNaN(parseInt($('div',cdcol).css('borderLeftWidth'))) ? 0 : parseInt($('div',cdcol).css('borderLeftWidth')));
-            g.cdpad += (isNaN(parseInt($('div',cdcol).css('borderRightWidth'))) ? 0 : parseInt($('div',cdcol).css('borderRightWidth')));
-            g.cdpad += (isNaN(parseInt($('div',cdcol).css('paddingLeft'))) ? 0 : parseInt($('div',cdcol).css('paddingLeft')));
-            g.cdpad += (isNaN(parseInt($('div',cdcol).css('paddingRight'))) ? 0 : parseInt($('div',cdcol).css('paddingRight')));
-            g.cdpad += (isNaN(parseInt($(cdcol).css('borderLeftWidth'))) ? 0 : parseInt($(cdcol).css('borderLeftWidth')));
-            g.cdpad += (isNaN(parseInt($(cdcol).css('borderRightWidth'))) ? 0 : parseInt($(cdcol).css('borderRightWidth')));
-            g.cdpad += (isNaN(parseInt($(cdcol).css('paddingLeft'))) ? 0 : parseInt($(cdcol).css('paddingLeft')));
-            g.cdpad += (isNaN(parseInt($(cdcol).css('paddingRight'))) ? 0 : parseInt($(cdcol).css('paddingRight')));
+            
+            var qcdcol = $(cdcol);
+            var qcdcolDiv = $('div', cdcol);
+            
+            g.cdpad += (isNaN(parseInt(qcdcolDiv.css('borderLeftWidth'))) ? 0 : parseInt(qcdcolDiv.css('borderLeftWidth')));
+            g.cdpad += (isNaN(parseInt(qcdcolDiv.css('borderRightWidth'))) ? 0 : parseInt(qcdcolDiv.css('borderRightWidth')));
+            g.cdpad += (isNaN(parseInt(qcdcolDiv.css('paddingLeft'))) ? 0 : parseInt(qcdcolDiv.css('paddingLeft')));
+            g.cdpad += (isNaN(parseInt(qcdcolDiv.css('paddingRight'))) ? 0 : parseInt(qcdcolDiv.css('paddingRight')));
+            
+            g.cdpad += (isNaN(parseInt(qcdcol.css('borderLeftWidth'))) ? 0 : parseInt(qcdcol.css('borderLeftWidth')));
+            g.cdpad += (isNaN(parseInt(qcdcol.css('borderRightWidth'))) ? 0 : parseInt(qcdcol.css('borderRightWidth')));
+            g.cdpad += (isNaN(parseInt(qcdcol.css('paddingLeft'))) ? 0 : parseInt(qcdcol.css('paddingLeft')));
+            g.cdpad += (isNaN(parseInt(qcdcol.css('paddingRight'))) ? 0 : parseInt(qcdcol.css('paddingRight')));
 
             $(g.bDiv).before(g.cDrag);
 
@@ -2197,7 +2188,7 @@
 
         //browser adjustments
         if ($.browser.msie&&$.browser.version < 7.0) {
-            $('.hDiv,.bDiv,.mDiv,.pDiv,.vGrip,.tDiv, .sDiv',g.gDiv).css({ width: '100%' });
+            $('.hDiv,.bDiv,.mDiv,.pDiv,.vGrip,.tDiv, .sDiv',g.gDiv).css({width: '100%'});
             $(g.gDiv).addClass('ie6');
             if (p.width!='auto') $(g.gDiv).addClass('ie6fullwidthbug');
         }
