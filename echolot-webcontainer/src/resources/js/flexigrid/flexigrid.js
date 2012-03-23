@@ -663,7 +663,7 @@
                                     cell.style.display = 'node';
                                 }
                                 
-                                g.renderCell(qth.data('rowDataIndex').componentIdx, cell.childNodes[0], cell);
+                                g.renderCell(row.cells[qth.data('rowDataIndex')].componentIdx, cell.childNodes[0], cell);
                             }
                             
                             // Prepare the next step.
