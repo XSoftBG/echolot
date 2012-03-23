@@ -941,7 +941,9 @@ public final class FlexiGrid extends Component implements Pane {
      * @return the current active page
      */
     public FlexiPage getActivePage() {
-        return (FlexiPage) get(PROPERTY_ACTIVE_PAGE);
+        FlexiPage page = (FlexiPage) get(PROPERTY_ACTIVE_PAGE);
+        page.validate();
+        return page;
     }
 
     /**
