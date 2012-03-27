@@ -98,12 +98,12 @@
                 var cdpad = this.cdpad;
                 // Select all possible drags and hide it. The selection is stored to a variable because
                 // we will reuse it later while iterate through the header cells.
-                var qdrags = $('div', g.cDrag);
+                var qdrags = $('div', g.cDrag);                
                 qdrags.hide();
                 // We do not use the regular each method of jQuery because we do need the index of the
-                // header cell for other operation with the drags. (each is usually also slower than for)
+                // header cell for other operation with the drags. (each is usually also slower than for)                
                 var qheaders = $('thead tr:first th:visible', this.hTable);
-                for (var n = 0; n < qheaders.length; n++) {
+                for (var n = 0; n < qheaders.length; n++) {                    
                     //var cdpos = parseInt($('div', qheaders[n]).width());
                     var cdpos = parseInt($(qheaders[n]).width());
                     if (cdleft == 0) {
@@ -129,22 +129,18 @@
                    
                 var hdHeight = $(this.hDiv).height();
                 
-                $('div', this.cDrag).each(function() {
-                    $(this).height(newH + hdHeight);
-                });
+                for (var c = 0; c < this.cDrag.childNodes.length; ++c) {
+                    this.cDrag.childNodes[c].style.height = (newH + hdHeight) + 'px';
+                }
                
-                $(g.block).css({
-                    height: newH,
-                    marginBottom: (newH * -1)
-                });
+                g.block.style.height = newH + 'px';
+                g.block.style.marginBottom = (newH * -1) + 'px';
 
                 var hrH = g.bDiv.offsetTop + newH;
                 if (p.height != 'auto' && p.resizable) { 
                     hrH = g.vDiv.offsetTop;
                 }
-                $(g.rDiv).css({
-                    height: hrH
-                });
+                g.rDiv.style.height = hrH + 'px';
             },
             dragStart: function (dragtype,e,obj) { //default drag function start
 
@@ -798,7 +794,7 @@
 
             // * rebuild pager based on new properties ...
             // -------------------------------------------
-            buildpager: function(){ 
+            buildpager: function() {
                 $('.pcontrol input', this.pDiv).val(p.page);
                 $('.pcontrol span', this.pDiv).html(p.pages);
 
@@ -1095,14 +1091,15 @@
                     p.asr = $.merge($.merge([], p.nsr), p.osr);
                     $(p.nur).each(function(i, val) {
                         var idx = $.inArray(val, p.asr);
-                        if(idx != null)
+                        if(idx != -1) {
                             p.asr.splice(idx, 1);
+                        }
                     });
                     
                     
                     p.onSelection.call(p.owner, p.asr, p.osr, p.nsr, p.nur);
                     
-                    p.osr = $.makeArray(p.asr);          
+                    p.osr = $.makeArray(p.asr);
                     p.nsr = $.makeArray();
                     p.nur = $.makeArray();
                 }
@@ -1612,41 +1609,31 @@
 
             var cdheight = $(g.bDiv).height();
             var hdheight = $(g.hDiv).height();
+            
+            g.cDrag.style.top = -hdheight + 'px';
 
-            $(g.cDrag).css({
-                top: -hdheight + 'px'
-            });
-
-            $('thead tr:first th',g.hDiv).each
-            (
-                function ()
-                {
-                    var cgDiv = document.createElement('div');
-                    $(g.cDrag).append(cgDiv);
-                    if (!p.cgwidth) p.cgwidth = $(cgDiv).width();
-                    $(cgDiv).css({
-                        height: cdheight + hdheight
-                    })
-                    .mousedown(function(e){
-                        g.dragStart('colresize',e,this);
-                    })
-                    ;
-                    if ($.browser.msie&&$.browser.version<7.0)
-                    {
-                        g.fixHeight($(g.gDiv).height());
-                        $(cgDiv).hover(
-                            function ()
-                            {
-                                g.fixHeight();
-                                $(this).addClass('dragging')
-                            },
-                            function () {
-                                if (!g.colresize) $(this).removeClass('dragging')
-                            }
-                            );
-                    }
+            var cgDivProto = document.createElement('div');
+            cgDivProto.style.height = (cdheight + hdheight) + 'px';
+            
+            $('thead tr:first th', g.hDiv).each(function() {
+                var cgDiv = cgDivProto.cloneNode(false);
+                g.cDrag.appendChild(cgDiv);
+                
+                var qcgDiv = $(cgDiv);                
+                if (!p.cgwidth) {
+                    p.cgwidth = qcgDiv.width();
                 }
-            );
+
+                qcgDiv.mousedown(function(e) { g.dragStart('colresize', e, this); });
+
+                /*
+                if ($.browser.msie && $.browser.version < 7.0) {
+                    g.fixHeight($(g.gDiv).height());
+                    qcgDiv.hover(function() { g.fixHeight(); $(this).addClass('dragging'); },
+                                    function () { if (!g.colresize) $(this).removeClass('dragging'); });
+                }
+                */
+            });
         }
 
         if (p.resizable && p.height !='auto')
