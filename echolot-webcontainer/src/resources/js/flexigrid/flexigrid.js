@@ -577,7 +577,7 @@
                     
                     // Call the onSuccess hook (if present).
                     if (p.onSuccess) {
-                        p.onSuccess.call(p.owner);
+                        p.onSuccess.call(p.owner, g.getCounterIndexes());
                     }
                     
                     // Deactivate the busy mode.
@@ -972,16 +972,6 @@
                     
             },
 
-//            addCellProp: function (cell, tr, cellData, pth) {
-//                if (pth) {
-//                    if ($(pth).hasClass('sorted'))
-//                        cell.className += ' sorted';
-//                    if (pth.hide)
-//                        cell.style.display = 'none';
-//                }                
-//                g.renderCell(cellData.componentIdx, cell.childNodes[0], cell);
-//            },
-
             getCellDim: function (obj) // get cell prop for editable event
             {
                 var ht = parseInt($(obj).height());
@@ -1106,19 +1096,25 @@
             },
       
             // ** Echo3 request for selection * //
-            makeSelection: function() {
-        
-            },
-
-
-
-            addRowProp: function(tr) {
-                // do nothing ....
+            makeSelection: function(rs) {              
+                /** row selection */
+                p.asr = rs.asr;
+                p.osr = rs.osr;
+                p.nsr = rs.nsr;
+                p.nur = rs.nur;
                 
+                var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
+                rows.each(function() {
+                    var qr = $(this);
+                    if ($.inArray(this.id, p.asr) != -1) {
+                        qr.addClass('trSelected');
+                    } else {
+                        qr.removeClass('trSelected');
+                    }
+                });
+                                
+                this.notifyForSelection();
             },
-            
-            
-            
             
             pager: 0,
             
@@ -1266,6 +1262,20 @@
                 g.hDiv.style.top = g.mDiv.offsetHeight + 'px';                
                 g.bDiv.style.top = p.headerVisible ? (g.hDiv.offsetTop + g.hDiv.offsetHeight) + 'px' : g.hDiv.style.top;                
                 g.bDiv.style.bottom = g.pDiv.offsetHeight + 'px';
+            },
+            
+            getCounterIndexes: function() {
+                var result = [];
+                var qth = $("th[cmid='-1']", g.hDiv);
+                if (qth[0]) {
+                    result[0] = /(\d*)$/.exec(qth.attr('id'))[0] * 1;
+                    var position = qth.index();
+                    var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
+                    rows.each(function(index, row) {
+                        result[index + 1] = /(\d*)$/.exec(row.childNodes[position].id)[0] * 1;
+                    })
+                }
+                return result;
             }
         }; // --- EOF Grid Declaration (g)
 
@@ -1624,7 +1634,7 @@
                     p.cgwidth = qcgDiv.width();
                 }
 
-                qcgDiv.mousedown(function(e) { g.dragStart('colresize', e, this); });
+                qcgDiv.mousedown(function(e) {g.dragStart('colresize', e, this);});
 
                 /*
                 if ($.browser.msie && $.browser.version < 7.0) {
@@ -2365,46 +2375,47 @@
     };
     
     $.fn.flexGetCounterIndexes = function() {
-        var result = [];
-        var p = this[0].p;
-        var g = this[0].grid;
-        if (g) {
-            var qth = $("th[cmid='-1']", g.hDiv);
-            if (qth[0]) {
-                result[0] = /(\d*)$/.exec(qth.attr('id'))[0] * 1;
-                var position = qth.index();
-                var rows = $('#' + $.fn.fixID(p.ownerId + '.DATA')).children('tr');
-                rows.each(function(index, row) {
-                    result[index + 1] = /(\d*)$/.exec($(row).children()[position].id)[0] * 1;
-                })
-            }
-        };
-        return result;
+        if (this[0].grid) {return this[0].grid.getCounterIndexes();};
     };
     
     $.fn.flexRenderChilds = function(childs) {
         return this.each( function() {
             if (this.grid) {
-                this.grid.setBusy(true);                                
-                var cc = 0;                
-                var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-                    var cellsPerBatch = 50;
-                    while (cellsPerBatch > 0 && cc < childs.length) {
-                        var ID = childs[cc];
-                        var cell = document.getElementById(ID);
-                        var childDiv = document.createElement("div");
-                        this.grid.renderCell(/(\d*)$/.exec(ID)[0] * 1, childDiv, cell);
-                        $(cell).empty().append(childDiv);
-                        cc++;
-                        cellsPerBatch--;
+                var pDiv = document.createElement("div");
+                var g = this.grid;
+                var frenderer = function(renderId) {
+                    var ID = "CELL." + renderId;
+                    var cell = document.getElementById(ID);
+                    if (cell) {                        
+                        var childDiv = pDiv.cloneNode(false);
+                        g.renderCell(/(\d*)$/.exec(ID)[0] * 1, childDiv, cell);                        
+                        cell.removeChild(cell.firstChild);
+                        cell.appendChild(childDiv);
                     }
-                    
-                    if (cc == childs.length) {
-                        Core.Web.Scheduler.remove(runnable);
-                        this.grid.setBusy(false);
-                        this.grid.reloadPositions();
+                }
+                               
+                if (childs.length <= 50) {
+                    for (var i = 0; i < childs.length; ++i) {
+                        frenderer(childs[i]);
                     }
-                }), 1, true);
+                } else {
+                    this.grid.setBusy(true);                
+                    var cc = 0;
+                    var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
+                        var cellsPerBatch = 50;
+                        while (cellsPerBatch > 0 && cc < childs.length) {
+                            frenderer(childs[cc]);
+                            cc++;
+                            cellsPerBatch--;
+                        }
+
+                        if (cc == childs.length) {
+                            this.grid.reloadPositions();
+                            this.grid.setBusy(false);
+                            Core.Web.Scheduler.remove(runnable);
+                        }
+                    }), 1, true);
+                }
             };
         });
     };
@@ -2415,20 +2426,19 @@
                 this.grid.setBusy(true);    
                 var cc = 0;                
                 var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-                    var cellsPerBatch = 50;
+                    var cellsPerBatch = 200;
                     while (cellsPerBatch > 0 && cc < childs.length) {
-                      var ID = childs[cc];
-                      var cell = document.getElementById(ID);
-                      this.grid.renderCellLayoutData(/(\d*)$/.exec(ID)[0] * 1, cell.firstChild, cell);                      
+                      var ID = "CELL." + childs[cc];                      
+                      var cell = document.getElementById(ID);                      
                       cc++;
-                      cellsPerBatch--;
-                    }
-                    
+                      cellsPerBatch--;                      
+                      if (cell) {this.grid.renderCellLayoutData(/(\d*)$/.exec(ID)[0] * 1, cell.firstChild, cell);}
+                    }                    
                     if (cc == childs.length) {
-                        Core.Web.Scheduler.remove(runnable);
-                        this.grid.setBusy(false);
                         this.grid.reloadPositions();
                         this.grid.rePosDrag();
+                        this.grid.setBusy(false);                        
+                        Core.Web.Scheduler.remove(runnable);
                     }
                 }), 1, true);
             };

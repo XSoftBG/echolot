@@ -41,7 +41,7 @@ import nextapp.echo.app.event.EventListenerList;
  */
 public abstract class AbstractFlexiTableModel implements FlexiTableModel {    
     private EventListenerList listenerList = new EventListenerList();
-    private final FlexiGrid owner;
+    protected final FlexiGrid owner;
 
     public AbstractFlexiTableModel(FlexiGrid owner) {
       this.owner = owner;

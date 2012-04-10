@@ -71,10 +71,6 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private PropertyChangeListener componentVisibleChanged = new SerializablePropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
-//            Component c = (Component) pce.getSource();
-//            if (!c.isRenderVisible()) {
-//                return;
-//            }
             Boolean visible = (Boolean) pce.getNewValue();            
             if (visible) {
                 firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
@@ -87,12 +83,9 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private PropertyChangeListener externalComponentLDChanged = new SerializablePropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
-            if (!internalSetLayoutData) {
+            Component c = (Component) pce.getSource();
+            if (!internalSetLayoutData && c.isRenderVisible()) {
                 try {
-                    Component c = (Component) pce.getSource();
-                    if (!c.isRenderVisible()) {
-                        return;
-                    }
                     FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
                     EMPTY_LABEL.setLayoutData(newLayoutData);
                     firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, pce.getOldValue(), newLayoutData);
@@ -100,16 +93,10 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
                     throw new Error("Unsupported layoutData for FlexiCell component: " + pce.getSource());
                 }
             }
-            internalSetLayoutData = false;
         }
     };
             
-    public FlexiCell(final int rowId, final int colId, final Component component) {
-//        Component parent = component.getParent();
-//        if (parent != null) {
-//            parent.remove(component);
-//        }
-        
+    public FlexiCell(final int rowId, final int colId, final Component component) {       
         this.rowId = rowId;
         this.colId = colId;
         this.component = component;
@@ -151,11 +138,15 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
 
     void setLayoutData(FlexiCellLayoutData layoutData) {
-      this.internalSetLayoutData = true;
-      Object oldLayoutData = component.getLayoutData();
-      this.component.setLayoutData(layoutData);
-      this.EMPTY_LABEL.setLayoutData(layoutData);
-      firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, layoutData);
+      try {
+        this.internalSetLayoutData = true;
+        Object oldLayoutData = component.getLayoutData();
+        this.component.setLayoutData(layoutData);
+        this.EMPTY_LABEL.setLayoutData(layoutData);
+        firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, layoutData);
+      } finally {
+        this.internalSetLayoutData = false;
+      }
     }
 
     /**
@@ -167,12 +158,14 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
     
     public Component getValidComponent(boolean forceValidation) {
-      if (valid)
-        return component.isVisible() ? component : EMPTY_LABEL;
-      else
-      {
-        if (forceValidation) { validate(); return getValidComponent(false); }
-        else { return EMPTY_LABEL; }
+      if (valid) { 
+          return component.isVisible() ? component : EMPTY_LABEL;
+      }
+      else if (forceValidation) {
+          validate();
+          return getValidComponent(false);        
+      } else {
+          return EMPTY_LABEL;
       }
     }
     
@@ -183,17 +176,26 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
-//        Component parent = newComponent.getParent();
-//        if (parent != null) {
-//            parent.remove(newComponent);
-//        }
-      
         unbindComponent();
+        
         Component oldComponent = getValidComponent(false);
-        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, newComponent);
+        FlexiCellLayoutData currentLayoutData = getLayoutData();
+        
+        LayoutData compLayoutData = newComponent.getLayoutData();
+        if (compLayoutData instanceof FlexiCellLayoutData) {
+            FlexiCellLayoutData newLayoutData = ((FlexiCellLayoutData) compLayoutData).clone();
+            newLayoutData.setWidth(getWidth());
+            newLayoutData.setHeight(getHeight());
+            currentLayoutData = newLayoutData;
+        }
+        
         this.component = newComponent;
-        this.component.setLayoutData(getLayoutData());
+        this.component.setLayoutData(currentLayoutData);
+        this.EMPTY_LABEL.setLayoutData(currentLayoutData);
+        
         this.valid = true;
+        
+        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, component);        
         bindComponent();
     }
     
@@ -350,33 +352,17 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     
     /**
      * Inherits the settings from another cell, if no own.
-     * @param cell 'parental' cell
+     * @param cell 'base' cell
      */
     public void equalizeLayoutDataTo(FlexiCell cell) {
-        FlexiCellLayoutData cellLayoutData = cell.getLayoutData();
-        FlexiCellLayoutData oldLayoutData = getLayoutData();
-        FlexiCellLayoutData newLayoutData = getLayoutData().clone();
-        
-        if(oldLayoutData.getAlignment() == null) {
-            newLayoutData.setAlignment(cellLayoutData.getAlignment());
-        }        
-        if(oldLayoutData.getBackground() == null) {
-            newLayoutData.setBackground(cellLayoutData.getBackground());
+        equalizeLayoutDataTo(cell.getLayoutData());
+    }
+    
+    public void equalizeLayoutDataTo(FlexiCellLayoutData cellLayoutData) {
+        FlexiCellLayoutData newLayoutData = FlexiCellLayoutData.inherit(getLayoutData(), cellLayoutData);
+        if (newLayoutData != null) {
+            setLayoutData(newLayoutData);
         }
-        if(oldLayoutData.getBackgroundImage() == null) {
-            newLayoutData.setBackgroundImage(cellLayoutData.getBackgroundImage());
-        }
-        if(oldLayoutData.getHeight() == null) {
-            newLayoutData.setHeight(cellLayoutData.getHeight());
-        }
-        if(oldLayoutData.getInsets() == null) {
-            newLayoutData.setInsets(cellLayoutData.getInsets());
-        }
-        if(oldLayoutData.getWidth() == null) {
-            newLayoutData.setWidth(cellLayoutData.getWidth());
-        }
-        
-        setLayoutData(newLayoutData);
     }
 
     /**

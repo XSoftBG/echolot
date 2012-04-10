@@ -41,9 +41,52 @@ import nextapp.echo.app.layout.CellLayoutData;
  * @author sieskei (XSoft Ltd.)
  */
 public class FlexiCellLayoutData extends CellLayoutData implements Cloneable {
-    
+  
     /** Serial Version UID. */
-    private static final long serialVersionUID = 20111010L;    
+    private static final long serialVersionUID = 20111010L;
+  
+    public static FlexiCellLayoutData inherit(FlexiCellLayoutData inheritor, FlexiCellLayoutData base) {
+        boolean diff = false;
+        FlexiCellLayoutData newLayoutData = inheritor.clone();
+        
+        if(inheritor.getAlignment() == null && base.getAlignment() != null) {
+            newLayoutData.setAlignment(base.getAlignment());
+            diff = true;
+        }
+
+        if(inheritor.getBackground() == null && base.getBackground() != null) {
+            newLayoutData.setBackground(base.getBackground());
+            diff = true;
+        }
+
+        if(inheritor.getBackgroundImage() == null && base.getBackgroundImage() != null) {
+            newLayoutData.setBackgroundImage(base.getBackgroundImage());
+            diff = true;
+        }
+
+        if(inheritor.getWidth() == null && base.getWidth() != null) {
+            newLayoutData.setWidth(base.getWidth());
+            diff = true;
+        }
+
+        if(inheritor.getHeight() == null && base.getHeight() != null) {
+            newLayoutData.setHeight(base.getHeight());
+            diff = true;
+        }
+
+        if(inheritor.getInsets() == null && base.getInsets() != null) {
+            newLayoutData.setInsets(base.getInsets());
+            diff = true;
+        }
+
+        if (diff) {
+            return newLayoutData;
+        } else {
+            return null;
+        }
+    }
+  
+    
     
     private Extent width = null;
     private Extent height = null;

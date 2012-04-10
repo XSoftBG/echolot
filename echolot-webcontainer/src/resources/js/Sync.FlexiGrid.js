@@ -1,3 +1,237 @@
+/** The column model object describes table columns. */
+exxcellent.model.ColumnModel = Core.extend({
+    /**
+             * An array of exxcellent.model.Column.
+             * @type exxcellent.model.Column
+             */
+    columns : null,
+
+    $construct : function(columns) {
+        this.columns = columns;
+    },
+
+    getColumns: function() {
+        return this.columns;
+    },
+
+    /** Return the string representation of this model. */
+    toString : function() {
+        return this.columns;
+    }
+});
+
+/** The column object for any grid based component. */
+exxcellent.model.Column = Core.extend({
+    /** The id of the column */
+    name: null,
+
+    /** The name (title) for the column. */
+    display : null,
+
+    /**
+             * The width for this colum.
+             */
+    width : null,
+
+    /**
+             * Defines if the column is sortable.
+             */
+    sortable: null,
+
+    /**
+             * Defines the alignment: 'left', 'right', 'center'
+             * @type String
+             */
+    align: null,
+
+    /**
+             * The tooltip displayed if the user hovers over the column
+             * @type String the tooltip
+             */
+    tooltip: null,
+
+    $construct : function(name, display, width, sortable, align, tooltip) {
+        this.name = name;
+        this.display = display;
+        this.width = width;
+        this.sortable = sortable;
+        this.align = align;
+        this.tooltip = tooltip;
+    },
+
+    /** Return the string representation of this column. */
+    toString : function() {
+        return this.name;
+    }
+});
+
+/** The data object for any grid based component. */
+exxcellent.model.Row = Core.extend({
+    /** The id of the row */
+    id: null,
+
+    /**
+     * The data for this row as index based array,
+     * e.g. ["value a", "value b"].
+     */
+    cell : null,
+
+    $construct : function(id, cell) {
+        this.id = id;
+        this.cell = cell;
+    },
+
+    /** Return the string representation of this row. */
+    toString : function() {
+        return this.id;
+    }
+});
+
+/** The page object for any grid based component. */
+exxcellent.model.Page = Core.extend({
+    /** page number */
+    page : 1,
+    /** amount if rows in the page*/
+    total: 1,
+    /** array of exxcellent.model.Row objects */
+    rows : null,
+
+    $construct : function(page, total, rows) {
+        this.page = page;
+        this.total = total;
+        this.rows = rows;
+    },
+
+    /** Return the string representation of this model. */
+    toString : function() {
+        return this.page;
+    }
+});
+
+/** The table model object for any grid based component. */
+exxcellent.model.TableModel = Core.extend({
+    /**
+             * An array of exxcellent.model.Row
+             * @type exxcellent.model.Page
+             */
+    pages : null,
+
+    $construct : function(pages) {
+        this.pages = pages;
+    },
+
+    /** Return the string representation of this table model. */
+    toString : function() {
+        return this.pages;
+    }
+});
+
+/** The results per page model object for any grid based component. */
+exxcellent.model.ResultsPerPageOption = Core.extend({
+    /**
+             * An array of int, e.g. [10,25,50]
+             * @type int[]
+             */
+    pageOptions : null,
+
+    /**
+             * An initial value preselected as results per page
+             * @type int
+             */
+    initialOption: null,
+
+    $construct : function(initialOption, pageOptions) {
+        this.initialOption = initialOption;
+        this.pageOptions = pageOptions;
+    },
+
+    /** Return the string representation of this model. */
+    toString : function() {
+        return this.initialOption + " of " + this.pageOptions;
+    }
+});
+
+/** The sorting model object contains column names (id) and a sorting order. */
+exxcellent.model.SortingModel = Core.extend({
+    /**
+             * An array of exxcellent.model.SortingColumn.
+             * @type exxcellent.model.SortingColumn
+             */
+    columns : null,
+
+    $construct : function(columns) {
+        this.columns = columns;
+    },
+
+    getColumns: function() {
+        return this.columns;
+    },
+
+    /** Return the string representation of this model. */
+    toString : function() {
+        return this.columns;
+    }
+});
+
+/** The sorting column describes a colum by its name (id) and a sorting order. */
+exxcellent.model.SortingColumn = Core.extend({
+    /**
+             * An column identifier, e.g. '10'
+             * @type int
+             */
+    columnId : null,
+
+    /**
+      * An order value, e.g. 'asc' or 'desc'
+      * @type String
+      */
+    sortOrder: null,
+
+    $construct : function(columnId, sortOrder) {
+        this.columnId = columnId;
+        this.sortOrder = sortOrder;
+    },
+
+    /** Return the string representation of this model. */
+    toString : function() {
+        return this.columnId + " ordered " + this.sortOrder;
+    }
+});
+        
+/** JavaScript representation of RowSelection Java Class  */
+exxcellent.model.RowSelection = Core.extend({  
+    asr : null, // AllSelectedRowIds (Actual)
+    osr : null, // OldSelectedRowsIds
+    nsr : null, // NewSelectedRowsIds
+    nur : null, // NewUnselectedRowsIds
+
+    $construct : function(asr, osr, nsr, nur) {
+        this.asr = asr;
+        this.osr = osr;
+        this.nsr = nsr;
+        this.nur = nur;
+    },
+
+    toJsonStr : function() {
+        return JSON.stringify( {
+            rowSelection : {
+                asr: this.asr, 
+                osr: this.osr, 
+                nsr: this.nsr, 
+                nur: this.nur
+                }
+            } );
+    },
+            
+    /** Return the string representation of this model. */
+    toString : function() {
+        return "AllSelectedRowsIds: " + this.asr + " " +
+        "OldSelectedRowsIds: " + this.osr + " " +
+        "NewSelectedRowsIds: " + this.nsr + " " +
+        "NewUnselectedRowsIds: " + this.nur;
+    }
+});
+
 /**
  * Component implementation for a FlexiGrid
  */
@@ -81,9 +315,40 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
     },
 
     componentType: "exxcellent.FlexiGrid",
+    
+    /** @see Echo.Component#focusable */
     focusable: true,
+    
     /** @see Echo.Component#pane */
     pane: true,
+    
+    _selectedRows: [],
+    
+    /**
+     * Return current selected row' ids.
+     */
+    getRowSelection: function() {
+        return this._selectedRows;
+    },
+    
+    /**
+     * Return current selected rows' ids that should be rendered.
+     */
+    renderRowSelection: function() {
+        return JSON.parse(this.render(exxcellent.FlexiGrid.TABLE_ROW_SELECTION));
+    },
+    
+    /**
+     * Set new rows' ids for current selection.
+     * 
+     * @param {Array} asr all selected rows
+     * @param {Boolean} rendered optional flag indicating whether the update has already been rendered by the containing client; 
+     *                  if enabled, the property update will not be sent to the update manager
+     */
+    setRowSelection: function(asr, rendered) {
+        this._selectedRows = asr;
+        this.set(exxcellent.FlexiGrid.TABLE_ROW_SELECTION, JSON.stringify(asr), rendered)
+    },
 
     /** Perform when an select row action is triggered in the flexigrid. */
     doSelection : function(rowSelection) {
@@ -163,237 +428,6 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
         });
     }
 });
-
-/** The column model object describes table columns. */
-exxcellent.model.ColumnModel = Core.extend({
-    /**
-             * An array of exxcellent.model.Column.
-             * @type exxcellent.model.Column
-             */
-    columns : null,
-
-    $construct : function(columns) {
-        this.columns = columns;
-    },
-
-    getColumns: function() {
-        return this.columns;
-    },
-
-    /** Return the string representation of this model. */
-    toString : function() {
-        return this.columns;
-    }
-});
-
-/** The column object for any grid based component. */
-exxcellent.model.Column = Core.extend({
-    /** The id of the column */
-    name: null,
-
-    /** The name (title) for the column. */
-    display : null,
-
-    /**
-             * The width for this colum.
-             */
-    width : null,
-
-    /**
-             * Defines if the column is sortable.
-             */
-    sortable: null,
-
-    /**
-             * Defines the alignment: 'left', 'right', 'center'
-             * @type String
-             */
-    align: null,
-
-    /**
-             * The tooltip displayed if the user hovers over the column
-             * @type String the tooltip
-             */
-    tooltip: null,
-
-    $construct : function(name, display, width, sortable, align, tooltip) {
-        this.name = name;
-        this.display = display;
-        this.width = width;
-        this.sortable = sortable;
-        this.align = align;
-        this.tooltip = tooltip;
-    },
-
-    /** Return the string representation of this column. */
-    toString : function() {
-        return this.name;
-    }
-});
-
-/** The data object for any grid based component. */
-exxcellent.model.Row = Core.extend({
-    /** The id of the row */
-    id: null,
-
-    /**
-             * The data for this row as index based array,
-             * e.g. ["value a", "value b"].
-             */
-    cell : null,
-
-    $construct : function(id, cell) {
-        this.id = id;
-        this.cell = cell;
-    },
-
-    /** Return the string representation of this row. */
-    toString : function() {
-        return this.id;
-    }
-});
-
-/** The page object for any grid based component. */
-exxcellent.model.Page = Core.extend({
-    /** page number */
-    page : 1,
-    /** amount if rows in the page*/
-    total: 1,
-    /** array of exxcellent.model.Row objects */
-    rows : null,
-
-    $construct : function(page, total, rows) {
-        this.page = page;
-        this.total = total;
-        this.rows = rows;
-    },
-
-    /** Return the string representation of this model. */
-    toString : function() {
-        return this.page;
-    }
-});
-/** The table model object for any grid based component. */
-exxcellent.model.TableModel = Core.extend({
-    /**
-             * An array of exxcellent.model.Row
-             * @type exxcellent.model.Page
-             */
-    pages : null,
-
-    $construct : function(pages) {
-        this.pages = pages;
-    },
-
-    /** Return the string representation of this table model. */
-    toString : function() {
-        return this.pages;
-    }
-});
-/** The results per page model object for any grid based component. */
-exxcellent.model.ResultsPerPageOption = Core.extend({
-    /**
-             * An array of int, e.g. [10,25,50]
-             * @type int[]
-             */
-    pageOptions : null,
-
-    /**
-             * An initial value preselected as results per page
-             * @type int
-             */
-    initialOption: null,
-
-    $construct : function(initialOption, pageOptions) {
-        this.initialOption = initialOption;
-        this.pageOptions = pageOptions;
-    },
-
-    /** Return the string representation of this model. */
-    toString : function() {
-        return this.initialOption + " of " + this.pageOptions;
-    }
-});
-/** The sorting model object contains column names (id) and a sorting order. */
-exxcellent.model.SortingModel = Core.extend({
-    /**
-             * An array of exxcellent.model.SortingColumn.
-             * @type exxcellent.model.SortingColumn
-             */
-    columns : null,
-
-    $construct : function(columns) {
-        this.columns = columns;
-    },
-
-    getColumns: function() {
-        return this.columns;
-    },
-
-    /** Return the string representation of this model. */
-    toString : function() {
-        return this.columns;
-    }
-});
-
-/** The sorting column describes a colum by its name (id) and a sorting order. */
-exxcellent.model.SortingColumn = Core.extend({
-    /**
-             * An column identifier, e.g. '10'
-             * @type int
-             */
-    columnId : null,
-
-    /**
-             * An order value, e.g. 'asc' or 'desc'
-             * @type String
-             */
-    sortOrder: null,
-
-    $construct : function(columnId, sortOrder) {
-        this.columnId = columnId;
-        this.sortOrder = sortOrder;
-    },
-
-    /** Return the string representation of this model. */
-    toString : function() {
-        return this.columnId + " ordered " + this.sortOrder;
-    }
-});
-        
-/** JavaScript representation of RowSelection Java Class  */
-exxcellent.model.RowSelection = Core.extend({  
-    asr : null, // AllSelectedRowIds (Actual)
-    osr : null, // OldSelectedRowsIds
-    nsr : null, // NewSelectedRowsIds
-    nur : null, // NewUnselectedRowsIds
-
-    $construct : function(asr, osr, nsr, nur) {
-        this.asr = asr;
-        this.osr = osr;
-        this.nsr = nsr;
-        this.nur = nur;
-    },
-
-    toJsonStr : function() {
-        return JSON.stringify( {
-            rowSelection : {
-                asr: this.asr, 
-                osr: this.osr, 
-                nsr: this.nsr, 
-                nur: this.nur
-                }
-            } );
-    },
-            
-    /** Return the string representation of this model. */
-    toString : function() {
-        return "AllSelectedRowsIds: " + this.asr + " " +
-        "OldSelectedRowsIds: " + this.osr + " " +
-        "NewSelectedRowsIds: " + this.nsr + " " +
-        "NewUnselectedRowsIds: " + this.nur;
-    }
-});
         
 /**
  * Component rendering peer: FlexiGrid.
@@ -414,7 +448,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     _activePageComponentIdxs : null,
     _sortingModel: null,
     _resultsPerPageOption: null,
-    _rowSelection: null,
     _renderRequired: null,
     _counterSetPropsRequired: null,
     
@@ -469,12 +502,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         this._renderRequired = true;
         this._counterSetPropsRequired = true;
         
-        this._renderedChilds = { };
-                
-        /** 
-         * Create empty row selection.
-         */
-        this._rowSelection = new exxcellent.model.RowSelection([], [], [], []);
+        this._renderedChilds = { };        
     },
 
     /**
@@ -501,10 +529,10 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         
         this._renderedChilds = null;
         
-        if (this._waitDialogHandle !== null) {
+        if (this._waitDialogHandle) {
             this.client.removeInputRestriction(this._waitDialogHandle);
+            this._waitDialogHandle = null;
         }
-        this.__waitDialogHandle = null;
     },
 
     /**
@@ -513,91 +541,113 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * but not for any semantic model, such as ColumnModel.
      */
     renderUpdate: function(update) {
-        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());               
+        // console.log('FG renderUpdate: ' + this.component.renderId + update.toString());
         if (this._renderRequired) {
             return true;
         }
+        
+        var key;
+        var tmp;
+        
+        var dataRenderIds = [];
+        for (key in this._getActivePage().cells) { dataRenderIds.push(key); }
+        
+        var headerRenderIds = [];
+        for (key in this._getColumnModel().cells) { headerRenderIds.push(key); }
         
         var hasUpdatedProps = update.hasUpdatedProperties();
         var hasAddedChildren = update.hasAddedChildren();
         var hasRemovedChildren = update.hasRemovedChildren();
         var hasUpdatedLayoutDatas = update.hasUpdatedLayoutDataChildren();
-          
-        var dataNotRendered = true;
-                
+        var reloaded = false;
+        
         if (hasUpdatedProps) {
-            var updatedProps = update.getUpdatedPropertyNames();            
+            var updatedProps = update.getUpdatedPropertyNames();
             if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.COLUMNMODEL) >= 0) {
-                // * destroy the container and add it again
-                // ----------------------------------------
+                /* 
+                 * destroy the container and add it again
+                 */ 
                 var element = this._div;
                 var containerElement = element.parentNode;
                 Echo.Render.renderComponentDispose(update, update.parent);
                 containerElement.removeChild(element);
                 Echo.Render.renderComponentAdd(update, this.component, containerElement);
                 return true;
-            } else {                
-                dataNotRendered = false;
-                
-                var options = this._renderUpdateOptions();
-                this._flexigrid.flexOptions(options);
-                this._flexigrid.flexReload();
-                
+            } else {
+                if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.ACTIVE_PAGE) >= 0) {
+                    /* 
+                     * reload data =>
+                     * - ignore row selection property
+                     * - ignore rows per page options
+                     */
+                    var options = this._renderUpdateOptions();
+                    this._flexigrid.flexOptions(options);
+                    this._flexigrid.flexReload();
+                    reloaded = true;
+                } else if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.TABLE_ROW_SELECTION) >= 0) {
+                    console.log("has new row selection ...")
+                    this._flexigrid.flexMakeSelection(this._mkSelection());
+                }
+            
                 if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.COLUMNS_UPDATE) >= 0) {
                     var columnUpdates = update.getUpdatedProperty(exxcellent.FlexiGrid.COLUMNS_UPDATE);
                     this._flexigrid.flexUpdateColumns(this._fromJsonString(columnUpdates.newValue).columnsUpdate.updates);
                 }
+            }
+        }
                 
-                this._counterSetPropsRequired = true;
+        
+        var rendered = [];        
+        if (reloaded) { 
+            for (key in dataRenderIds) { 
+                rendered.push(dataRenderIds[key]); 
             }
-        }
-
-        var activePageCells = this._getActivePage().cells;
-        var columnModelCells = this._getColumnModel().cells;
-        var cells = [];
-
-        if (hasAddedChildren && hasRemovedChildren) {
-            var index;
-            var addedRenderIds = [];
-            var removedRenderIds = [];
-            
-            // new added children
-            // ------------------
-            var added = update.getAddedChildren();            
-            for (index = 0; index < added.length; index++) {
-                addedRenderIds.push(added[index].renderId);
-            }
-            
-            // new removed children
-            // --------------------
-            var removed = update.getRemovedChildren();            
-            for (index = 0; index < removed.length; index++)
-                removedRenderIds.push(removed[index].renderId);
-
-            if (Core.Arrays.containsAll(addedRenderIds, removedRenderIds, true)) {
-                cells = this._renderUpdateChildIterator(added, dataNotRendered, activePageCells, columnModelCells);
-                if(cells.length != 0)
-                    this._flexigrid.flexRenderChilds(cells);
-            }
-        }
-
-        if (hasUpdatedLayoutDatas) {
-            var updated = update.getUpdatedLayoutDataChildren();
-            cells = this._renderUpdateChildIterator(updated, dataNotRendered, activePageCells, columnModelCells);
-            if(cells.length != 0)
-                this._flexigrid.flexRenderLayoutChilds(cells);
         }
         
-        return false;
-    },
-    
-    _renderUpdateChildIterator : function(updatedChilds, dataNotRendered, activePageCells, columnModelCells) {
-        var result = [];
-        for (var c = 0; c < updatedChilds.length; c++) {
-            var child = (dataNotRendered && activePageCells[updatedChilds[c].renderId]) || columnModelCells[updatedChilds[c].renderId];
-            if (child) { result.push(child); }
+        if (hasAddedChildren && hasRemovedChildren) {
+            
+            /*
+             * is possible to have cells that need to be rerendered (e.g. component in cell is changed)
+             */
+            
+            var addedRenderIds = [];
+            var added = update.getAddedChildren();
+            for (key in added) { addedRenderIds.push(added[key].renderId); }
+            
+            var removedRenderIds = [];
+            var removed = update.getRemovedChildren();
+            for (key in removed) { removedRenderIds.push(removed[key].renderId); }
+            
+            var toBeRerended = Core.Arrays.getDuplicates(addedRenderIds, removedRenderIds);
+            
+            tmp = [];
+            if (reloaded) {
+                for (key in toBeRerended) { if (Core.Arrays.indexOf(dataRenderIds, toBeRerended[key]) == -1) { tmp.push(toBeRerended[key]); } } 
+            } else {
+                for (key in toBeRerended) { tmp.push(toBeRerended[key]); }
+            }
+            
+            // render cells
+            for (key in tmp) { delete this._renderedChilds[key]; }
+            this._flexigrid.flexRenderChilds(tmp);
+            // store rendered cells
+            for (key in tmp) { rendered.push(tmp[key]); }
         }
-        return result;
+        
+        if (hasUpdatedLayoutDatas) {            
+            tmp = [];
+            var updatedLayoutDatas = update.getUpdatedLayoutDataChildren();
+            for (key in updatedLayoutDatas) {
+                if (Core.Arrays.indexOf(rendered, updatedLayoutDatas[key].renderId) == -1) {
+                    tmp.push(updatedLayoutDatas[key].renderId);
+                }
+            }
+            // render cells layout datas
+            // console.log("to be render ld: " + tmp);
+            this._flexigrid.flexRenderLayoutChilds(tmp);
+        }
+        
+        return true;
     },
 
     /**
@@ -751,7 +801,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         return css;
     },
 
-    _getActivePage : function() {
+    _getActivePage: function() {
         var value = this.component.render(exxcellent.FlexiGrid.ACTIVE_PAGE);
         if (!value) {
             return null;
@@ -771,10 +821,10 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         // -------------------------------------------------------------        
         if (!this._activePage.cells) {
             this._activePage.cells = [];
-            for (r = 0; r < this._activePage.rows.length; r++) {
-                for (c = 0; c < this._activePage.rows[r].cells.length; c++) {
+            for (var r = 0; r < this._activePage.rows.length; r++) {
+                for (var c = 0; c < this._activePage.rows[r].cells.length; c++) {
                     var cell = this._activePage.rows[r].cells[c];
-                    var apc = this.component.getComponent(cell.componentIdx);
+                    var apc = this.component.getComponent(cell.componentIdx);                    
                     this._activePage.cells[apc.renderId] = "CELL." + apc.renderId;
                 }
             }
@@ -786,7 +836,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     /**
      * Method to return the sorting model, even if the provided value was null.
      */
-    _getSortingModel : function() {
+    _getSortingModel: function() {
         var value = this.component.render(exxcellent.FlexiGrid.SORTINGMODEL);
         if (value instanceof exxcellent.model.SortingModel) {
             this._sortingModel = value;
@@ -803,7 +853,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
     /**
      * Method to return the results per page object.
      */
-    _getResultsPerPageOption : function() {                
+    _getResultsPerPageOption: function() {                
         var value = this.component.render(exxcellent.FlexiGrid.RESULTS_PPAGE_OPTION);
         if (value instanceof exxcellent.model.ResultsPerPageOption) {
             this._resultsPerPageOption = value;
@@ -821,7 +871,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      *                 {display: 'EMail', name: 1}
      *         ]
      */
-    _getColumnModel : function () {
+    _getColumnModel: function () {
         var value = this.component.render(exxcellent.FlexiGrid.COLUMNMODEL);
         if (value instanceof exxcellent.model.ColumnModel) {
             this._columnModel = value;
@@ -835,7 +885,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         // -------------------------------------------------------------        
         if (!this._columnModel.cells) {
             this._columnModel.cells = [];
-            for (c = 0; c < this._columnModel.columns.length; c++) {
+            for (var c = 0; c < this._columnModel.columns.length; c++) {
                 var cell = this._columnModel.columns[c].cell;
                 var cmc = this.component.getComponent(cell.componentIdx);
                 this._columnModel.cells[cmc.renderId] = "CELL." + cmc.renderId;
@@ -853,7 +903,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * - _onChangePage
      * - selecting a rows per page option
      */
-    _onPopulate : function (param) {
+    _onPopulate: function (param) {
         // if there is already a waitHandle do not create another one so we just create a new if it is null...
         if (this._waitDialogHandle == null) {                    
             this._waitDialogHandle = this.client.createInputRestriction();
@@ -861,21 +911,17 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         return this._getActivePage();
     },
     
-    _onPopulateFinish : function() {
+    _onPopulateFinish: function(counterIndexes) {
+        this._setCounterProps(counterIndexes);
+        this._setCounterNumbers(counterIndexes);        
         this.client.removeInputRestriction(this._waitDialogHandle);
         this._waitDialogHandle = null;
-        
-        var runnable = Core.Web.Scheduler.run(Core.method(this, function() {
-            if (this._flexigrid) {                
-                var indexes = this._flexigrid.flexGetCounterIndexes();
-                this._setCounterProps(indexes);
-                this._setCounterNumbers(indexes);
-                Core.Web.Scheduler.remove(runnable);              
-            }
-        }), !this._flexigrid ? 125 : 1, true);
     },
     
-    _onChangePage : function(newPageNo) {
+    _onChangePage: function(newPageNo) {        
+        for (var key in this._getActivePage().cells) {
+            delete this._renderedChilds[key];
+        }
         // notify listeners
         this.component.doChangePage(newPageNo);
     },
@@ -896,7 +942,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      *   }}
      * @param {} sortingModel containing columns with their name column name and sorting
      */
-    _onChangeSorting : function (sortingModel) {
+    _onChangeSorting: function (sortingModel) {
         this._sortingModel = sortingModel;
 
         var columnsArray = [];
@@ -935,7 +981,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * The sorting is using the flexMultiSort algorithm and starts refreshing the table model after to redraw
      * the table content. Actually we only set a new table model to refresh the table with the new sortModel.
      */
-    _sortClientSide : function () {
+    _sortClientSide: function () {
         return;
         // After refactoring to lazy loading this does not work any more...
         // if you need this feel free to implement a logic to sort a lazy-loaded model on client-side
@@ -985,12 +1031,12 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {rowSelectionEventData}
      * @param {newRowSelection}
      */
-    _onSelection : function (asr, osr, nsr, nur) {
+    _onSelection: function (asr, osr, nsr, nur) {
         /** set all selected rows */
-        this.component.set(exxcellent.FlexiGrid.TABLE_ROW_SELECTION, this._toJsonString(asr), true);
+        this.component.setRowSelection(asr, true);
         
         /** Store new row selection */
-        this._rowSelection = new exxcellent.model.RowSelection(
+        var newSelection = new exxcellent.model.RowSelection(
             $.makeArray(asr), 
             $.makeArray(osr), 
             $.makeArray(nsr), 
@@ -998,19 +1044,19 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
 
         // ** Fire event for new client selection */
         if(nsr.length != 0 || nur.length != 0) {
-            this.component.doSelection(this._rowSelection.toJsonStr());
+            this.component.doSelection(newSelection.toJsonStr());
         }
     },
            
     /**
      * This method is started when the recalculation table.
      */
-    _mkSelection : function() {
-        /* new selected rows' ids */
-        var nasr = JSON.parse(this.component.render(exxcellent.FlexiGrid.TABLE_ROW_SELECTION));
+    _mkSelection: function() {
+        /* selected rows' ids that should be rendered  */
+        var nasr = this.component.renderRowSelection();
                 
-        /* all /actual/ selected rows' ids */
-        var asr = $.makeArray(this._rowSelection.asr);
+        /* all (actual) selected rows' ids */
+        var asr = $.makeArray(this.component.getRowSelection());
 
         /* calculate new selected rows' ids */
         var nsr = $.grep(nasr, function(value) {
@@ -1022,15 +1068,16 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             return $.inArray(value, nasr) == -1;
         });
 
-        /* store new row selection */
-        this._rowSelection = new exxcellent.model.RowSelection(nasr, asr, nsr, nur);
-        return this._rowSelection;
+        return new exxcellent.model.RowSelection(nasr, asr, nsr, nur);
     },
             
     /**
      * Method to process the event ot changing the ResultsPerPageOption.
      */
-    _onRpChange : function(initialOption) {
+    _onRpChange: function(initialOption) {
+        for (var key in this._getActivePage().cells) {
+            delete this._renderedChilds[key];
+        }
         this.component.doChangeResultsPerPage(initialOption);
     },
 
@@ -1045,7 +1092,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {Number} columnId the column identifier
      * @param {Boolean} visible the state of visibility, either true or false
      */
-    _onToggleColumnVisibilty : function (columnId, visible) {
+    _onToggleColumnVisibilty: function (columnId, visible) {
         var toggleObj = {
             columnVisibility : {
                 columnId: columnId * 1, // convert it to a number
@@ -1068,7 +1115,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {String} sourceColumnId the column identifier of the dragged column
      * @param {String} targetColumnId the column identifier of the dropped column
      */
-    _onArrangeColumn : function (sourceColumnId, targetColumnId) {
+    _onArrangeColumn: function (sourceColumnId, targetColumnId) {
         var columnArrangeObj = {
             columnArrange : {
                 sourceColumnId: sourceColumnId, // convert it to a number
@@ -1091,7 +1138,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {String} columnId the column identifier that is resizing
      * @param {Number} newWidth the new width of the resized column
      */
-    _onResizeColumn : function (columnId, newWidth) {
+    _onResizeColumn: function (columnId, newWidth) {
         var columnResizeObj = {
             columnResize : {
                 columnId: columnId * 1, // convert it to a number
@@ -1114,7 +1161,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
      * @param {Number} width the new grid width
      * @param {Number} height the new grid height
      */
-    _onResizeGrid : function (width, height) {
+    _onResizeGrid: function (width, height) {
         var tableResizeObj = {
             tableResize : {
                 width: width * 1, // convert it to a number
