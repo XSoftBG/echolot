@@ -38,6 +38,7 @@ import nextapp.echo.webcontainer.ServerMessage;
 import nextapp.echo.webcontainer.Service;
 import nextapp.echo.webcontainer.WebContainerServlet;
 import nextapp.echo.webcontainer.service.JavaScriptService;
+import nextapp.echo.app.update.ClientUpdateManager;
 
 /**
  * A specialized {@link nextapp.echo.webcontainer.AbstractComponentSynchronizePeer} initializing the libraries for the
@@ -64,7 +65,8 @@ public class ExpanderPeer extends AbstractComponentSynchronizePeer {
      * Default constructor for a {@link de.exxcellent.echolot.webcontainer.sync.component.ExpanderPeer}. Registers an event peer for client events.
      */
     public ExpanderPeer() {
-        // add the event that listens on toggling the content
+        addOutputProperty(Expander.PROPERTY_SHOW);
+       // add the event that listens on toggling the content
         addEvent(new EventPeer(Expander.INPUT_CONTENT_TOGGLED, Expander.ACTION_LISTENERS_CHANGED_PROPERTY) {
             @Override
             public boolean hasListeners(Context context, Component c) {
@@ -104,5 +106,26 @@ public class ExpanderPeer extends AbstractComponentSynchronizePeer {
 
         // Add Expander JavaScript library to client.
         serverMessage.addLibrary(EXPANDER_SYNC_SERVICE.getId());
+    }
+
+    /**
+     * @see AbstractComponentSynchronizePeer#getInputPropertyClass(java.lang.String)
+     */
+    @Override
+    public Class getInputPropertyClass(String propertyName) {
+        if (propertyName.equalsIgnoreCase(Expander.PROPERTY_SHOW)) {
+            return Boolean.class;
+        } else {
+            return super.getInputPropertyClass(propertyName);
+        }
+    }
+    
+    /**
+     * @see AbstractComponentSynchronizePeer#storeInputProperty(nextapp.echo.app.util.Context, nextapp.echo.app.Component, java.lang.String, int, java.lang.Object)
+     */
+    @Override
+    public void storeInputProperty(Context context, Component component, String propertyName, int index, Object newValue) {
+        ClientUpdateManager clientUpdateManager = (ClientUpdateManager) context.get(ClientUpdateManager.class);
+        clientUpdateManager.setComponentProperty(component, propertyName, newValue);
     }
 }

@@ -345,7 +345,7 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
             // toggle the shown index
             self._shown = !self._shown;
             // sync the component value to reflect the current state
-            self.component.set(exxcellent.Expander.SHOW, self._shown);
+            self.component.set(exxcellent.Expander.SHOW, self._shown, true);
             self._onContentToggled(self._shown);
             self._toggleHeader(self._shown);
 

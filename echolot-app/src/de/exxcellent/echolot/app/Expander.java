@@ -205,6 +205,10 @@ public class Expander extends Component {
         if (INPUT_CONTENT_TOGGLED.equals(inputName)) {
             fireActionEvent();
         }
+        else
+        if (PROPERTY_SHOW.equals(inputName)) {
+            setShow( ((Boolean)inputValue).booleanValue() );
+        }
     }
 
     /**
