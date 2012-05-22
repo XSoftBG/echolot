@@ -543,9 +543,9 @@ public final class FlexiGrid extends Component implements Pane {
             setResultsPerPageOption(rppo);
         }
         
-        // data in model is ready adn set active page
+        // data in model is ready and set active page
         // ------------------------------------------
-        tableModel.onActivePageChange(1);
+        // tableModel.onActivePageChange(1);
     }
 
     /**
