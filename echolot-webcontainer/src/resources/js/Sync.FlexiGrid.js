@@ -585,7 +585,6 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     this._flexigrid.flexReload();
                     reloaded = true;
                 } else if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.TABLE_ROW_SELECTION) >= 0) {
-                    console.log("has new row selection ...")
                     this._flexigrid.flexMakeSelection(this._mkSelection());
                 }
             
@@ -647,7 +646,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             this._flexigrid.flexRenderLayoutChilds(tmp);
         }
         
-        return true;
+        return reloaded;
     },
 
     /**
