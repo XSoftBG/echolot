@@ -63,7 +63,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private final int rowId;
     private final int colId;
     
-    private boolean internalSetLayoutData = true;
+    private boolean internalSetLayoutData = false;
     private boolean valid = true;
     
     private Label EMPTY_LABEL;
@@ -138,12 +138,16 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
 
     void setLayoutData(FlexiCellLayoutData layoutData) {
+      final Object currentLayoutData = component.getLayoutData();
+      if (currentLayoutData == layoutData) {
+          return;
+      }
+        
       try {
-        this.internalSetLayoutData = true;
-        Object oldLayoutData = component.getLayoutData();
+        this.internalSetLayoutData = true;        
         this.component.setLayoutData(layoutData);
         this.EMPTY_LABEL.setLayoutData(layoutData);
-        firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, oldLayoutData, layoutData);
+        firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, currentLayoutData, layoutData);
       } finally {
         this.internalSetLayoutData = false;
       }
@@ -176,12 +180,16 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
+        if (component == newComponent) {
+            return;
+        }
+        
         unbindComponent();
         
-        Component oldComponent = getValidComponent(false);
+        final Component oldComponent = getValidComponent(false);
         FlexiCellLayoutData currentLayoutData = getLayoutData();
         
-        LayoutData compLayoutData = newComponent.getLayoutData();
+        final LayoutData compLayoutData = newComponent.getLayoutData();
         if (compLayoutData instanceof FlexiCellLayoutData) {
             FlexiCellLayoutData newLayoutData = ((FlexiCellLayoutData) compLayoutData).clone();
             newLayoutData.setWidth(getWidth());
