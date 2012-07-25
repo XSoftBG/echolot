@@ -153,7 +153,7 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         public void marshal(Object o, HierarchicalStreamWriter writer, MarshallingContext mc) {
             PathTrackingWriter w = (PathTrackingWriter) writer;
             FlexiCell cell = (FlexiCell) o;
-            Component c = cell.getValidComponent(false);
+            Component c = cell.getValidComponent();
                         
             w.startNode("rowId", int.class);
             w.setValue(Integer.toString(cell.getRowId()));

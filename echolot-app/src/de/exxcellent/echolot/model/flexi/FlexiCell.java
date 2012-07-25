@@ -64,18 +64,18 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     private final int colId;
     
     private boolean internalSetLayoutData = false;
-    private boolean valid = true;
+    //private boolean valid = true;
     
-    private Label EMPTY_LABEL;
+    private Label EMPTY;
     private Component component;
     private PropertyChangeListener componentVisibleChanged = new SerializablePropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent pce) {
             Boolean visible = (Boolean) pce.getNewValue();            
             if (visible) {
-                firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY, component);
             } else {
-                firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY_LABEL);
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY);
             }
         }
     };
@@ -87,7 +87,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
             if (!internalSetLayoutData && c.isRenderVisible()) {
                 try {
                     FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
-                    EMPTY_LABEL.setLayoutData(newLayoutData);
+                    EMPTY.setLayoutData(newLayoutData);
                     firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, pce.getOldValue(), newLayoutData);
                 } catch (ClassCastException ex) {
                     throw new Error("Unsupported layoutData for FlexiCell component: " + pce.getSource());
@@ -101,14 +101,14 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         this.colId = colId;
         this.component = component;
         
-        LayoutData orignalLayoutData = this.component.getLayoutData();
+        LayoutData orignalLayoutData = component.getLayoutData();
         if (!(orignalLayoutData instanceof FlexiCellLayoutData)) {
             FlexiCellLayoutData layoutData = new FlexiCellLayoutData();
-            this.component.setLayoutData(layoutData);
+            component.setLayoutData(layoutData);
         }
         
-        EMPTY_LABEL = new Label();
-        EMPTY_LABEL.setLayoutData(this.component.getLayoutData());
+        EMPTY = new Label();
+        EMPTY.setLayoutData(component.getLayoutData());
         
         bindComponent();
     }
@@ -146,7 +146,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
       try {
         this.internalSetLayoutData = true;        
         this.component.setLayoutData(layoutData);
-        this.EMPTY_LABEL.setLayoutData(layoutData);
+        this.EMPTY.setLayoutData(layoutData);
         firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, currentLayoutData, layoutData);
       } finally {
         this.internalSetLayoutData = false;
@@ -161,16 +161,8 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         return component;
     }
     
-    public Component getValidComponent(boolean forceValidation) {
-      if (valid) { 
-          return component.isVisible() ? component : EMPTY_LABEL;
-      }
-      else if (forceValidation) {
-          validate();
-          return getValidComponent(false);        
-      } else {
-          return EMPTY_LABEL;
-      }
+    public Component getValidComponent() { 
+        return component != null ? component.isVisible() ? component : EMPTY : EMPTY;
     }
     
     /**
@@ -180,31 +172,52 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
      * @param newComponent new cell component
      */
     public void setComponent(Component newComponent) {
-        if (component == newComponent) {
-            return;
+        if (newComponent != null) {
+            if (component == newComponent) {
+              return;
+            }
+            
+            if (component != null) {
+                // replace current
+                unbindComponent();
+                final Component currentComponent = component;
+                FlexiCellLayoutData currentLayoutData = getLayoutData();
+                
+                final LayoutData compLayoutData = newComponent.getLayoutData();
+                if (compLayoutData instanceof FlexiCellLayoutData) {
+                    final FlexiCellLayoutData newLayoutData = ((FlexiCellLayoutData) compLayoutData).clone();
+                    newLayoutData.setWidth(getWidth());
+                    newLayoutData.setHeight(getHeight());
+                    currentLayoutData = newLayoutData;
+                }
+                
+                component = newComponent;        
+                component.setLayoutData(currentLayoutData);
+                EMPTY.setLayoutData(currentLayoutData);
+
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, currentComponent, component);
+                bindComponent();                
+            } else {
+                // add current              
+                LayoutData newLayoutData = newComponent.getLayoutData();
+                if (!(newLayoutData instanceof FlexiCellLayoutData)) {
+                    FlexiCellLayoutData layoutData = new FlexiCellLayoutData();
+                    newComponent.setLayoutData(layoutData);
+                }
+
+                component = newComponent;
+                EMPTY = new Label();
+                EMPTY.setLayoutData(component.getLayoutData());
+                
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, null, component);
+                bindComponent();
+            }            
+        } else {            
+            // remove current
+            unbindComponent();            
+            firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY);
+            component = null;
         }
-        
-        unbindComponent();
-        
-        final Component oldComponent = getValidComponent(false);
-        FlexiCellLayoutData currentLayoutData = getLayoutData();
-        
-        final LayoutData compLayoutData = newComponent.getLayoutData();
-        if (compLayoutData instanceof FlexiCellLayoutData) {
-            FlexiCellLayoutData newLayoutData = ((FlexiCellLayoutData) compLayoutData).clone();
-            newLayoutData.setWidth(getWidth());
-            newLayoutData.setHeight(getHeight());
-            currentLayoutData = newLayoutData;
-        }
-        
-        this.component = newComponent;
-        this.component.setLayoutData(currentLayoutData);
-        this.EMPTY_LABEL.setLayoutData(currentLayoutData);
-        
-        this.valid = true;
-        
-        firePropertyChange(PROPERTY_COMPONENT_CHANGE, oldComponent, component);        
-        bindComponent();
     }
     
     /**
@@ -459,34 +472,29 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
     
     public void invalidate() {
-        if (valid) {
+        final Component currComp;
+        final Component newComp;        
+        if (component != null) {
+            if (component.isVisible()) {
+                currComp = component;
+                newComp = EMPTY;
+            } else {
+                currComp = EMPTY;
+                EMPTY = new Label();
+                EMPTY.setLayoutData(currComp.getLayoutData());           
+                newComp = EMPTY;
+            }
             unbindComponent();
-            firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY_LABEL);
-            valid = false;
+            component = null;
         } else {
-          Label old_empty_label = EMPTY_LABEL;
-          EMPTY_LABEL = new Label();
-          EMPTY_LABEL.setLayoutData(old_empty_label.getLayoutData());
-          firePropertyChange(PROPERTY_COMPONENT_CHANGE, old_empty_label, EMPTY_LABEL);
-        }
-    }
-    
-    public void validate() {
-        if (!valid) {
-            bindComponent();
-            firePropertyChange(PROPERTY_COMPONENT_CHANGE, EMPTY_LABEL, component);
-            valid = true;
-        }
+            currComp = EMPTY;
+            EMPTY = new Label();
+            EMPTY.setLayoutData(currComp.getLayoutData());           
+            newComp = EMPTY;
+        }        
+        firePropertyChange(PROPERTY_COMPONENT_CHANGE, currComp, newComp);
     }
 
-    /**
-     * Check cell validation.
-     * @return cell validation
-     */
-    public boolean isValid() {
-      return valid;
-    }
-    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

@@ -70,13 +70,13 @@ public class FlexiPage implements Serializable {
       return ids;
     }
     
-    public void validate() {
-        for (FlexiRow row : rows) {
-            for (FlexiCell cell : row.getCells()) {
-                cell.validate();
-            }
-        }
-    }
+//    public void validate() {
+//        for (FlexiRow row : rows) {
+//            for (FlexiCell cell : row.getCells()) {
+//                cell.validate();
+//            }
+//        }
+//    }
 
     @Override
     public int hashCode() {
