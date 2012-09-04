@@ -46,11 +46,11 @@ import nextapp.echo.app.Label;
 public class FlexiColumn implements Serializable {    
     private static final long serialVersionUID = 201110102l;
     
-    public static final String PROPERTY_COL_TOOLTIP     = "columnTooltip";
-    public static final String PROPERTY_COL_SORTABLE    = "columnSortable";
-    public static final String PROPERTY_COL_HIDED       = "columnHided";
-    public static final String PROPERTY_COL_VISIBLE     = "columnVisible";
-    public static final String COLUMN_PROPERTY_CHANGE   = "propertyColumnChange";
+    public static final String PROPERTY_COL_TOOLTIP   = "columnTooltip";
+    public static final String PROPERTY_COL_SORTABLE  = "columnSortable";
+    public static final String PROPERTY_COL_HIDED     = "columnHided";
+    public static final String PROPERTY_COL_VISIBLE   = "columnVisible";
+    public static final String COLUMN_PROPERTY_CHANGE = "propertyColumnChange";
     
     public final class FlexiColumnProperty implements Entry<String, Object>, Cloneable, Serializable {
         private final String propertyName;
@@ -148,8 +148,6 @@ public class FlexiColumn implements Serializable {
         layoutData.setHeight(new Extent(25));
         
         cell.setLayoutData(layoutData);
-        
-        
         
         // * new version * //
         // --------------- //

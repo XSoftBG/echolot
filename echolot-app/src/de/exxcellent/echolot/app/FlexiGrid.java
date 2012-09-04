@@ -1478,21 +1478,21 @@ public final class FlexiGrid extends Component implements Pane {
     private final HashMap<Integer, ArrayList<FlexiCell>> row2cells = new HashMap<Integer, ArrayList<FlexiCell>>();
     
     /**
-     * Contains current rendered components.
+     * Contains current added (visible and invisible) components.
      */
     private final CellsContainer cellsContainer = new CellsContainer();
-    
-    
     /**
      * The position of each column.
      * <br />
      * [4, 2, 1, 3] - FlexiColumns IDs
      */
     private final ArrayList<Integer> columnPositions = new ArrayList<Integer>();
+    
     /**
-     * Contains the positions of components (unusable components) that can be overwritten.
+     * Contains the positions of components (unusable components) that can be replaced.
      */
     private final TreeSet<Integer> markedForReplace = new TreeSet<Integer>();
+    
     /**
      * Contains width for each column.
      * <ul>
@@ -1501,6 +1501,7 @@ public final class FlexiGrid extends Component implements Pane {
      * </ul>
      */
     private final HashMap<Integer, Extent> maxW = new HashMap<Integer, Extent>();
+    
     /**
      * Contains height for each row.
      * <ul>
@@ -1509,13 +1510,15 @@ public final class FlexiGrid extends Component implements Pane {
      * </ul>
      */
     private final HashMap<Integer, Extent> maxH = new HashMap<Integer, Extent>();
+    
     private int currentPageFirstRow;
     private int currentPageLastRow;
     private FlexiColumnModel columnModel;
     private FlexiColumn counterColumn = null;
     private boolean invalidColumnModel = true;
+    
     private final FCLayoutDataChangeListener FC_LAYOUTDATA_CHANGE_LISTENER = new FCLayoutDataChangeListener();
-    private final FCComponentChangeListener FC_COMPONENT_CHANGE_LISTENER = new FCComponentChangeListener();
+    private final FCComponentChangeListener  FC_COMPONENT_CHANGE_LISTENER  = new FCComponentChangeListener();
 
     private FlexiPage makePage(int page) {
         int maxCompIndex = -1;
@@ -1542,13 +1545,6 @@ public final class FlexiGrid extends Component implements Pane {
             maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
             newCells.add(cc);
         }
-        
-//        // if sorting model exists then ask tablemodel for sorting ...
-//        // -----------------------------------------------------------
-//        FlexiSortingModel sortingModel = getSortingModel();
-//        if (sortingModel != null) {
-//            tableModel.onSort(sortingModel);
-//        }
         
         final int totalRows = tableModel.getRowCount();
         final boolean showPager = getShowPager();
@@ -1782,41 +1778,39 @@ public final class FlexiGrid extends Component implements Pane {
         columnPositions.clear();
 
         // columns for new model
-        ArrayList<FlexiColumn> newColumns = new ArrayList<FlexiColumn>();
+        final ArrayList<FlexiColumn> newColumns = new ArrayList<FlexiColumn>();
 
         // current columns
-        HashSet<FlexiColumn> currentColumns = columnModel == null ? new HashSet<FlexiColumn>() : new HashSet<FlexiColumn>(Arrays.asList(columnModel.getColumns()));
+        final HashSet<FlexiColumn> currentColumns = columnModel == null ? 
+                new HashSet<FlexiColumn>() : new HashSet<FlexiColumn>(Arrays.asList(columnModel.getColumns()));
 
-        if (counterColumn != null) {
-            FlexiCell c = counterColumn.getCell();
-            int colID = counterColumn.getId();
-            columnPositions.add(colID);
-
+        if (counterColumn != null) {            
+            columnPositions.add(counterColumn.getId());
+            final FlexiCell c = counterColumn.getCell();
             if (!currentColumns.contains(counterColumn)) {
+                // add counter cell to FlexiGrid
+                // ---------------------------- 
                 addCell(c);
+                // add listener for column change events
+                // -------------------------------------
                 counterColumn.addPropertyChangeListener(FLEXICOLUMN_PROPERTY_CHANGE_LISTENER);
-            }
-            newColumns.add(counterColumn);
-
+            }            
+            newColumns.add(counterColumn);            
             maxHeight = c.getHeight();
-            maxW.put(colID, c.getWidth());
+            maxW.put(counterColumn.getId(), c.getWidth());
         }
 
-        int columnCount = tableModel.getColumnCount();
-        for (int c = 0; c < columnCount; c++) {
-            FlexiColumn currentColumn = tableModel.getColumnAt(c);
-            FlexiCell columnCell = currentColumn.getCell();
+        for (int c = 0; c < tableModel.getColumnCount(); c++) {
+            final FlexiColumn currentColumn = tableModel.getColumnAt(c);
+            final FlexiCell columnCell = currentColumn.getCell();
 
-            int colID = currentColumn.getId();
-            columnPositions.add(colID);
-
+            columnPositions.add(currentColumn.getId());
             if (!currentColumns.contains(currentColumn)) {
                 // add column cell to FlexiGrid
                 // ---------------------------- 
                 addCell(columnCell);
-
-                // add listener for component change event
-                // ---------------------------------------
+                // add listener for column change events
+                // -------------------------------------
                 currentColumn.addPropertyChangeListener(FLEXICOLUMN_PROPERTY_CHANGE_LISTENER);
             }
             newColumns.add(currentColumn);
