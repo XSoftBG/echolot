@@ -86,6 +86,12 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
             Component c = (Component) pce.getSource();
             if (!internalSetLayoutData && c.isRenderVisible()) {
                 try {
+//                    System.out.println("==========================================");
+//                    System.out.println("FlexiCell.externalComponentLDChanged: [component:" + pce.getSource().toString() + "] [cell hash:" + FlexiCell.this.hashCode() + "]");
+//                    final StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+//                      for (StackTraceElement elem : stackTrace) System.out.println(elem);                   
+//                    System.out.println("==========================================");             
+                  
                     FlexiCellLayoutData newLayoutData = (FlexiCellLayoutData) pce.getNewValue();
                     EMPTY.setLayoutData(newLayoutData);
                     firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, pce.getOldValue(), newLayoutData);
@@ -96,10 +102,10 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         }
     };
             
-    public FlexiCell(final int rowId, final int colId, final Component component) {       
-        this.rowId = rowId;
-        this.colId = colId;
-        this.component = component;
+    public FlexiCell(final int rid, final int cid, final Component c) {       
+        rowId = rid;
+        colId = cid;
+        component = c;
         
         LayoutData orignalLayoutData = component.getLayoutData();
         if (!(orignalLayoutData instanceof FlexiCellLayoutData)) {
@@ -134,22 +140,26 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
     
     FlexiCellLayoutData getLayoutData() {
-        return (FlexiCellLayoutData) component.getLayoutData();
+        // if (component == null)
+          // System.out.println("FlexiCell.getLayoutData: [component: null] [cell hash:" + FlexiCell.this.hashCode() + "]");
+        return (FlexiCellLayoutData) getValidComponent().getLayoutData();
     }
 
     void setLayoutData(FlexiCellLayoutData layoutData) {
-      final Object currentLayoutData = component.getLayoutData();
+      final Object currentLayoutData = getValidComponent().getLayoutData();
       if (currentLayoutData == layoutData) {
           return;
       }
         
       try {
-        this.internalSetLayoutData = true;        
-        this.component.setLayoutData(layoutData);
-        this.EMPTY.setLayoutData(layoutData);
-        firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, currentLayoutData, layoutData);
+          internalSetLayoutData = true;
+          if (component != null) {
+              component.setLayoutData(layoutData);
+          }
+          EMPTY.setLayoutData(layoutData);
+          firePropertyChange(PROPERTY_LAYOUTDATA_CHANGE, currentLayoutData, layoutData);
       } finally {
-        this.internalSetLayoutData = false;
+          internalSetLayoutData = false;
       }
     }
 
@@ -196,7 +206,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
                 EMPTY.setLayoutData(currentLayoutData);
 
                 firePropertyChange(PROPERTY_COMPONENT_CHANGE, currentComponent, component);
-                bindComponent();                
+                bindComponent(); 
             } else {
                 // add current              
                 LayoutData newLayoutData = newComponent.getLayoutData();
@@ -462,13 +472,13 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
     
     private void bindComponent() {
-        this.component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
-        this.component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
+        component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
+        component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
     }
         
     private void unbindComponent() {
-        this.component.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
-        this.component.removePropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
+        component.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
+        component.removePropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
     }
     
     public void invalidate() {
@@ -485,6 +495,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
                 newComp = EMPTY;
             }
             unbindComponent();
+            // System.out.println("FlexiCell.invalidate: [component:" + component.toString() + "] [cell hash:" + hashCode() + "]");
             component = null;
         } else {
             currComp = EMPTY;
@@ -499,9 +510,9 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("[ FlexiCell:\n")        
-        .append("- ID: ").append(component.getId()).append("\n")
-        .append("- RenderID: ").append(component.getRenderId()).append("\n")
-        .append("- Component: ").append(component).append("\n")
+        .append("- ID: ").append(getValidComponent().getId()).append("\n")
+        .append("- RenderID: ").append(getValidComponent().getRenderId()).append("\n")
+        .append("- Component: ").append(getValidComponent()).append("\n")
         .append("- RowID: ").append(rowId).append("\n")
         .append("- ColID: ").append(colId).append("\n")
         .append("- Hash: ").append(hashCode()).append(" ]\n");
@@ -514,9 +525,9 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
         final int EQUAL = 0;
         final int AFTER = 1;
 
-        if(this.hashCode() < t.hashCode()) {
+        if(hashCode() < t.hashCode()) {
             return BEFORE;
-        } else if(this.hashCode() > t.hashCode()) {
+        } else if(hashCode() > t.hashCode()) {
             return AFTER;
         } else {
             return EQUAL;
