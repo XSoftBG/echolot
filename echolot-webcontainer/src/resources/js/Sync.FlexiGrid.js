@@ -549,17 +549,18 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var key;
         var tmp;
         
-        var dataRenderIds = [];
-        for (key in this._getActivePage().cells) { dataRenderIds.push(key); }
+        var dataIds = [];
+        for (key in this._getActivePage().cells) { dataIds.push(key); }
         
-        var headerRenderIds = [];
-        for (key in this._getColumnModel().cells) { headerRenderIds.push(key); }
+        var headerIds = [];
+        for (key in this._getColumnModel().cells) { headerIds.push(key); }
         
         var hasUpdatedProps = update.hasUpdatedProperties();
         var hasAddedChildren = update.hasAddedChildren();
         var hasRemovedChildren = update.hasRemovedChildren();
         var hasUpdatedLayoutDatas = update.hasUpdatedLayoutDataChildren();
-        var reloaded = false;
+        var hashUpdatedChildren = update.hasUpdatedChildren();
+        var dataReloaded = false;
         
         if (hasUpdatedProps) {
             var updatedProps = update.getUpdatedPropertyNames();
@@ -583,7 +584,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
                     var options = this._renderUpdateOptions();
                     this._flexigrid.flexOptions(options);
                     this._flexigrid.flexReload();
-                    reloaded = true;
+                    dataReloaded = true;
                 } else if (Core.Arrays.indexOf(updatedProps, exxcellent.FlexiGrid.TABLE_ROW_SELECTION) >= 0) {
                     this._flexigrid.flexMakeSelection(this._mkSelection());
                 }
@@ -596,10 +597,38 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         }
                 
         
-        var rendered = [];        
-        if (reloaded) { 
-            for (key in dataRenderIds) { 
-                rendered.push(dataRenderIds[key]); 
+        var rendered = []; // ids of components that to be rendered
+        if (dataReloaded) { 
+            for (key in dataIds) { 
+                rendered.push(dataIds[key]); 
+            }
+        }
+        
+        if (hashUpdatedChildren) {
+            var childrenUpdate = update.getChildrenUpdate();            
+            tmp = [];
+            for (key in childrenUpdate) {
+                var id = childrenUpdate[key].parent.renderId;
+                if (dataReloaded) {
+                    if (Core.Arrays.indexOf(dataIds, id) == -1) {
+                        tmp.push(id);
+                    }
+                } else {
+                    tmp.push(id);
+                }
+            }
+            
+            // delete from rendered childs
+            for (key in tmp) {
+                delete this._renderedChilds[tmp[key]]; 
+            }
+            
+            // render cells
+            this._flexigrid.flexRenderChilds(tmp);
+            
+            // store rendered cells
+            for (key in tmp) {
+                rendered.push(tmp[key]); 
             }
         }
         
@@ -620,20 +649,28 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             var toBeRerended = Core.Arrays.getDuplicates(addedRenderIds, removedRenderIds);
             
             tmp = [];
-            if (reloaded) {
-                for (key in toBeRerended) { if (Core.Arrays.indexOf(dataRenderIds, toBeRerended[key]) == -1) { tmp.push(toBeRerended[key]); } } 
+            if (dataReloaded) {
+                for (key in toBeRerended) { if (Core.Arrays.indexOf(dataIds, toBeRerended[key]) == -1) { tmp.push(toBeRerended[key]); } } 
             } else {
                 for (key in toBeRerended) { tmp.push(toBeRerended[key]); }
             }
             
+            
+            // delete from rendered childs
+            for (key in tmp) {
+                delete this._renderedChilds[tmp[key]];
+            }
+            
             // render cells
-            for (key in tmp) { delete this._renderedChilds[key]; }
             this._flexigrid.flexRenderChilds(tmp);
+            
             // store rendered cells
-            for (key in tmp) { rendered.push(tmp[key]); }
+            for (key in tmp) { 
+                rendered.push(tmp[key]); 
+            }
         }
         
-        if (hasUpdatedLayoutDatas) {            
+        if (hasUpdatedLayoutDatas) {
             tmp = [];
             var updatedLayoutDatas = update.getUpdatedLayoutDataChildren();
             for (key in updatedLayoutDatas) {
@@ -646,7 +683,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             this._flexigrid.flexRenderLayoutChilds(tmp);
         }
         
-        return reloaded;
+        return true;
     },
 
     /**
