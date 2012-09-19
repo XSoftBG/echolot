@@ -70,6 +70,7 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
+import nextapp.echo.app.util.ConstantMap;
 
 /**
  * The {@link FlexiGrid} is a component using the <a href="http://www.flexigrid.info/">flexigrid jquery
@@ -1480,7 +1481,6 @@ public final class FlexiGrid extends Component implements Pane {
      * Contains current added (visible and invisible) components.
      */
     private final CellsContainer cellsContainer = new CellsContainer();
-        
     /**
      * The position of each column.
      * <br />
