@@ -185,12 +185,9 @@ public class Expander extends Component {
         if (!hasEventListenerList()) {
             return;
         }
-        EventListener[] listeners = getEventListenerList().getListeners(ActionListener.class);
-        ActionEvent e = null;
+        final EventListener[] listeners = getEventListenerList().getListeners(ActionListener.class);
+        final ActionEvent e = new ActionEvent(this, (String) getRenderProperty(PROPERTY_ACTION_COMMAND));
         for (int i = 0; i < listeners.length; ++i) {
-            if (e == null) {
-                e = new ActionEvent(this, (String) getRenderProperty(PROPERTY_ACTION_COMMAND));
-            }
             ((ActionListener) listeners[i]).actionPerformed(e);
         }
     }
@@ -200,15 +197,11 @@ public class Expander extends Component {
      * @see nextapp.echo.app.Component#processInput(java.lang.String, java.lang.Object)
      */
     public void processInput(String inputName, Object inputValue) {
-        super.processInput(inputName, inputValue);
-
         if (INPUT_CONTENT_TOGGLED.equals(inputName)) {
-            fireActionEvent();
+            setShow( !isShow() );
         }
         else
-        if (PROPERTY_SHOW.equals(inputName)) {
-            setShow( ((Boolean)inputValue).booleanValue() );
-        }
+            super.processInput(inputName, inputValue);
     }
 
     /**
@@ -708,7 +701,9 @@ public class Expander extends Component {
      * @param newValue true will show the first child in the expander
      */
     public void setShow(final boolean newValue) {
+        final boolean is_show = isShow();
         set(PROPERTY_SHOW, Boolean.valueOf(newValue));
+        if(is_show != newValue) fireActionEvent();
     }
 
     /**
@@ -833,5 +828,4 @@ public class Expander extends Component {
     public Extent getHideHeight() {
       return (Extent) get(PROPERTY_HIDE_HEIGHT);
     }
-
 }
