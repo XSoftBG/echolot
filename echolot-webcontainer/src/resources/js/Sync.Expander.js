@@ -389,28 +389,36 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
     _renderContentReplaced: function(update) {
         var removedChildList = update.getRemovedChildren();
         var addedChildList = update.getAddedChildren();
+        var removedChild;
         if (removedChildList && addedChildList) {
             // we can only handle one removment one time
             var newChild = addedChildList[0];
-            var removedChild = removedChildList[0];
+            removedChild = removedChildList[0];            
             if (this._hideRenderID == removedChild.renderId) {
-                // dispose old
-                $(this._hideDiv).empty(); // clear div
-                Echo.Render.renderComponentDispose(update, removedChild);
-                $(this._hideDiv).empty(); // clear div
+                this._renderDisposeChild(update, this._hideDiv, removedChild);
                 // add new
                 this._renderContent(newChild, this._hideDiv, update, this._div);
                 this._hideRenderID = newChild.renderId;
             } else if (this._showRenderID == removedChild.renderId) {
-                // dispose old
-                $(this._showDiv).empty(); // clear div
-                Echo.Render.renderComponentDispose(update, removedChild);
-                $(this._showDiv).empty(); // clear div
+                this._renderDisposeChild(update, this._showDiv, removedChild);
                 // add new
                 this._renderContent(newChild, this._showDiv, update, this._div);
                 this._showRenderID = newChild.renderId;
             }
+        } else if (removedChildList) {
+            removedChild = removedChildList[0];
+            if (this._hideRenderID == removedChild.renderId) {
+                this._renderDisposeChild(update, this._hideDiv, removedChild);
+            } else if (this._showRenderID == removedChild.renderId) {
+                this._renderDisposeChild(update, this._showDiv, removedChild);
+            }
         }
+    },
+    
+    _renderDisposeChild: function(update, container, child) {
+        $(container).empty();
+        Echo.Render.renderComponentDispose(update, child);
+        $(container).empty();
     },
 
     /** @see Echo.Sync.ArrayContainer#renderChildLayoutData */
@@ -429,6 +437,7 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
 
     /** @see Echo.Render.ComponentSync#renderDispose */
     renderDispose: function(update) {
+        Core.Web.Event.removeAll(this._mDiv);
         this._mDiv = null;
         this._showDiv = null;
         this._showRenderID = null;
@@ -436,8 +445,9 @@ exxcellent.ExpanderSync = Core.extend(Echo.Render.ComponentSync, {
         this._hideRenderID = null;
         this._imgSpn = null;
         this._txtDiv = null;
-        this._showState = null;
-        this._div = null;
+        this._showState = null;        
+        Core.Web.Event.removeAll(this._div);
+        this._div = null;        
     },
 
     /** @see Echo.Render.ComponentSync#renderUpdate */
