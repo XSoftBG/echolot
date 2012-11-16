@@ -190,7 +190,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
             if (component != null) {
                 // replace current
                 unbindComponent();
-                final Component currentComponent = component;
+                final Component currentComponent = getValidComponent();
                 FlexiCellLayoutData currentLayoutData = getLayoutData();
                 
                 final LayoutData compLayoutData = newComponent.getLayoutData();
@@ -205,7 +205,7 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
                 component.setLayoutData(currentLayoutData);
                 EMPTY.setLayoutData(currentLayoutData);
 
-                firePropertyChange(PROPERTY_COMPONENT_CHANGE, currentComponent, component);
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, currentComponent, getValidComponent());
                 bindComponent(); 
             } else {
                 // add current              
@@ -219,14 +219,16 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
                 EMPTY = new Label();
                 EMPTY.setLayoutData(component.getLayoutData());
                 
-                firePropertyChange(PROPERTY_COMPONENT_CHANGE, null, component);
+                firePropertyChange(PROPERTY_COMPONENT_CHANGE, null, getValidComponent());
                 bindComponent();
             }            
         } else {            
             // remove current
-            unbindComponent();            
-            firePropertyChange(PROPERTY_COMPONENT_CHANGE, component, EMPTY);
+            unbindComponent();
+            final Component currnetComponent = getValidComponent();
             component = null;
+            newComponent = getValidComponent();
+            firePropertyChange(PROPERTY_COMPONENT_CHANGE, currnetComponent, newComponent);            
         }
     }
     
@@ -472,11 +474,13 @@ public class FlexiCell implements Serializable, Comparable<FlexiCell> {
     }
     
     private void bindComponent() {
+        if (component == null) return;
         component.addPropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
         component.addPropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
     }
         
     private void unbindComponent() {
+        if (component == null) return;
         component.removePropertyChangeListener(Component.VISIBLE_CHANGED_PROPERTY, componentVisibleChanged);
         component.removePropertyChangeListener(Component.PROPERTY_LAYOUT_DATA, externalComponentLDChanged);
     }
