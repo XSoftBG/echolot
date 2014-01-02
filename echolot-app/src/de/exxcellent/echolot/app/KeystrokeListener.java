@@ -55,7 +55,10 @@ public class KeystrokeListener extends Component {
     public static final String ACTION_LISTENERS_CHANGED_PROPERTY = "actionListeners";
     /** if <code>true</code> the debug mode is enabled and logs are written to the console. */
     public static final String PROPERTY_DEBUG = "debug";
-    
+    /** If <code>true</code> the propagate mode is enabled and all keystroke events will be propagated to other listeners. */
+    public static final String PROPERTY_PROPAGATE_KEYSTROKE = "propagate";
+
+
     /**
      * Default empty constructor.
      */
@@ -77,6 +80,23 @@ public class KeystrokeListener extends Component {
         setActionCommand(actionCommand);
         setTargetRenderId(targetRenderId);
         set(PROPERTY_TARGET_GLOBALLY, true);
+    }
+
+    /**
+     * If <code>true</code> the propagation mode is enabled and all keystroke events will be propagated to other listeners.
+     * By default propagation mode is disabled.
+     * @param enable
+     */
+    public void setPropagateKeyStroke(boolean enable) {
+        set(PROPERTY_PROPAGATE_KEYSTROKE, Boolean.valueOf(enable));
+    }
+
+    /**
+     * Return <code>true</code> if the propagation mode is enabled and all keystroke events will be propagated to other listeners.
+     * @return <code>true</code> if the propagation mode is enabled.
+     */
+    public boolean getPropagateKeyStroke() {
+        return (Boolean) get(PROPERTY_PROPAGATE_KEYSTROKE);
     }
 
     /**
