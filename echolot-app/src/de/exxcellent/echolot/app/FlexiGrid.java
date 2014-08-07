@@ -70,7 +70,6 @@ import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
-import nextapp.echo.app.util.ConstantMap;
 
 /**
  * The {@link FlexiGrid} is a component using the <a href="http://www.flexigrid.info/">flexigrid jquery
@@ -2077,8 +2076,6 @@ public final class FlexiGrid extends Component implements Pane {
         final FlexiCell cell = cellsContainer.get(component);
         if (cell != null) {
             cell.invalidate();
-            component.setRenderId(null);
-            component.setId(null);
         } else {
             throw new Error("FlexiGrid Error: External remove components is not allowed !!!");
         }

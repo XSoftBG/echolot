@@ -14,12 +14,12 @@ exxcellent.KeystrokeListener = Core.extend(Echo.Component, {
     TARGET_GLOBALLY: "targetGlobally",
     KEY_CODE: "keyCode",
     ACTION_COMMAND: "actionCommand",
-    KEYSTROKE_ACTION: "action"
+    KEYSTROKE_ACTION: "action",
+    PROPAGATE_KEYSTROKE: "propagate"
   },
 
   componentType: "exxcellent.KeystrokeListener",
   focusable: false,
-
 
   doAction: function(actionCommand) {
     this.fireEvent({
@@ -28,8 +28,6 @@ exxcellent.KeystrokeListener = Core.extend(Echo.Component, {
       data: this.render("actionCommand")
     });
   }
-
-
 });
 
 /**
@@ -121,9 +119,10 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
   add_shortcut: function(shortcut_combination, actionCommand, opt) {
     //Provide a set of default options
     var isGlobally = this.component.render(exxcellent.KeystrokeListener.TARGET_GLOBALLY, true);
+    var propagate  = this.component.render(exxcellent.KeystrokeListener.PROPAGATE_KEYSTROKE, false);
     var default_options = {
       'type':'keydown',
-      'propagate':false,
+      'propagate': propagate,
       'disable_in_input':false,
       'target': isGlobally ? document : document.getElementById(this.component.parent.renderId),
       'keycode':false
@@ -365,10 +364,9 @@ exxcellent.KeystrokeListenerSync = Core.extend(Echo.Render.ComponentSync, {
           }
           return false;
         }
-      } else {
-        // Kein Treffer: Event weiter von Echo dispatchen lassen.
-        return true;
       }
+      // Kein Treffer: Event weiter von Echo dispatchen lassen.
+      return true;
     };
     // Save 'this' context
     onKeyEventFunction = Core.method(this, onKeyEventFunction);

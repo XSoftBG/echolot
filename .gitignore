@@ -1,6 +1,4 @@
-/echolot-app/nbproject/private/
+/dist/
+/build/
+/nbproject/private
 /echolot-webcontainer/nbproject/private/
-/echolot-app/dist/
-/echolot-webcontainer/dist/
-/echolot-app/target/
-/echolot-webcontainer/target/

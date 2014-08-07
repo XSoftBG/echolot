@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- (If you delete it and reopen the project it will be recreated.) -->
+<!-- By default, only the Clean and Build commands use this build script. -->
+<!-- Commands such as Run, Debug, and Test only use this build script if -->
+<!-- the Compile on Save feature is turned off for the project. -->
+<!-- You can turn off the Compile on Save (or Deploy on Save) setting -->
+<!-- in the project's Project Properties dialog box.-->
+<project name="echolot" default="default" basedir="."
+    xmlns:j2seproject1="http://www.netbeans.org/ns/j2se-project/1"
+    xmlns:j2seproject3="http://www.netbeans.org/ns/j2se-project/3">
+    <description>Builds, tests, and runs the project echolot.</description>
+    <import file="nbproject/build-impl.xml"/>
+
+    <target name="-post-init">
+      <condition property="isWindows">
+        <os family="Windows"/>
+      </condition>
+    </target>
+
+    <target name="-post-compile" depends="-pre-compile, get_version">
+      <mkdir dir="${build.classes.dir}/META-INF"/>
+      <manifest file="${build.classes.dir}/META-INF/${manifest.file}">
+        <attribute name="Project-Name" value="${application.title}"/>
+      </manifest>
+    </target>
+
+    <target name="jar" depends="init, get_version, compile, -pre-jar, -post-jar" description="Build JAR.">
+      <j2seproject1:jar>
+        <j2seproject1:manifest>
+          <j2seproject1:attribute name="Build-Version" value="${application.version}"/>
+          <j2seproject1:attribute name="Project-Name" value="${application.title}"/>
+          <j2seproject1:attribute name="Git-derived-Version" value="${application.realversion}"/>
+        </j2seproject1:manifest>
+      </j2seproject1:jar>
+      <property location="${dist.jar}" name="dist.jar.resolved"/>
+    </target>
+
+    <target name="get_version" depends="init" unless="isWindows">
+      <exec executable="sh" outputproperty="version">
+        <arg value="-c" />
+        <arg value="git describe --tags"/>
+      </exec>
+      <property name="application.version" value="${version}"/>
+      <property name="application.realversion" value="${version}"/>
+    </target>
+
+    <target name="-pre-jar">
+      <echo message="Version from git is ${application.version}"/>
+      <copy todir="${build.classes.dir}/js">
+        <fileset dir="${src.client.dir}" />
+      </copy>
+    </target>
+</project>

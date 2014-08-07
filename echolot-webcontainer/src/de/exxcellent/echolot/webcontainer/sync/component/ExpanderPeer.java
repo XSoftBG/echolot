@@ -65,14 +65,8 @@ public class ExpanderPeer extends AbstractComponentSynchronizePeer {
      * Default constructor for a {@link de.exxcellent.echolot.webcontainer.sync.component.ExpanderPeer}. Registers an event peer for client events.
      */
     public ExpanderPeer() {
-        addOutputProperty(Expander.PROPERTY_SHOW);
-       // add the event that listens on toggling the content
-        addEvent(new EventPeer(Expander.INPUT_CONTENT_TOGGLED, Expander.ACTION_LISTENERS_CHANGED_PROPERTY) {
-            @Override
-            public boolean hasListeners(Context context, Component c) {
-                return ((Expander) c).hasActionListeners();
-            }
-        });
+        // add the event that listens on toggling the content
+        addEvent(new EventPeer(Expander.INPUT_CONTENT_TOGGLED, Expander.ACTION_LISTENERS_CHANGED_PROPERTY));
 
     }
 
