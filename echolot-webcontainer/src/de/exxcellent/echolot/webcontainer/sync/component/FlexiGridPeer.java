@@ -511,16 +511,4 @@ public class FlexiGridPeer extends AbstractComponentSynchronizePeer {
         }
         return super.getOutputProperty(context, component, propertyName, propertyIndex);
     }
-
-//  @Override
-//  public void storeInputProperty(Context cntxt, Component cmpnt, String string, int i, Object o)
-//  {
-//    super.storeInputProperty(cntxt, cmpnt, string, i, o);
-//  }
-//
-//  @Override
-//  public Class getInputPropertyClass(String string)
-//  {
-//    return super.getInputPropertyClass(string);
-//  }
 }

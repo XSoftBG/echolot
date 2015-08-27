@@ -494,9 +494,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         Echo.Sync.renderComponentDefaults(this.component, this._div);
         parentElement.appendChild(this._div);
 
-        if (jQuery("#flexigridCss").length === 0) {
+        if (jQuery("#flexigridCss_"+this.component.renderId).length === 0) {
             var stylesheet = this._createStylesheet();
-            jQuery("head").append("<style type=\"text/css\" id=\"flexigridCss\">" + stylesheet + "</style>");
+            jQuery("head").append("<style type=\"text/css\" id=\"flexigridCss_\"" + this.component.renderId + ">" + stylesheet + "</style>");
         }
 
         this._renderRequired = true;
