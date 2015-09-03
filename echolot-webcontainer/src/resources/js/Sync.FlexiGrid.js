@@ -494,9 +494,9 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         Echo.Sync.renderComponentDefaults(this.component, this._div);
         parentElement.appendChild(this._div);
 
-        if (jQuery("#flexigridCss").length === 0) {
+        if (jQuery("#flexigridCss_"+this.component.renderId).length === 0) {
             var stylesheet = this._createStylesheet();
-            jQuery("head").append("<style type=\"text/css\" id=\"flexigridCss\">" + stylesheet + "</style>");
+            jQuery("head").append("<style type=\"text/css\" id=\"flexigridCss_\"" + this.component.renderId + ">" + stylesheet + "</style>");
         }
 
         this._renderRequired = true;
@@ -819,6 +819,7 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
             css = css.replace(/LINE_IMG/g, this.component.render(exxcellent.FlexiGrid.LINE_IMG));
             css = css.replace(/HL_IMG/g, this.component.render(exxcellent.FlexiGrid.HL_IMG));
             css = css.replace(/HL_COLOR/g, this.component.render(exxcellent.FlexiGrid.HL_COLOR));
+            css = css.replace(/FG_COLOR/g, this.component.render("foreground"));
             css = css.replace(/FHBG_IMG/g, this.component.render(exxcellent.FlexiGrid.FHBG_IMG));
             css = css.replace(/DDN_IMG/g, this.component.render(exxcellent.FlexiGrid.DDN_IMG));
             css = css.replace(/WBG_IMG/g, this.component.render(exxcellent.FlexiGrid.WBG_IMG));

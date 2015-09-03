@@ -260,6 +260,7 @@ public final class FlexiGrid extends Component implements Pane {
     
     private static final ImageReference HL_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/hl.png");
     private static final Color HL_COLOR = new Color(252, 210, 126);
+    private static final Color FG_COLOR = Color.BLACK;
     
     private static final ImageReference FHBG_IMG =
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/fhbg.gif");
@@ -334,8 +335,6 @@ public final class FlexiGrid extends Component implements Pane {
     private static final String MSG_NO_ITEMS_EN = "No Items";
     private static final String WORD_PAGE_EN = "Page";
     private static final String WORD_OF_EN = "of";
-    
-    
     
     private static long nextID = 0;
         
@@ -441,6 +440,7 @@ public final class FlexiGrid extends Component implements Pane {
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
         set(PROPERTY_HL_IMG, HL_IMG);
+        setForeground(FG_COLOR);
         set(PROPERTY_HL_COLOR, HL_COLOR);
         set(PROPERTY_FHBG_IMG, FHBG_IMG);
         set(PROPERTY_DDN_IMG, DDN_IMG);
@@ -1593,7 +1593,7 @@ public final class FlexiGrid extends Component implements Pane {
 
                 // process FlexiCell
                 // -----------------
-                FlexiCell cell = null;
+                final FlexiCell cell;
                 if (colID == -1) {
                     cell = new FlexiCell(rowID, colID, Integer.toString(currentRow + 1));
                 } else {
@@ -1647,20 +1647,17 @@ public final class FlexiGrid extends Component implements Pane {
                 continue;
             }
 
-            for (int r = 0; r < rows.length; r++) {
-                if (rows[r].getCellAt(c).setWidth(maxWidth)) {
-                    continue;
-                }
-            }
+          for(FlexiRow row : rows)
+            if(row.getCellAt(c).setWidth(maxWidth))
+              break;
         }
 
-        Iterator<FlexiCell> it = null;
 
         // mark unuseble cells for replace
         // -------------------------------
         ArrayList<FlexiCell> toBeUnregistred = (ArrayList<FlexiCell>) currentCells.clone();
         toBeUnregistred.removeAll(newCells);
-        for (it = toBeUnregistred.iterator(); it.hasNext();) {
+        for (Iterator<FlexiCell> it = toBeUnregistred.iterator(); it.hasNext();) {
             unregisterCell(it.next());
         }
 
@@ -1669,19 +1666,18 @@ public final class FlexiGrid extends Component implements Pane {
         ArrayList<FlexiCell> toBeAdded = (ArrayList<FlexiCell>) newCells.clone();
         toBeAdded.removeAll(currentCells);
         attemptToReuse(toBeAdded);
-        for (it = toBeAdded.iterator(); it.hasNext();) {
+        for (Iterator<FlexiCell> it = toBeAdded.iterator(); it.hasNext();) {
             addCell(it.next());
         }
 
         // get max component index ...
         // ... remove all components greater than the index.
-        for (int r = 0; r < rows.length; r++) {
-            FlexiCell[] cells = rows[r].getCells();
-            for (int c = 0; c < cells.length; c++) {
-                int ci = Integer.parseInt(cells[c].getValidComponent().getId());
-                maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
-            }
-        }
+        for(FlexiRow row : rows)
+          for(FlexiCell cell : row.getCells())
+          {
+            int ci = Integer.parseInt(cell.getValidComponent().getId());
+            maxCompIndex = ci > maxCompIndex ? ci : maxCompIndex;
+          }
 
         removeUnusedComponents(maxCompIndex);
 
@@ -2039,8 +2035,7 @@ public final class FlexiGrid extends Component implements Pane {
             parent.remove(component);
         }
         
-        String ID = null;
-        String rID = null;
+        final String ID, rID;
         if (index == -1) {
             int cc = getComponentCount();
             ID = Integer.toString(cc);

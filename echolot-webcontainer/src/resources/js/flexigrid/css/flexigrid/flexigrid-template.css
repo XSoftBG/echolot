@@ -8,7 +8,7 @@
     position: relative;
     border: 0px solid #eee;
     overflow: hidden;
-    color: #000;
+    color: FG_COLOR;
     width: 100%;
     height: 100%;
 }
@@ -219,6 +219,7 @@
 .flexigrid div.sDiv2 input, .flexigrid div.sDiv2 select
 {
     vertical-align: middle;
+    color: FG_COLOR;
 }
 
 .flexigrid div.btnseparator
@@ -545,6 +546,11 @@ div.pGroup
     background: none;
     height: 24px;
     margin: 0px 5px;
+}
+
+.flexigrid div.pGroup input,  .flexigrid div.pGroup select
+{
+  color: FG_COLOR;
 }
 
 .flexigrid div.pDiv .pPageStat, .flexigrid div.pDiv .pcontrol
