@@ -260,6 +260,7 @@ public final class FlexiGrid extends Component implements Pane {
     
     private static final ImageReference HL_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/hl.png");
     private static final Color HL_COLOR = new Color(252, 210, 126);
+    private static final Color FG_COLOR = Color.BLACK;
     
     private static final ImageReference FHBG_IMG =
             new ResourceImageReference("js/flexigrid/css/flexigrid/images/fhbg.gif");
@@ -439,6 +440,7 @@ public final class FlexiGrid extends Component implements Pane {
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
         set(PROPERTY_HL_IMG, HL_IMG);
+        setForeground(FG_COLOR);
         set(PROPERTY_HL_COLOR, HL_COLOR);
         set(PROPERTY_FHBG_IMG, FHBG_IMG);
         set(PROPERTY_DDN_IMG, DDN_IMG);
