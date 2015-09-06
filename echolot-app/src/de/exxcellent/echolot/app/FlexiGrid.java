@@ -240,8 +240,8 @@ public final class FlexiGrid extends Component implements Pane {
     public static final String INPUT_TABLE_SORTING_CHANGE = "tableSortingChange";
     public static final String PROPERTY_FLEXICOLUMNS_UPDATE = "columnsUpdate";
     public static final String PROPERTY_LINE_IMG = "LINE_IMG";
-    public static final String PROPERTY_HL_IMG = "HL_IMG";
     public static final String PROPERTY_HL_COLOR = "HL_COLOR";
+    public static final String PROPERTY_HLFG_COLOR = "HLFG_COLOR";
     public static final String PROPERTY_FHBG_IMG = "FHBG_IMG";
     public static final String PROPERTY_DDN_IMG = "DDN_IMG";
     public static final String PROPERTY_WBG_IMG = "WBG_IMG";
@@ -258,7 +258,6 @@ public final class FlexiGrid extends Component implements Pane {
     public static final String PROPERTY_LOAD_BTN_IMG = "LOAD_BTN_IMG";
     private static final ImageReference LINE_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/line.gif");
     
-    private static final ImageReference HL_IMG = new ResourceImageReference("js/flexigrid/css/flexigrid/images/hl.png");
     private static final Color HL_COLOR = new Color(252, 210, 126);
     private static final Color FG_COLOR = Color.BLACK;
     
@@ -439,9 +438,9 @@ public final class FlexiGrid extends Component implements Pane {
 
         /* images */
         set(PROPERTY_LINE_IMG, LINE_IMG);
-        set(PROPERTY_HL_IMG, HL_IMG);
         setForeground(FG_COLOR);
         set(PROPERTY_HL_COLOR, HL_COLOR);
+        set(PROPERTY_HLFG_COLOR, FG_COLOR);
         set(PROPERTY_FHBG_IMG, FHBG_IMG);
         set(PROPERTY_DDN_IMG, DDN_IMG);
         set(PROPERTY_WBG_IMG, WBG_IMG);
@@ -743,14 +742,14 @@ public final class FlexiGrid extends Component implements Pane {
       return (Color) get(PROPERTY_HL_COLOR);
     }
 
-    public void setSelectionBackgroundImage(ResourceImageReference imageReference) {
-        set(PROPERTY_HL_IMG, imageReference);
+    public void setSelectionForeground(Color color) {
+        set(PROPERTY_HLFG_COLOR, color);
     }
-    
-    public ResourceImageReference getSelectionBackgroundImage() {
-        return (ResourceImageReference) get(PROPERTY_HL_IMG);
+
+    public Color getSelectionForeground() {
+      return (Color) get(PROPERTY_HLFG_COLOR);
     }
-    
+
     /**
      * Returns <code>true</code> if no wrap is enabled.
      *
