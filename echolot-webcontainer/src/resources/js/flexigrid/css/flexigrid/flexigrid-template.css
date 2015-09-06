@@ -63,9 +63,14 @@
 
 .flexigrid div.nDiv tr:hover td, .flexigrid div.nDiv tr.ndcolover td
 {
-    background: HL_COLOR url(HL_IMG) repeat-x top;
+    background: HL_COLOR;
     background-size: 100% 100%;
     border: 1px solid #a8d8eb;
+}
+
+.flexigrid div.nDiv tr:hover *, .flexigrid div.nDiv tr.ndcolover *
+{
+    color: HLFG_COLOR !important;
 }
 
 .flexigrid div.nDiv td.ndcol1
@@ -133,7 +138,6 @@
     overflow: hidden;
     white-space: nowrap;
     /* position: relative; */
-
     position: absolute;
     float: none;
     left: 0;
@@ -267,7 +271,6 @@
     border-bottom: 1px solid #eee;
 }		
 
-
 /* end toolbar*/
 
 .flexigrid div.hDiv
@@ -277,7 +280,6 @@
     border-bottom: 0px;
     overflow: hidden;
     /* position: relative; */
-
     position: absolute;
     float: none;
     left: 0;
@@ -414,6 +416,7 @@ div.colCopy {
 
 .flexigrid div.hDiv th.thOver
 {
+
 }
 
 .flexigrid div.hDiv th.thOver div, .flexigrid div.hDiv th.sorted.thOver div
@@ -479,11 +482,6 @@ div.colCopy {
     float: right;
 }
 
-
-
-
-
-
 .flexigrid tr.erow > td
 {
     background: #e7e7e7;
@@ -505,14 +503,13 @@ div.colCopy {
 
 .flexigrid tr td.sorted div
 {
+  
 }
 
 .flexigrid tr.erow td.sorted > div
 {
+
 }
-
-
-
 
 .flexigrid div.pDiv
 {
@@ -602,7 +599,6 @@ div.pGroup
     border-left: 1px solid #fff;
 }		
 
-
 .flexigrid .pSearch
 {
     background: url(MAGNIFIER_IMG) no-repeat center;
@@ -638,20 +634,11 @@ div.pGroup
     background: url(LOAD_BTN_IMG) no-repeat center;
 }															
 
-
-
-
-
-
-
-
 .flexigrid div.hDiv th div, div.colCopy div /* common inner cell properties*/
 {
     /*padding: 5px;*/
     border-left: 0px solid #fff;
 }
-
-
 
 /* ------------------------------------------------ */
 /* ---------------- START BODY DIV ---------------- */
@@ -704,28 +691,49 @@ div.pGroup
 /*    white-space: normal;*/
 }
 
-.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td, 
+.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td,
 .flexigrid div.bDiv > table:first-child > tbody > tr:hover > td.sorted,
 .flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td,
 .flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td.sorted
 {
     background: HL_COLOR;
+    color: HLFG_COLOR !important;
     border-left: 1px solid #eef8ff;
     /* border-bottom: 1px dotted #a8d8eb; */
 }
 
-.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td, 
+.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td *,
+.flexigrid div.bDiv > table:first-child > tbody > tr:hover > td.sorted *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver > td.sorted *
+{
+    color: HLFG_COLOR !important;
+}
+
+
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td,
 .flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td.sorted,
 .flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td,
-.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td.sorted
-.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td.sorted, 
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td.sorted,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td.sorted,
 .flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td
 {
-    background: HL_COLOR url(HL_IMG) repeat-x top;
+    background: HL_COLOR;
     background-size: 100% 100%;
+    color: HLFG_COLOR !important;
 /*    border-right: 1px solid #d2e3ec;
     border-left: 1px solid #eef8ff;
     border-bottom: 1px solid #fcc24c;*/
+}
+
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected:hover > td.sorted *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trOver.trSelected > td.sorted *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td.sorted *,
+.flexigrid div.bDiv > table:first-child > tbody > tr.trSelected > td *
+{
+    color: HLFG_COLOR !important;
 }
 
 /* novstripe adjustments */
@@ -774,7 +782,6 @@ div.pGroup
     border-right-color: #d9ebf5;
 }
 /* end novstripe */
-
 
 /* ie adjustments */
 .flexigrid.ie div.hDiv th div, .flexigrid.ie  div.bDiv td  div, div.colCopy.ie div/* common inner cell properties*/

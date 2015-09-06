@@ -296,8 +296,8 @@ exxcellent.FlexiGrid = Core.extend(Echo.Component, {
         NO_WRAP : "noWrap",
         SELECTION_MODE : "selectionMode",
         LINE_IMG : "LINE_IMG",
-        HL_IMG : "HL_IMG",
         HL_COLOR : "HL_COLOR",
+        HLFG_COLOR : "HLFG_COLOR",
         FHBG_IMG : "FHBG_IMG",
         DDN_IMG : "DDN_IMG",
         WBG_IMG : "WBG_IMG",
@@ -817,8 +817,8 @@ exxcellent.FlexiGridSync = Core.extend(Echo.Render.ComponentSync, {
         var css = this.component.render(exxcellent.FlexiGrid.CSS);
         if (css) {
             css = css.replace(/LINE_IMG/g, this.component.render(exxcellent.FlexiGrid.LINE_IMG));
-            css = css.replace(/HL_IMG/g, this.component.render(exxcellent.FlexiGrid.HL_IMG));
             css = css.replace(/HL_COLOR/g, this.component.render(exxcellent.FlexiGrid.HL_COLOR));
+            css = css.replace(/HLFG_COLOR/g, this.component.render(exxcellent.FlexiGrid.HLFG_COLOR));
             css = css.replace(/FG_COLOR/g, this.component.render("foreground"));
             css = css.replace(/FHBG_IMG/g, this.component.render(exxcellent.FlexiGrid.FHBG_IMG));
             css = css.replace(/DDN_IMG/g, this.component.render(exxcellent.FlexiGrid.DDN_IMG));
